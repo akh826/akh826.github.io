@@ -70,3 +70,43 @@ window.addEventListener("scroll", () => {
 backToTopButton.addEventListener("click", () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
+
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+if (!prefersReducedMotion) {
+  document.querySelectorAll(".hero-grid > *").forEach((element, index) => {
+    element.classList.add("hero-enter");
+    element.style.setProperty("--hero-delay", `${0.1 + index * 0.12}s`);
+  });
+
+  requestAnimationFrame(() => {
+    document.body.classList.add("page-loaded");
+  });
+
+  const revealTargets = document.querySelectorAll(
+    "main .section h2, .subsection-title, .summary-text, .timeline-card, .skill-group, .language-list li, #contact .container > p, .contact-details li"
+  );
+
+  const revealObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) {
+          return;
+        }
+
+        entry.target.classList.add("visible");
+        revealObserver.unobserve(entry.target);
+      });
+    },
+    {
+      threshold: 0.12,
+      rootMargin: "0px 0px -48px 0px"
+    }
+  );
+
+  revealTargets.forEach((element, index) => {
+    element.classList.add("reveal");
+    element.style.setProperty("--reveal-delay", `${(index % 5) * 0.08}s`);
+    revealObserver.observe(element);
+  });
+}
