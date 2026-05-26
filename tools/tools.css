@@ -1,0 +1,190 @@
+.tool-page code {
+  font-size: 0.88em;
+  padding: 0.15rem 0.4rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  border: 1px solid var(--border);
+}
+
+.tool-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.tool-catalog-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 1.25rem;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.tool-catalog-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.1);
+}
+
+.tool-catalog-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.tool-catalog-card h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--primary-strong);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.tool-catalog-desc {
+  flex: 1;
+  color: var(--muted);
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+}
+
+.tool-catalog-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tool-catalog-tags li {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  color: var(--primary-strong);
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--border));
+}
+
+.tool-catalog-card .btn {
+  align-self: flex-start;
+}
+
+.tool-page {
+  padding-top: 6rem;
+  padding-bottom: 4rem;
+}
+
+.tool-header {
+  margin-bottom: 2rem;
+}
+
+.tool-header h1 {
+  margin-bottom: 0.5rem;
+}
+
+.tool-intro {
+  color: var(--muted);
+  max-width: 65ch;
+}
+
+.tool-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-bottom: 1.5rem;
+}
+
+.tool-note {
+  font-size: 0.9rem;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.info-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.info-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 1.1rem 1.25rem;
+}
+
+.info-card h2 {
+  font-size: 1rem;
+  color: var(--primary-strong);
+  margin: 0 0 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.info-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.info-table th,
+.info-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.45rem 0.5rem 0.45rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.info-table tr:last-child th,
+.info-table tr:last-child td {
+  border-bottom: none;
+}
+
+.info-table th {
+  width: 38%;
+  font-weight: 600;
+  color: var(--muted);
+  padding-right: 1rem;
+}
+
+.info-table td {
+  word-break: break-word;
+}
+
+.tool-back {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: var(--primary-strong);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.tool-back:hover {
+  text-decoration: underline;
+}
+
+.tool-status {
+  font-size: 0.9rem;
+  color: var(--muted);
+  min-height: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.tool-status.success {
+  color: #059669;
+}
+
+body.dark .tool-status.success {
+  color: #34d399;
+}
