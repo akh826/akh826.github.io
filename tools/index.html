@@ -28,11 +28,38 @@
       <header class="tool-header">
         <h1>Tools Catalog</h1>
         <p class="tool-intro">
-          Small browser utilities. Each tool lives in its own folder under <code>tools/</code>.
+          Star tools to pin them at the top. Favorites are saved in this browser.
+          Filter by name or tag below.
         </p>
       </header>
 
-      <div class="tool-catalog-grid" id="catalogGrid"></div>
+      <section class="catalog-favorites-section" id="favoritesSection" hidden>
+        <h2 class="catalog-section-title">Favorites</h2>
+        <div class="tool-catalog-grid" id="favoritesGrid"></div>
+      </section>
+
+      <div class="catalog-toolbar">
+        <label class="catalog-search">
+          <span class="catalog-search-label">Search</span>
+          <input
+            type="search"
+            id="catalogSearch"
+            class="catalog-search-input"
+            placeholder="Filter by tool name…"
+            autocomplete="off"
+          >
+        </label>
+        <div class="catalog-tag-bar">
+          <span class="catalog-tag-bar-label">Tags</span>
+          <div class="catalog-tag-filters" id="tagFilters" role="group" aria-label="Filter by tag"></div>
+        </div>
+      </div>
+
+      <section class="catalog-all-section">
+        <h2 class="catalog-section-title" id="allToolsHeading">All tools</h2>
+        <div class="tool-catalog-grid" id="catalogGrid"></div>
+        <p class="catalog-empty" id="catalogEmpty" hidden>No tools match your search or tag.</p>
+      </section>
     </div>
   </main>
 
