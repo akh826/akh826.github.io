@@ -71,6 +71,31 @@ backToTopButton.addEventListener("click", () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
+const timelineExpand = document.getElementById("timelineExpand");
+const timelineMore = document.getElementById("timelineMore");
+const timelineExpandText = timelineExpand?.querySelector(".timeline-expand-text");
+
+if (timelineExpand && timelineMore) {
+  timelineExpand.addEventListener("click", () => {
+    const isOpen = timelineExpand.getAttribute("aria-expanded") === "true";
+    const willOpen = !isOpen;
+
+    timelineExpand.setAttribute("aria-expanded", String(willOpen));
+    timelineMore.classList.toggle("is-open", willOpen);
+    timelineMore.setAttribute("aria-hidden", String(!willOpen));
+
+    if (timelineExpandText) {
+      timelineExpandText.textContent = willOpen ? "Hide earlier roles" : "Show earlier roles";
+    }
+
+    if (willOpen) {
+      timelineMore.querySelectorAll(".timeline-card.reveal:not(.visible)").forEach((card) => {
+        card.classList.add("visible");
+      });
+    }
+  });
+}
+
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 if (!prefersReducedMotion) {

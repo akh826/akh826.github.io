@@ -294,6 +294,67 @@ h1 {
   gap: 1rem;
 }
 
+.timeline-expand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin: 0.15rem 0;
+  padding: 0.65rem 1rem;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+  color: var(--primary-strong);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.timeline-expand:hover {
+  background: color-mix(in srgb, var(--primary) 14%, var(--surface));
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+}
+
+.timeline-chevron {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 0.3s ease;
+}
+
+.timeline-expand[aria-expanded="true"] .timeline-chevron {
+  transform: rotate(225deg) translateY(2px);
+}
+
+.timeline-more {
+  display: grid;
+  gap: 1rem;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.45s ease, opacity 0.35s ease;
+}
+
+.timeline-more.is-open {
+  max-height: 1200px;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timeline-more {
+    transition: none;
+  }
+
+  .timeline-chevron {
+    transition: none;
+  }
+}
+
 .timeline-card {
   background: var(--surface);
   border: 1px solid var(--border);
