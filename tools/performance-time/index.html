@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Analyze navigation timing phases and estimate client clock drift.">
+    <title>Performance &amp; Time Benchmarks | Tools</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <nav class="nav container">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="../../index.html" class="nav-link">Portfolio</a></li>
+                <li><a href="../index.html" class="nav-link">Tools</a></li>
+                <li><a href="index.html" class="nav-link active">Performance Benchmarks</a></li>
+            </ul>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
+        </nav>
+    </header>
+
+    <main class="tool-page section">
+        <div class="container">
+            <a class="tool-back" href="../index.html">&larr; Tool catalog</a>
+
+            <header class="tool-header">
+                <h1>Performance &amp; Time Benchmarks</h1>
+                <p class="tool-intro">
+                    View page-load stage timings from Navigation Timing API and estimate whether the client clock
+                    appears
+                    offset from server time.
+                </p>
+            </header>
+
+            <p class="tool-note">
+                Clock-drift estimation uses rapid fetch requests with a same-origin Date-header check first, then public
+                UTC time fallbacks if needed. Results are indicative, not a strict replacement for full NTP
+                synchronization.
+            </p>
+
+            <div class="tool-actions">
+                <button type="button" class="btn btn-primary" id="refreshBenchmarks">Refresh benchmarks</button>
+                <button type="button" class="btn btn-outline" id="runClockDrift">Run clock drift test</button>
+            </div>
+
+            <p class="tool-status" id="toolStatus" aria-live="polite"></p>
+
+            <div class="info-grid" id="benchmarksGrid"></div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; <span id="year"></span> Kam Hei Au. Tools.</p>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="../../script.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

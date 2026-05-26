@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Inspect browser storage quota and local storage usage breakdown for this origin.">
+    <title>Client Storage &amp; Quota Analytics | Tools</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <nav class="nav container">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="../../index.html" class="nav-link">Portfolio</a></li>
+                <li><a href="../index.html" class="nav-link">Tools</a></li>
+                <li><a href="index.html" class="nav-link active">Storage Analytics</a></li>
+            </ul>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
+        </nav>
+    </header>
+
+    <main class="tool-page section">
+        <div class="container">
+            <a class="tool-back" href="../index.html">&larr; Tool catalog</a>
+
+            <header class="tool-header">
+                <h1>Client Storage &amp; Quota Analytics</h1>
+                <p class="tool-intro">
+                    Analyze how much storage this origin can use and how much it currently consumes, including a
+                    breakdown
+                    for localStorage, sessionStorage, and cookies.
+                </p>
+            </header>
+
+            <p class="tool-note">
+                Quota values come from Storage Quota API and may include IndexedDB, Cache Storage, and other origin
+                data.
+                Cookie size shown here is based on the current document cookie string visible to this page.
+            </p>
+
+            <div class="tool-actions">
+                <button type="button" class="btn btn-primary" id="refreshStorageAnalytics">Refresh analytics</button>
+            </div>
+
+            <p class="tool-status" id="toolStatus" aria-live="polite"></p>
+
+            <div class="info-grid" id="storageGrid"></div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; <span id="year"></span> Kam Hei Au. Tools.</p>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="../../script.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

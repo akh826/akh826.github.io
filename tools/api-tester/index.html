@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Send custom HTTP requests with headers, auth, body, and file attachments.">
+    <title>API Tester | Tools</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <nav class="nav container">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="../../index.html" class="nav-link">Portfolio</a></li>
+                <li><a href="../index.html" class="nav-link">Tools</a></li>
+                <li><a href="index.html" class="nav-link active">API Tester</a></li>
+            </ul>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
+        </nav>
+    </header>
+
+    <main class="tool-page section">
+        <div class="container">
+            <a class="tool-back" href="../index.html">&larr; Tool catalog</a>
+
+            <header class="tool-header">
+                <h1>API Tester</h1>
+                <p class="tool-intro">
+                    Send requests with custom URL, method, headers, auth, body, and attachments. Useful for quick
+                    endpoint
+                    checks directly in the browser.
+                </p>
+            </header>
+
+            <p class="tool-note">
+                Browser requests are subject to CORS. If a target API does not allow this origin, the request may fail
+                even if the API works in server-side tools.
+            </p>
+
+            <section class="info-card api-builder-card">
+                <h2>Request Builder</h2>
+
+                <div class="api-grid-2">
+                    <label class="api-field">
+                        <span>Method</span>
+                        <select id="requestMethod" class="api-input">
+                            <option>GET</option>
+                            <option>POST</option>
+                            <option>PUT</option>
+                            <option>PATCH</option>
+                            <option>DELETE</option>
+                            <option>HEAD</option>
+                            <option>OPTIONS</option>
+                        </select>
+                    </label>
+
+                    <label class="api-field api-field-wide">
+                        <span>URL</span>
+                        <input id="requestUrl" class="api-input" type="url"
+                            placeholder="https://api.example.com/v1/items" autocomplete="off">
+                    </label>
+                </div>
+
+                <div class="api-section">
+                    <div class="api-section-head">
+                        <h3>Authentication</h3>
+                    </div>
+
+                    <div class="api-grid-2">
+                        <label class="api-field">
+                            <span>Auth Type</span>
+                            <select id="authType" class="api-input">
+                                <option value="none">None</option>
+                                <option value="bearer">Bearer Token</option>
+                                <option value="basic">Basic (username/password)</option>
+                                <option value="apikey">API Key Header</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div id="authFields"></div>
+                </div>
+
+                <div class="api-section">
+                    <div class="api-section-head">
+                        <h3>Headers</h3>
+                        <button type="button" class="btn btn-outline" id="addHeaderRow">Add header</button>
+                    </div>
+                    <div id="headersList" class="api-rows"></div>
+                </div>
+
+                <div class="api-section">
+                    <div class="api-section-head">
+                        <h3>Body</h3>
+                    </div>
+
+                    <div class="api-grid-2">
+                        <label class="api-field">
+                            <span>Body Type</span>
+                            <select id="bodyType" class="api-input">
+                                <option value="none">None</option>
+                                <option value="json">JSON</option>
+                                <option value="text">Text</option>
+                                <option value="form-data">Multipart Form Data (attachments)</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <label class="api-field" id="bodyInputWrap">
+                        <span>Body Content</span>
+                        <textarea id="requestBody" class="api-textarea" rows="8"
+                            placeholder='{"name":"demo"}'></textarea>
+                    </label>
+
+                    <label class="api-field" id="attachmentsWrap">
+                        <span>Attachments</span>
+                        <input id="requestAttachments" class="api-input" type="file" multiple>
+                        <small class="api-help">Files are appended as files[] in form-data requests.</small>
+                    </label>
+                </div>
+
+                <div class="tool-actions">
+                    <button type="button" class="btn btn-primary" id="sendRequestBtn">Send Request</button>
+                    <button type="button" class="btn btn-outline" id="clearResponseBtn">Clear Response</button>
+                </div>
+
+                <p class="tool-status" id="requestStatus" aria-live="polite"></p>
+            </section>
+
+            <section class="info-card">
+                <h2>Response</h2>
+                <div class="api-response-summary" id="responseSummary">No response yet.</div>
+
+                <div class="api-section-head response-block-head">
+                    <h3>Response Headers</h3>
+                </div>
+                <pre class="api-code-block" id="responseHeaders">-</pre>
+
+                <div class="api-section-head response-block-head">
+                    <h3>Response Body</h3>
+                </div>
+                <pre class="api-code-block" id="responseBody">-</pre>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; <span id="year"></span> Kam Hei Au. Tools.</p>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="../../script.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

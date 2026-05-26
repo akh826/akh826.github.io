@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Inspect browser network state, latency, and local IP candidates from WebRTC.">
+    <title>Network &amp; Connectivity Performance | Tools</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <nav class="nav container">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="../../index.html" class="nav-link">Portfolio</a></li>
+                <li><a href="../index.html" class="nav-link">Tools</a></li>
+                <li><a href="index.html" class="nav-link active">Network Tool</a></li>
+            </ul>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
+        </nav>
+    </header>
+
+    <main class="tool-page section">
+        <div class="container">
+            <a class="tool-back" href="../index.html">&larr; Tool catalog</a>
+
+            <header class="tool-header">
+                <h1>Network &amp; Connectivity Performance</h1>
+                <p class="tool-intro">
+                    Live network inspector for debugging browser connectivity issues. It reports Network Information API
+                    values,
+                    online/offline transitions, local WebRTC IP candidates, and a small latency probe.
+                </p>
+            </header>
+
+            <p class="tool-note">
+                Privacy and browser hardening may hide some details. On many browsers, WebRTC local IPs are masked or
+                unavailable.
+            </p>
+
+            <section class="network-status-strip" aria-label="Current connection state">
+                <div class="network-badge" id="onlineBadge" role="status" aria-live="polite">Checking status...</div>
+                <div class="network-meta" id="connectionSummary">Waiting for connection metrics...</div>
+            </section>
+
+            <div class="tool-actions">
+                <button type="button" class="btn btn-primary" id="refreshNetworkInfo">Refresh network info</button>
+                <button type="button" class="btn btn-outline" id="runLatencyTest">Run latency test</button>
+                <button type="button" class="btn btn-outline" id="runWebrtcTest">Run WebRTC local IP test</button>
+            </div>
+
+            <p class="tool-status" id="toolStatus" aria-live="polite"></p>
+
+            <div class="info-grid" id="infoGrid"></div>
+
+            <section class="info-card network-log-card">
+                <h2>Online/Offline Event Log</h2>
+                <ul class="network-log" id="eventLog" aria-live="polite"></ul>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; <span id="year"></span> Kam Hei Au. Tools.</p>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="../../script.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

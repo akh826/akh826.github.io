@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Audit browser permissions and connected media devices for media app debugging.">
+    <title>Media &amp; Permissions Audit | Tools</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <nav class="nav container">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="../../index.html" class="nav-link">Portfolio</a></li>
+                <li><a href="../index.html" class="nav-link">Tools</a></li>
+                <li><a href="index.html" class="nav-link active">Media Audit</a></li>
+            </ul>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
+        </nav>
+    </header>
+
+    <main class="tool-page section">
+        <div class="container">
+            <a class="tool-back" href="../index.html">&larr; Tool catalog</a>
+
+            <header class="tool-header">
+                <h1>Media &amp; Permissions Audit</h1>
+                <p class="tool-intro">
+                    Inspect permission states for common media-related browser capabilities and list connected
+                    input/output
+                    devices to quickly debug media app setup.
+                </p>
+            </header>
+
+            <p class="tool-note">
+                Device labels are often hidden until at least one media permission is granted in the current origin.
+                This page never uploads media streams.
+            </p>
+
+            <div class="tool-actions">
+                <button type="button" class="btn btn-primary" id="refreshAudit">Refresh audit</button>
+                <button type="button" class="btn btn-outline" id="requestMediaAccess">Request camera + mic
+                    access</button>
+            </div>
+
+            <p class="tool-status" id="toolStatus" aria-live="polite"></p>
+
+            <div class="info-grid" id="auditGrid"></div>
+
+            <section class="info-card media-tester-card" aria-label="Camera and microphone tester">
+                <h2>Camera &amp; Microphone Tester</h2>
+                <p class="tool-note-inline">
+                    Start a local preview to confirm camera image and microphone activity. Nothing is uploaded.
+                </p>
+
+                <div class="tool-actions media-tester-actions">
+                    <button type="button" class="btn btn-primary" id="startMediaTest">Start test</button>
+                    <button type="button" class="btn btn-outline" id="stopMediaTest" disabled>Stop test</button>
+                </div>
+
+                <div class="media-preview-wrap">
+                    <video id="cameraPreview" class="camera-preview" autoplay playsinline muted></video>
+                </div>
+
+                <div class="mic-level-wrap" aria-live="polite">
+                    <div class="mic-level-track">
+                        <div class="mic-level-fill" id="micLevelFill"></div>
+                    </div>
+                    <p class="mic-level-text" id="micLevelText">Mic level: idle</p>
+                </div>
+
+                <p class="tool-status" id="mediaTestStatus" aria-live="polite"></p>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; <span id="year"></span> Kam Hei Au. Tools.</p>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="../../script.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
