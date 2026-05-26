@@ -132,6 +132,146 @@ function updateOnlineBadge(badgeElement, summaryElement) {
     )}, rtt: ${formatMaybeNumber(connection.rttMs, " ms")}`;
 }
 
+function normalizePingUrl(input) {
+    const raw = (input || "").trim();
+    if (!raw) {
+        return "";
+    }
+
+    const withProtocol = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+
+    try {
+        return new URL(withProtocol).toString();
+    } catch {
+        return "";
+    }
+}
+
+async function pingTargetUrl(url, sampleCount = 3, timeoutMs = 6000) {
+    const durations = [];
+    let successCount = 0;
+
+    for (let index = 0; index < sampleCount; index += 1) {
+        const controller = new AbortController();
+        const startedAt = performance.now();
+        const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+
+        try {
+            await fetch(`${url}${url.includes("?") ? "&" : "?"}ping=${Date.now()}_${index}`, {
+                method: "GET",
+                cache: "no-store",
+                mode: "no-cors",
+                signal: controller.signal
+            });
+
+            const endedAt = performance.now();
+            durations.push(endedAt - startedAt);
+            successCount += 1;
+        } catch {
+            const endedAt = performance.now();
+            durations.push(endedAt - startedAt);
+        } finally {
+            window.clearTimeout(timeoutId);
+        }
+    }
+
+    if (!durations.length) {
+        return {
+            target: url,
+            avgMs: null,
+            minMs: null,
+            maxMs: null,
+            successCount: 0,
+            sampleCount
+        };
+    }
+
+    const min = Math.min(...durations);
+    const max = Math.max(...durations);
+    const avg = durations.reduce((sum, value) => sum + value, 0) / durations.length;
+
+    return {
+        target: url,
+        avgMs: avg,
+        minMs: min,
+        maxMs: max,
+        successCount,
+        sampleCount
+    };
+}
+
+function formatMsStat(value) {
+    if (typeof value !== "number" || Number.isNaN(value)) {
+        return "N/A";
+    }
+
+    return `${value.toFixed(1)} ms`;
+}
+
+function getPingStatus(result) {
+    if (result.successCount === 0) {
+        return { label: "Failed", className: "is-failed" };
+    }
+
+    if (result.successCount < result.sampleCount) {
+        return { label: "Partial", className: "is-partial" };
+    }
+
+    return { label: "Success", className: "is-success" };
+}
+
+function getSelectedPingTargets() {
+    const checkedInputs = [...document.querySelectorAll("#pingTargetList input[type='checkbox']:checked")];
+    const selected = checkedInputs.map((item) => normalizePingUrl(item.value)).filter(Boolean);
+
+    const customInput = document.getElementById("customPingUrl");
+    const normalizedCustom = normalizePingUrl(customInput?.value || "");
+    if (normalizedCustom) {
+        selected.push(normalizedCustom);
+    }
+
+    return [...new Set(selected)];
+}
+
+function renderPingResults(results) {
+    const wrap = document.getElementById("pingResultsWrap");
+    const table = document.getElementById("pingResultsTable");
+    const tbody = table?.querySelector("tbody");
+
+    if (!wrap || !tbody) {
+        return;
+    }
+
+    tbody.innerHTML = "";
+
+    results.forEach((result) => {
+        const status = getPingStatus(result);
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <th scope="row">${escapeHtml(result.target)}</th>
+            <td>${escapeHtml(formatMsStat(result.avgMs))}</td>
+            <td>${escapeHtml(formatMsStat(result.minMs))}</td>
+            <td>${escapeHtml(formatMsStat(result.maxMs))}</td>
+            <td>${escapeHtml(`${result.successCount}/${result.sampleCount} success`)}</td>
+            <td><span class="ping-status-chip ${status.className}">${escapeHtml(status.label)}</span></td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    wrap.hidden = results.length === 0;
+}
+
+async function runPingBatch(targets, sampleCount = 3) {
+    const results = [];
+
+    for (const target of targets) {
+        const result = await pingTargetUrl(target, sampleCount);
+        results.push(result);
+    }
+
+    return results;
+}
+
 async function runLatencyProbe(sampleCount = 5) {
     const durations = [];
     const target = `${window.location.href.split("#")[0]}?latency_probe=${Date.now()}`;
@@ -265,6 +405,7 @@ let latestData = {
     networkInfo: null,
     latency: null,
     webrtc: null,
+    pingResults: [],
     measuredAt: null
 };
 
@@ -316,6 +457,8 @@ async function initNetworkTool() {
     const badge = document.getElementById("onlineBadge");
     const summary = document.getElementById("connectionSummary");
     const eventLog = document.getElementById("eventLog");
+    const pingButton = document.getElementById("runPingTest");
+    const pingStatus = document.getElementById("pingStatus");
 
     if (!grid) {
         return;
@@ -380,8 +523,36 @@ async function initNetworkTool() {
         await refreshNetworkInfo(grid, status, badge, summary);
     });
 
+    pingButton?.addEventListener("click", async () => {
+        if (!pingStatus) {
+            return;
+        }
+
+        const targets = getSelectedPingTargets();
+        if (!targets.length) {
+            pingStatus.textContent = "Select at least one preset target or enter a valid custom URL.";
+            pingStatus.classList.remove("success");
+            return;
+        }
+
+        pingStatus.textContent = "Running ping tests...";
+        pingStatus.classList.remove("success");
+
+        const results = await runPingBatch(targets, 3);
+        latestData.pingResults = results;
+        renderPingResults(results);
+
+        const totalSuccesses = results.reduce((sum, item) => sum + item.successCount, 0);
+        const totalSamples = results.reduce((sum, item) => sum + item.sampleCount, 0);
+
+        pingStatus.textContent = `Ping test completed: ${totalSuccesses}/${totalSamples} successful samples.`;
+        pingStatus.classList.toggle("success", totalSuccesses > 0);
+        addLogItem(eventLog, "Website ping test completed.");
+    });
+
     addLogItem(eventLog, "Network monitor initialized.");
     await refreshNetworkInfo(grid, status, badge, summary);
+    renderPingResults(latestData.pingResults);
 }
 
 initNetworkTool();

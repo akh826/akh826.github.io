@@ -216,6 +216,52 @@ async function requestMediaAccess() {
     stream.getTracks().forEach((track) => track.stop());
 }
 
+async function removePermissionsBestEffort() {
+    const permissionsApi = navigator.permissions;
+
+    if (!permissionsApi?.query) {
+        return {
+            success: false,
+            message: "Permissions API is unavailable. Remove permissions manually from browser site settings."
+        };
+    }
+
+    if (typeof permissionsApi.revoke !== "function") {
+        return {
+            success: false,
+            message: "This browser does not allow websites to revoke permissions programmatically. Use site settings to remove permissions."
+        };
+    }
+
+    let revokedCount = 0;
+    let attemptedCount = 0;
+
+    for (const permission of PERMISSION_QUERIES) {
+        attemptedCount += 1;
+
+        try {
+            const result = await permissionsApi.revoke({ name: permission.permissionName });
+            if (result?.state === "prompt") {
+                revokedCount += 1;
+            }
+        } catch {
+            // Permission may be unsupported for revoke; skip silently.
+        }
+    }
+
+    if (revokedCount > 0) {
+        return {
+            success: true,
+            message: `Removed ${revokedCount} permission(s).`
+        };
+    }
+
+    return {
+        success: false,
+        message: `No permissions were removed automatically. Checked ${attemptedCount} permission types; use browser site settings to clear them.`
+    };
+}
+
 function setMicLevel(fillElement, textElement, value) {
     const safeValue = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 0;
     if (fillElement) {
@@ -367,6 +413,7 @@ async function initMediaPermissionsAudit() {
     const status = document.getElementById("toolStatus");
     const refreshButton = document.getElementById("refreshAudit");
     const requestButton = document.getElementById("requestMediaAccess");
+    const removePermissionsButton = document.getElementById("removePermissions");
     const startTestButton = document.getElementById("startMediaTest");
     const stopTestButton = document.getElementById("stopMediaTest");
     const cameraPreview = document.getElementById("cameraPreview");
@@ -406,6 +453,25 @@ async function initMediaPermissionsAudit() {
         }
 
         await runAudit(grid, status);
+    });
+
+    removePermissionsButton?.addEventListener("click", async () => {
+        status.textContent = "Removing permissions...";
+        status.classList.remove("success");
+
+        stopMediaTester(cameraPreview, micLevelFill, micLevelText, mediaTestStatus);
+        if (stopTestButton) {
+            stopTestButton.disabled = true;
+        }
+        if (startTestButton) {
+            startTestButton.disabled = false;
+        }
+
+        const result = await removePermissionsBestEffort();
+        await runAudit(grid, status);
+
+        status.textContent = result.message;
+        status.classList.toggle("success", result.success);
     });
 
     startTestButton?.addEventListener("click", async () => {

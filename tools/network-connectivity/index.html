@@ -59,6 +59,47 @@
 
             <div class="info-grid" id="infoGrid"></div>
 
+            <section class="info-card ping-test-card" aria-label="Ping test panel">
+                <h2>Website Ping Test</h2>
+                <p class="tool-note-inline">
+                    Measures browser-side request latency to selected websites. Results are approximate and may be
+                    affected by CORS and CDN behavior.
+                </p>
+
+                <div class="ping-target-list" id="pingTargetList">
+                    <label><input type="checkbox" value="https://www.google.com" checked> Google</label>
+                    <label><input type="checkbox" value="https://www.amazon.com" checked> Amazon</label>
+                    <label><input type="checkbox" value="https://www.cloudflare.com"> Cloudflare</label>
+                    <label><input type="checkbox" value="https://www.github.com"> GitHub</label>
+                </div>
+
+                <div class="ping-custom-row">
+                    <label class="ping-custom-input-wrap" for="customPingUrl">
+                        <span>Custom URL</span>
+                        <input id="customPingUrl" class="api-input" type="text" placeholder="https://example.com">
+                    </label>
+                    <button type="button" class="btn btn-outline" id="runPingTest">Run ping test</button>
+                </div>
+
+                <p class="tool-status" id="pingStatus" aria-live="polite"></p>
+
+                <div class="ping-results-wrap" id="pingResultsWrap" hidden>
+                    <table class="info-table ping-results-table" id="pingResultsTable">
+                        <thead>
+                            <tr>
+                                <th scope="col">Target</th>
+                                <th scope="col">Avg</th>
+                                <th scope="col">Min</th>
+                                <th scope="col">Max</th>
+                                <th scope="col">Samples</th>
+                                <th scope="col">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+
             <section class="info-card network-log-card">
                 <h2>Online/Offline Event Log</h2>
                 <ul class="network-log" id="eventLog" aria-live="polite"></ul>
