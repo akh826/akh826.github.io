@@ -18,9 +18,20 @@
         <nav class="nav container">
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
             <ul class="nav-links" id="navLinks">
-                <li><a href="../../index.html" class="nav-link">Portfolio</a></li>
-                <li><a href="../index.html" class="nav-link">Tools</a></li>
-                <li><a href="index.html" class="nav-link active">Media Audit</a></li>
+                <li class="nav-sections-group">
+                    <span class="nav-area-label">Portfolio</span>
+                    <ul class="nav-sections-list">
+                        <li><a href="../../index.html" class="nav-link nav-link-section">Home</a></li>
+                        <li><a href="index.html" class="nav-link nav-link-section active">Media Audit</a></li>
+                    </ul>
+                </li>
+                <li class="nav-divider" aria-hidden="true"></li>
+                <li>
+                    <a href="../index.html" class="nav-link nav-link-tools">
+                        <span class="nav-tools-icon" aria-hidden="true">⬡</span>
+                        Tools
+                    </a>
+                </li>
             </ul>
             <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
         </nav>

@@ -18,9 +18,20 @@
         <nav class="nav container">
             <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
             <ul class="nav-links" id="navLinks">
-                <li><a href="../../index.html" class="nav-link">Portfolio</a></li>
-                <li><a href="../index.html" class="nav-link">Tools</a></li>
-                <li><a href="index.html" class="nav-link active">API Tester</a></li>
+                <li class="nav-sections-group">
+                    <span class="nav-area-label">Portfolio</span>
+                    <ul class="nav-sections-list">
+                        <li><a href="../../index.html" class="nav-link nav-link-section">Home</a></li>
+                        <li><a href="index.html" class="nav-link nav-link-section active">API Tester</a></li>
+                    </ul>
+                </li>
+                <li class="nav-divider" aria-hidden="true"></li>
+                <li>
+                    <a href="../index.html" class="nav-link nav-link-tools">
+                        <span class="nav-tools-icon" aria-hidden="true">⬡</span>
+                        Tools
+                    </a>
+                </li>
             </ul>
             <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
         </nav>
@@ -41,11 +52,70 @@
 
             <p class="tool-note">
                 Browser requests are subject to CORS. If a target API does not allow this origin, the request may fail
-                even if the API works in server-side tools.
+                even if the API works in server-side tools. The <strong>Static API</strong> below is hosted on this site
+                and works without CORS issues. POST/PUT/DELETE are mocked by the service worker on this site.
             </p>
 
-            <section class="info-card api-builder-card">
-                <h2>Request Builder</h2>
+            <section class="info-card api-static-card collapsible-card" data-collapsible>
+                <div class="card-head">
+                    <h2>Static API (this site)</h2>
+                    <button type="button" class="card-toggle-btn" data-collapse-toggle aria-expanded="true" aria-label="Hide section">
+                        <span class="card-toggle-chevron" aria-hidden="true"></span>
+                    </button>
+                </div>
+                <div class="collapsible-body" data-collapse-body>
+                    <div class="collapsible-inner">
+                <p class="api-help api-static-desc" id="staticApiDesc">
+                    Load mock JSON endpoints from the <code>tools/api-tester/api/</code> folder for testing.
+                </p>
+
+                <div class="api-grid-2">
+                    <label class="api-field api-field-wide">
+                        <span>Preset endpoint</span>
+                        <select id="staticApiPreset" class="api-input">
+                            <option value="">Select an endpoint…</option>
+                        </select>
+                    </label>
+
+                    <label class="api-field">
+                        <span>Simulate HTTP status</span>
+                        <select id="staticApiMockStatus" class="api-input">
+                            <option value="auto">Auto (from preset)</option>
+                            <option value="200">200 OK</option>
+                            <option value="201">201 Created</option>
+                            <option value="401">401 Unauthorized</option>
+                            <option value="403">403 Forbidden</option>
+                            <option value="404">404 Not Found</option>
+                            <option value="422">422 Unprocessable Entity</option>
+                            <option value="500">500 Internal Server Error</option>
+                            <option value="503">503 Service Unavailable</option>
+                        </select>
+                    </label>
+                </div>
+
+                <p class="api-help" id="mockStatusHelp">
+                    Status simulation uses a service worker on this page (requires localhost or HTTPS).
+                </p>
+
+                <p class="api-static-endpoint" id="staticApiEndpointHint" hidden></p>
+
+                <div class="tool-actions">
+                    <button type="button" class="btn btn-outline" id="loadStaticPresetBtn">Load into request</button>
+                    <button type="button" class="btn btn-primary" id="sendStaticPresetBtn">Send request</button>
+                </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="info-card api-builder-card collapsible-card" data-collapsible>
+                <div class="card-head">
+                    <h2>Request Builder</h2>
+                    <button type="button" class="card-toggle-btn" data-collapse-toggle aria-expanded="true" aria-label="Hide section">
+                        <span class="card-toggle-chevron" aria-hidden="true"></span>
+                    </button>
+                </div>
+                <div class="collapsible-body" data-collapse-body>
+                    <div class="collapsible-inner">
 
                 <div class="api-grid-2">
                     <label class="api-field">
@@ -117,13 +187,33 @@
                         <span>Body Content</span>
                         <textarea id="requestBody" class="api-textarea" rows="8"
                             placeholder='{"name":"demo"}'></textarea>
+                        <small class="api-help" id="bodyTypeHint"></small>
                     </label>
 
-                    <label class="api-field" id="attachmentsWrap">
-                        <span>Attachments</span>
-                        <input id="requestAttachments" class="api-input" type="file" multiple>
-                        <small class="api-help">Files are appended as files[] in form-data requests.</small>
-                    </label>
+                    <div class="api-field" id="attachmentsWrap">
+                        <span>File field name (multipart)</span>
+                        <input id="fileFieldName" class="api-input" type="text" value="file"
+                            placeholder="file" autocomplete="off">
+                        <small class="api-help">Form field name used when appending files, e.g. <code>file</code> or <code>files[]</code>.</small>
+
+                        <span class="attachment-files-label">Files</span>
+                        <input id="requestAttachments" class="api-file-input" type="file" multiple hidden>
+                        <div class="file-drop-zone" id="fileDropZone" tabindex="0" role="button"
+                            aria-label="Select or drop files">
+                            <span class="file-drop-zone-icon" aria-hidden="true">📁</span>
+                            <span>Click to select files or drag and drop here</span>
+                        </div>
+
+                        <div id="attachmentList" class="attachment-list"></div>
+
+                        <div class="api-section attachment-params-section">
+                            <div class="api-section-head">
+                                <h3>Other parameters (optional)</h3>
+                                <button type="button" class="btn btn-outline" id="addFormParamRow">Add parameter</button>
+                            </div>
+                            <div id="formParamsList" class="api-rows"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="tool-actions">
@@ -132,10 +222,19 @@
                 </div>
 
                 <p class="tool-status" id="requestStatus" aria-live="polite"></p>
+                    </div>
+                </div>
             </section>
 
-            <section class="info-card">
-                <h2>Response</h2>
+            <section class="info-card collapsible-card" data-collapsible>
+                <div class="card-head">
+                    <h2>Response</h2>
+                    <button type="button" class="card-toggle-btn" data-collapse-toggle aria-expanded="true" aria-label="Hide section">
+                        <span class="card-toggle-chevron" aria-hidden="true"></span>
+                    </button>
+                </div>
+                <div class="collapsible-body" data-collapse-body>
+                    <div class="collapsible-inner">
                 <div class="api-response-summary" id="responseSummary">No response yet.</div>
 
                 <div class="api-section-head response-block-head">
@@ -147,6 +246,8 @@
                     <h3>Response Body</h3>
                 </div>
                 <pre class="api-code-block" id="responseBody">-</pre>
+                    </div>
+                </div>
             </section>
         </div>
     </main>

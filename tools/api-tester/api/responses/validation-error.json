@@ -1,0 +1,14 @@
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Request body failed validation.",
+    "status": 422,
+    "fields": {
+      "email": "Invalid email format"
+    }
+  },
+  "meta": {
+    "timestamp": "2026-05-26T12:00:00.000Z"
+  }
+}

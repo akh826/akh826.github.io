@@ -1,0 +1,37 @@
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": 101,
+        "title": "Building a static API for testing",
+        "authorId": 1,
+        "excerpt": "How to mock REST responses with JSON files on GitHub Pages.",
+        "publishedAt": "2026-05-20"
+      },
+      {
+        "id": 102,
+        "title": "Debugging hospital information systems",
+        "authorId": 1,
+        "excerpt": "Notes on maintaining legacy PowerBuilder and JSP applications.",
+        "publishedAt": "2026-04-08"
+      },
+      {
+        "id": 103,
+        "title": "Frontend tool catalog patterns",
+        "authorId": 2,
+        "excerpt": "Organizing browser utilities with favorites and tags.",
+        "publishedAt": "2026-03-12"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "pageSize": 10,
+      "total": 3,
+      "totalPages": 1
+    }
+  },
+  "meta": {
+    "timestamp": "2026-05-26T00:00:00.000Z"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "SKU-001",
+        "name": "Dev Toolkit License",
+        "price": 49.99,
+        "currency": "USD",
+        "inStock": true
+      },
+      {
+        "id": "SKU-002",
+        "name": "API Mock Starter Pack",
+        "price": 0,
+        "currency": "USD",
+        "inStock": true
+      },
+      {
+        "id": "SKU-003",
+        "name": "Legacy Adapter Cable",
+        "price": 12.5,
+        "currency": "USD",
+        "inStock": false
+      }
+    ]
+  },
+  "meta": {
+    "timestamp": "2026-05-26T00:00:00.000Z"
+  }
+}

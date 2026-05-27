@@ -1,7 +1,8 @@
 const themeToggle = document.getElementById("themeToggle");
 const menuToggle = document.getElementById("menuToggle");
-const navLinks = document.getElementById("navLinks");
-const links = document.querySelectorAll(".nav-link");
+const navLinksEl = document.getElementById("navLinks");
+const sectionLinks = document.querySelectorAll(".nav-link-section");
+const navClickTargets = document.querySelectorAll(".nav-link, .github-link");
 const sections = document.querySelectorAll("main section");
 const backToTopButton = document.getElementById("backToTop");
 const year = document.getElementById("year");
@@ -28,48 +29,87 @@ themeToggle?.addEventListener("click", () => {
 menuToggle?.addEventListener("click", () => {
   const expanded = menuToggle.getAttribute("aria-expanded") === "true";
   menuToggle.setAttribute("aria-expanded", String(!expanded));
-  navLinks.classList.toggle("open");
+  navLinksEl.classList.toggle("open");
 });
 
-links.forEach((link) => {
+navClickTargets.forEach((link) => {
   link.addEventListener("click", () => {
+    const href = link.getAttribute("href");
+
+    if (link.classList.contains("nav-link-section") && href?.startsWith("#")) {
+      setActiveNav(href.slice(1));
+    }
+
     if (window.innerWidth <= 720) {
-      navLinks.classList.remove("open");
+      navLinksEl.classList.remove("open");
       menuToggle.setAttribute("aria-expanded", "false");
     }
   });
 });
 
-const observer = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) {
-        return;
-      }
+function setActiveNav(sectionId) {
+  sectionLinks.forEach((link) => {
+    link.classList.toggle("active", link.getAttribute("href") === `#${sectionId}`);
+  });
+}
 
-      const id = entry.target.getAttribute("id");
-      links.forEach((link) => {
-        link.classList.toggle("active", link.getAttribute("href") === `#${id}`);
-      });
-    });
-  },
-  {
-    rootMargin: "-45% 0px -45% 0px",
-    threshold: 0.01
+function updateActiveNavOnScroll() {
+  const scrollBottom = window.scrollY + window.innerHeight;
+  const pageHeight = document.documentElement.scrollHeight;
+  const nearBottom = pageHeight - scrollBottom < 80;
+
+  if (nearBottom && sections.length > 0) {
+    setActiveNav(sections[sections.length - 1].getAttribute("id"));
+    return;
   }
-);
 
-sections.forEach((section) => observer.observe(section));
+  const marker = window.scrollY + window.innerHeight * 0.28;
+  let currentSection = sections[0];
 
-if (backToTopButton) {
-  window.addEventListener("scroll", () => {
+  sections.forEach((section) => {
+    const top = section.offsetTop;
+    const bottom = top + section.offsetHeight;
+
+    if (marker >= top && marker < bottom) {
+      currentSection = section;
+    }
+  });
+
+  setActiveNav(currentSection.getAttribute("id"));
+}
+
+function syncActiveNavFromHash() {
+  const hashId = window.location.hash.slice(1);
+
+  if (hashId && document.getElementById(hashId)) {
+    setActiveNav(hashId);
+    return;
+  }
+
+  updateActiveNavOnScroll();
+}
+
+window.addEventListener("scroll", () => {
+  updateActiveNavOnScroll();
+
+  if (backToTopButton) {
     if (window.scrollY > 300) {
       backToTopButton.classList.add("show");
     } else {
       backToTopButton.classList.remove("show");
     }
-  });
+  }
+}, { passive: true });
 
+window.addEventListener("hashchange", syncActiveNavFromHash);
+
+if (window.location.hash) {
+  requestAnimationFrame(syncActiveNavFromHash);
+} else {
+  updateActiveNavOnScroll();
+}
+
+if (backToTopButton) {
   backToTopButton.addEventListener("click", () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   });

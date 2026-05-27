@@ -1,0 +1,11 @@
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "The requested resource was not found.",
+    "status": 404
+  },
+  "meta": {
+    "timestamp": "2026-05-26T00:00:00.000Z"
+  }
+}

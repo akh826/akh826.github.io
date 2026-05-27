@@ -275,6 +275,92 @@ body.dark .catalog-favorite-btn[aria-pressed="true"] {
   letter-spacing: 0.04em;
 }
 
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.card-head h2 {
+  margin: 0;
+}
+
+.card-toggle-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  border-radius: 8px;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.card-toggle-btn:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+}
+
+.card-toggle-btn[aria-expanded="false"] {
+  color: var(--primary-strong);
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+}
+
+.card-toggle-chevron {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 0.35s ease;
+}
+
+.card-toggle-btn[aria-expanded="true"] .card-toggle-chevron {
+  transform: rotate(225deg) translateY(2px);
+}
+
+.collapsible-card .card-head {
+  transition: margin-bottom 0.35s ease;
+}
+
+.collapsible-card.is-collapsed .card-head {
+  margin-bottom: 0;
+}
+
+.collapsible-body {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition: grid-template-rows 0.4s ease, opacity 0.3s ease;
+}
+
+.collapsible-card.is-collapsed .collapsible-body {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
+.collapsible-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-toggle-chevron,
+  .collapsible-body,
+  .collapsible-card .card-head {
+    transition: none;
+  }
+}
+
 .info-table {
   width: 100%;
   border-collapse: collapse;
@@ -645,6 +731,29 @@ body.dark .permission-state.state-prompt {
   margin-bottom: 1rem;
 }
 
+.api-static-card {
+  margin-bottom: 1rem;
+}
+
+.api-static-desc {
+  margin: 0 0 1rem;
+}
+
+.api-static-endpoint {
+  font-size: 0.88rem;
+  color: var(--muted);
+  word-break: break-all;
+  margin: 0 0 0.75rem;
+}
+
+.api-static-card code {
+  font-size: 0.88em;
+  padding: 0.15rem 0.4rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  border: 1px solid var(--border);
+}
+
 .api-grid-2 {
   display: grid;
   grid-template-columns: 140px 1fr;
@@ -763,4 +872,96 @@ body.dark .permission-state.state-prompt {
   .api-row {
     grid-template-columns: 1fr;
   }
+}
+
+.attachment-files-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 1rem 0 0.35rem;
+}
+
+.file-drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 110px;
+  padding: 1rem;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--primary) 4%, var(--surface));
+  color: var(--muted);
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.file-drop-zone:hover,
+.file-drop-zone:focus-visible {
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+  outline: none;
+}
+
+.file-drop-zone.drag-over {
+  border-color: var(--primary-strong);
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  color: var(--text);
+}
+
+.file-drop-zone-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.attachment-list {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.85rem;
+}
+
+.attachment-row {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--text) 2%, var(--surface));
+}
+
+.attachment-meta {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.attachment-label {
+  font-weight: 700;
+  word-break: break-all;
+}
+
+.attachment-meta small {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.attachment-name-field {
+  margin: 0;
+}
+
+.attachment-name-field span {
+  font-size: 0.78rem;
+}
+
+.attachment-params-section {
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+
+#attachmentsWrap .api-help code {
+  font-size: 0.95em;
 }

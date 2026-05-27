@@ -1,0 +1,12 @@
+{
+  "success": true,
+  "data": {
+    "status": "ok",
+    "service": "personal-webpage-static-api",
+    "version": "1.0.0",
+    "uptimeHint": "static"
+  },
+  "meta": {
+    "timestamp": "2026-05-26T00:00:00.000Z"
+  }
+}

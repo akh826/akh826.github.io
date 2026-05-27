@@ -1,0 +1,37 @@
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": 1,
+        "name": "Kam Hei Au",
+        "email": "aukamhei@gmail.com",
+        "role": "Programmer",
+        "company": "Hong Kong Adventist Hospital"
+      },
+      {
+        "id": 2,
+        "name": "Alex Chen",
+        "email": "alex.chen@example.com",
+        "role": "Software Engineer",
+        "company": "Example Corp"
+      },
+      {
+        "id": 3,
+        "name": "Jamie Lee",
+        "email": "jamie.lee@example.com",
+        "role": "Product Manager",
+        "company": "Example Corp"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "pageSize": 10,
+      "total": 3,
+      "totalPages": 1
+    }
+  },
+  "meta": {
+    "timestamp": "2026-05-26T00:00:00.000Z"
+  }
+}

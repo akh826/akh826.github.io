@@ -1,0 +1,12 @@
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "Kam Hei Au",
+    "email": "aukamhei@gmail.com",
+    "updatedAt": "2026-05-26T12:00:00.000Z"
+  },
+  "meta": {
+    "timestamp": "2026-05-26T12:00:00.000Z"
+  }
+}

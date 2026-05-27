@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "data": {
+    "id": 101,
+    "title": "Building a static API for testing",
+    "authorId": 1,
+    "content": "Static APIs are JSON files served from the same origin. They are ideal for prototyping fetch calls, testing loading states, and validating UI without a backend.",
+    "tags": ["api", "testing", "static"],
+    "publishedAt": "2026-05-20",
+    "updatedAt": "2026-05-21"
+  },
+  "meta": {
+    "timestamp": "2026-05-26T00:00:00.000Z"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "data": {
+    "id": 2,
+    "name": "Alex Chen",
+    "email": "alex.chen@example.com",
+    "role": "Software Engineer",
+    "company": "Example Corp",
+    "skills": ["JavaScript", "React", "Node.js"],
+    "joinedAt": "2022-03-15"
+  },
+  "meta": {
+    "timestamp": "2026-05-26T00:00:00.000Z"
+  }
+}
