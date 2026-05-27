@@ -1,7 +1,7 @@
 {
   "name": "Personal Webpage Static API",
-  "version": "1.2.0",
-  "description": "Mock JSON endpoints for frontend testing. GET serves static files; POST/PUT/PATCH/DELETE are handled by the service worker. Use Simulate HTTP status to override response codes.",
+  "version": "1.3.0",
+  "description": "Mock JSON endpoints for frontend testing. Static API presets include GET routes only.",
   "endpoints": [
     {
       "id": "health",
@@ -36,48 +36,6 @@
       "simulateStatus": 200
     },
     {
-      "id": "users-create",
-      "method": "POST",
-      "path": "v1/users",
-      "title": "Create user",
-      "description": "Create a new user (mock; echoes request body)",
-      "responsePath": "responses/users-create.json",
-      "sampleBody": "{\n  \"name\": \"New User\",\n  \"email\": \"new@example.com\"\n}",
-      "echoBody": true,
-      "simulateStatus": 201
-    },
-    {
-      "id": "users-update",
-      "method": "PUT",
-      "path": "v1/users/1",
-      "title": "Update user #1",
-      "description": "Replace user profile (mock; echoes request body)",
-      "responsePath": "responses/users-update.json",
-      "sampleBody": "{\n  \"name\": \"Kam Hei Au\",\n  \"email\": \"aukamhei@gmail.com\"\n}",
-      "echoBody": true,
-      "simulateStatus": 200
-    },
-    {
-      "id": "users-delete",
-      "method": "DELETE",
-      "path": "v1/users/1",
-      "title": "Delete user #1",
-      "description": "Remove a user (mock)",
-      "responsePath": "responses/users-delete.json",
-      "simulateStatus": 200
-    },
-    {
-      "id": "auth-login",
-      "method": "POST",
-      "path": "v1/auth/login",
-      "title": "Login",
-      "description": "Authenticate and receive a mock token",
-      "responsePath": "responses/auth-login.json",
-      "sampleBody": "{\n  \"email\": \"aukamhei@gmail.com\",\n  \"password\": \"demo-password\"\n}",
-      "echoBody": true,
-      "simulateStatus": 200
-    },
-    {
       "id": "posts-list",
       "method": "GET",
       "path": "v1/posts.json",
@@ -92,28 +50,6 @@
       "title": "Get post #101",
       "description": "Single post with full content",
       "simulateStatus": 200
-    },
-    {
-      "id": "posts-create",
-      "method": "POST",
-      "path": "v1/posts",
-      "title": "Create post",
-      "description": "Publish a new post (mock; echoes request body)",
-      "responsePath": "responses/posts-create.json",
-      "sampleBody": "{\n  \"title\": \"New post\",\n  \"content\": \"Hello from the static mock API.\"\n}",
-      "echoBody": true,
-      "simulateStatus": 201
-    },
-    {
-      "id": "validation-error",
-      "method": "POST",
-      "path": "v1/validate",
-      "title": "Validation error sample",
-      "description": "Returns a 422 validation error payload",
-      "responsePath": "responses/validation-error.json",
-      "sampleBody": "{\n  \"email\": \"not-an-email\"\n}",
-      "echoBody": true,
-      "simulateStatus": 422
     },
     {
       "id": "products-list",

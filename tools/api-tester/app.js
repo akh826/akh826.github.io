@@ -103,7 +103,7 @@ async function registerMockApiServiceWorker() {
 
         if (help) {
             help.textContent = mockApiSwActive
-                ? "Mock API active — GET/POST/PUT/DELETE routes and status simulation are handled by the service worker."
+                ? "Mock API active — static GET routes and status simulation are available."
                 : "Registering mock API service worker…";
         }
     } catch {
@@ -147,100 +147,6 @@ function findStaticApiRoute(urlString, method) {
         const endpointPath = endpoint.path.replace(/^\/+|\/+$/g, "");
         return endpointMethod === normalizedMethod && endpointPath === apiPath.replace(/^\/+|\/+$/g, "");
     }) || null;
-}
-
-function isMutatingMethod(method) {
-    return ["POST", "PUT", "PATCH", "DELETE"].includes(method.toUpperCase());
-}
-
-function parseFormDataPayload(formData) {
-    const fields = {};
-    const files = [];
-
-    formData.forEach((value, key) => {
-        if (value instanceof File) {
-            files.push({
-                field: key,
-                name: value.name,
-                size: value.size,
-                type: value.type || "application/octet-stream"
-            });
-            return;
-        }
-
-        const textValue = String(value);
-
-        if (Object.prototype.hasOwnProperty.call(fields, key)) {
-            if (!Array.isArray(fields[key])) {
-                fields[key] = [fields[key]];
-            }
-            fields[key].push(textValue);
-        } else {
-            fields[key] = textValue;
-        }
-    });
-
-    if (!Object.keys(fields).length && !files.length) {
-        return null;
-    }
-
-    return files.length ? { fields, files } : { fields };
-}
-
-function serializeRequestBody(body) {
-    if (body === undefined || body === null) {
-        return null;
-    }
-
-    if (body instanceof FormData) {
-        return parseFormDataPayload(body);
-    }
-
-    if (typeof body === "string") {
-        if (!body.trim()) {
-            return null;
-        }
-
-        try {
-            return JSON.parse(body);
-        } catch {
-            return body;
-        }
-    }
-
-    return body;
-}
-
-function mergeEchoIntoPayload(payload, requestPayload) {
-    if (payload.data && typeof payload.data === "object" && !Array.isArray(payload.data)) {
-        payload.data.received = requestPayload;
-    } else {
-        payload.received = requestPayload;
-    }
-
-    return payload;
-}
-
-async function buildMockMutationPayload(route, body) {
-    const response = await fetch(resolveStaticEndpointUrl(route.responsePath));
-
-    if (!response.ok) {
-        throw new Error(`Response template not found: ${route.responsePath}`);
-    }
-
-    const payload = await response.json();
-
-    if (!route.echoBody) {
-        return payload;
-    }
-
-    const requestPayload = serializeRequestBody(body);
-
-    if (requestPayload === null) {
-        return payload;
-    }
-
-    return mergeEchoIntoPayload(payload, requestPayload);
 }
 
 function updateStaticPresetButton() {
@@ -317,8 +223,6 @@ function getSelectedStaticPreset() {
         description: endpoint?.description || selectedOption?.dataset.description || "",
         simulateStatus,
         sampleBody: endpoint?.sampleBody || "",
-        responsePath: endpoint?.responsePath || "",
-        echoBody: Boolean(endpoint?.echoBody),
         url: resolveStaticEndpointUrl(presetSelect.value)
     };
 }
@@ -819,35 +723,10 @@ async function sendRequest() {
             ? undefined
             : buildBodyAndHeaders(headers);
 
-        const route = findStaticApiRoute(url, method);
         const requestedMockStatus = getEffectiveMockStatus(url);
         const usingMockStatus = requestedMockStatus && requestedMockStatus !== 200 && isStaticApiUrl(url);
         const requestUrl = buildRequestUrlWithMockStatus(url);
         const startedAt = performance.now();
-
-        if (isMutatingMethod(method) && route?.responsePath && !mockApiSwActive) {
-            const payload = await buildMockMutationPayload(route, body);
-            const endedAt = performance.now();
-            const displayStatus = requestedMockStatus || route.simulateStatus || 200;
-            const displayStatusText = getStatusText(displayStatus);
-            const displayOk = displayStatus >= 200 && displayStatus < 300;
-            const prettyBody = JSON.stringify(payload, null, 2);
-
-            if (responseSummary) {
-                responseSummary.textContent = `${displayStatus} ${displayStatusText} | ${method} ${url} | ${(endedAt - startedAt).toFixed(2)} ms (client mock)`;
-            }
-
-            if (responseHeaders) {
-                responseHeaders.textContent = "content-type: application/json\nx-mock-api: true\nx-mock-status: " + displayStatus;
-            }
-
-            if (responseBody) {
-                responseBody.textContent = prettyBody;
-            }
-
-            setStatus("Mock POST/PUT/DELETE response generated in browser.", displayOk);
-            return;
-        }
 
         const response = await fetch(requestUrl, {
             method,

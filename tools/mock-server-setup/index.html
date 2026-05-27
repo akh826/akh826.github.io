@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="How to run the local Node.js mock server for Postman testing.">
+  <title>Local Mock Server Setup | Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css">
+  <link rel="stylesheet" href="../tools.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav container">
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
+      <ul class="nav-links" id="navLinks">
+        <li class="nav-sections-group">
+          <span class="nav-area-label">Portfolio</span>
+          <ul class="nav-sections-list">
+            <li><a href="../../index.html" class="nav-link nav-link-section">Home</a></li>
+            <li><a href="index.html" class="nav-link nav-link-section active">Mock Server Setup</a></li>
+          </ul>
+        </li>
+        <li class="nav-divider" aria-hidden="true"></li>
+        <li>
+          <a href="../index.html" class="nav-link nav-link-tools">
+            <span class="nav-tools-icon" aria-hidden="true">⬡</span>
+            Tools
+          </a>
+        </li>
+      </ul>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
+    </nav>
+  </header>
+
+  <main class="tool-page section">
+    <div class="container">
+      <a class="tool-back" href="../index.html">&larr; Tool catalog</a>
+
+      <header class="tool-header">
+        <h1>Local Mock Server Setup</h1>
+        <p class="tool-intro">
+          Start a local Node.js mock API so Postman can receive real HTTP status codes like 404 and 500.
+        </p>
+      </header>
+
+      <section class="info-card">
+        <h2>1) Requirements</h2>
+        <ul class="tool-list">
+          <li>Install Node.js 18+.</li>
+          <li>Open terminal in the project root.</li>
+        </ul>
+        <p class="api-help">Download script URL:</p>
+        <pre class="api-code-block">https://akh826.github.io/tools/mock-server-setup/mock-server.js</pre>
+        <p class="api-help">
+          Local file link:
+          <a href="./mock-server.js" download>tools/mock-server-setup/mock-server.js</a>
+        </p>
+      </section>
+
+      <section class="info-card">
+        <h2>2) Start Server</h2>
+        <p class="api-help">Default port is <code>8787</code>.</p>
+        <pre class="api-code-block">node tools/mock-server-setup/mock-server.js</pre>
+        <p class="api-help">Custom port example:</p>
+        <pre class="api-code-block">set PORT=9000 && node tools/mock-server-setup/mock-server.js</pre>
+      </section>
+
+      <section class="info-card">
+        <h2>3) Test in Postman</h2>
+        <p class="api-help">GET static file, force HTTP 404:</p>
+        <pre class="api-code-block">GET http://localhost:8787/api/errors/not-found.json?__mockStatus=404</pre>
+        <p class="api-help">POST echo request body, force HTTP 201:</p>
+        <pre class="api-code-block">POST http://localhost:8787/api/v1/users?__mockStatus=201</pre>
+      </section>
+
+      <section class="info-card">
+        <h2>4) Route Rules</h2>
+        <ul class="tool-list">
+          <li><code>/api/*.json</code> with GET/HEAD reads files from <code>tools/api-tester/api/</code>.</li>
+          <li>POST/PUT/PATCH/DELETE return JSON echo payload.</li>
+          <li>Use <code>__mockStatus</code> query parameter to override HTTP status code.</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-content">
+      <p>&copy; <span id="year"></span> Kam Hei Au. Tools.</p>
+      <a href="../../index.html">Portfolio</a>
+    </div>
+  </footer>
+
+  <script src="../../script.js"></script>
+</body>
+</html>

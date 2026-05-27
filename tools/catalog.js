@@ -51,5 +51,12 @@ window.TOOL_CATALOG = [
     description:
       "Build and send HTTP requests with custom method, headers, auth, body, and attachments, then inspect responses.",
     tags: ["API", "Debug", "Network", "Developer"]
+  },
+  {
+    slug: "mock-server-setup",
+    title: "Local Mock Server Setup",
+    description:
+      "Step-by-step guide to run mock-server.js locally so Postman can receive real mocked HTTP status codes.",
+    tags: ["API", "Developer", "Node.js", "Setup"]
   }
 ];
