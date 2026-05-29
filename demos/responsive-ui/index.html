@@ -14,33 +14,7 @@
 </head>
 
 <body>
-    <header class="site-header">
-        <nav class="nav container">
-            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
-            <ul class="nav-links" id="navLinks">
-                <li class="nav-sections-group">
-                    <span class="nav-area-label">Portfolio</span>
-                    <ul class="nav-sections-list">
-                        <li><a href="../../index.html" class="nav-link nav-link-section">Home</a></li>
-                    </ul>
-                </li>
-                <li class="nav-divider" aria-hidden="true"></li>
-                <li>
-                    <a href="../../tools/index.html" class="nav-link nav-link-tools">
-                        <span class="nav-tools-icon" aria-hidden="true">⬡</span>
-                        Tools
-                    </a>
-                </li>
-                <li>
-                    <a href="../index.html" class="nav-link nav-link-demos active">
-                        <span class="nav-tools-icon" aria-hidden="true">▦</span>
-                        Demos
-                    </a>
-                </li>
-            </ul>
-            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
-        </nav>
-    </header>
+    <top-nav page="demos" root="../.."></top-nav>
 
     <main class="demo-tool-page section">
         <div class="container">
@@ -181,6 +155,7 @@
         </div>
     </footer>
 
+    <script src="../../shared/top-nav.js"></script>
     <script src="../../script.js"></script>
     <script src="app.js"></script>
 </body>

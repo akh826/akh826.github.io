@@ -13,39 +13,7 @@
 </head>
 
 <body>
-  <header class="site-header">
-    <nav class="nav container">
-      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
-      <ul class="nav-links" id="navLinks">
-        <li class="nav-sections-group">
-          <span class="nav-area-label">Portfolio</span>
-          <ul class="nav-sections-list">
-            <li><a href="#home" class="nav-link nav-link-section active">Home</a></li>
-            <li><a href="#about" class="nav-link nav-link-section">About</a></li>
-            <li><a href="#experience" class="nav-link nav-link-section">Experience</a></li>
-            <li><a href="#skills" class="nav-link nav-link-section">Skills</a></li>
-            <li><a href="#contact" class="nav-link nav-link-section">Contact</a></li>
-          </ul>
-        </li>
-        <li class="nav-divider" aria-hidden="true"></li>
-        <li>
-          <a href="tools/index.html" class="nav-link nav-link-tools">
-            <span class="nav-tools-icon" aria-hidden="true">⬡</span>
-            Tools
-          </a>
-        </li>
-        <li>
-          <a href="demos/index.html" class="nav-link nav-link-demos">
-            <span class="nav-tools-icon" aria-hidden="true">▦</span>
-            Demos
-          </a>
-        </li>
-        <li><a href="https://github.com/akh826?tab=overview" target="_blank" rel="noopener noreferrer"
-            class="github-link">GitHub</a></li>
-      </ul>
-      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
-    </nav>
-  </header>
+  <top-nav page="home" root="." show-github="true"></top-nav>
 
   <main>
     <section id="home" class="hero section">
@@ -241,6 +209,7 @@
     </div>
   </footer>
 
+  <script src="shared/top-nav.js"></script>
   <script src="script.js"></script>
 </body>
 

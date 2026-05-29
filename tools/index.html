@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,28 +12,9 @@
   <link rel="stylesheet" href="../styles.css">
   <link rel="stylesheet" href="tools.css">
 </head>
+
 <body>
-  <header class="site-header">
-    <nav class="nav container">
-      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
-      <ul class="nav-links" id="navLinks">
-        <li class="nav-sections-group">
-          <span class="nav-area-label">Portfolio</span>
-          <ul class="nav-sections-list">
-            <li><a href="../index.html" class="nav-link nav-link-section">Home</a></li>
-          </ul>
-        </li>
-        <li class="nav-divider" aria-hidden="true"></li>
-        <li>
-          <a href="index.html" class="nav-link nav-link-tools active">
-            <span class="nav-tools-icon" aria-hidden="true">⬡</span>
-            Tools
-          </a>
-        </li>
-      </ul>
-      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
-    </nav>
-  </header>
+  <top-nav page="tools" root=".."></top-nav>
 
   <main class="tool-page section">
     <div class="container">
@@ -52,13 +34,8 @@
       <div class="catalog-toolbar">
         <label class="catalog-search">
           <span class="catalog-search-label">Search</span>
-          <input
-            type="search"
-            id="catalogSearch"
-            class="catalog-search-input"
-            placeholder="Filter by tool name…"
-            autocomplete="off"
-          >
+          <input type="search" id="catalogSearch" class="catalog-search-input" placeholder="Filter by tool name…"
+            autocomplete="off">
         </label>
         <div class="catalog-tag-bar">
           <span class="catalog-tag-bar-label">Tags</span>
@@ -81,8 +58,10 @@
     </div>
   </footer>
 
+  <script src="../shared/top-nav.js"></script>
   <script src="../script.js"></script>
   <script src="catalog.js"></script>
   <script src="catalog-page.js"></script>
 </body>
+
 </html>
