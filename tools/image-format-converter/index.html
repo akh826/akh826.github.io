@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Convert image files between PNG, JPEG, and WebP in your browser.">
+    <title>Image Format Converter | Tools</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <nav class="nav container">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
+            <ul class="nav-links" id="navLinks">
+                <li class="nav-sections-group">
+                    <span class="nav-area-label">Portfolio</span>
+                    <ul class="nav-sections-list">
+                        <li><a href="../../index.html" class="nav-link nav-link-section">Home</a></li>
+                        <li><a href="index.html" class="nav-link nav-link-section active">Image Converter</a></li>
+                    </ul>
+                </li>
+                <li class="nav-divider" aria-hidden="true"></li>
+                <li>
+                    <a href="../index.html" class="nav-link nav-link-tools">
+                        <span class="nav-tools-icon" aria-hidden="true">⬡</span>
+                        Tools
+                    </a>
+                </li>
+            </ul>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
+        </nav>
+    </header>
+
+    <main class="tool-page section">
+        <div class="container">
+            <a class="tool-back" href="../index.html">&larr; Tool catalog</a>
+
+            <header class="tool-header">
+                <h1>Image File Format Converter</h1>
+                <p class="tool-intro">
+                    Upload an image, convert it to PNG, JPEG, or WebP in your browser,
+                    then download the converted file.
+                </p>
+            </header>
+
+            <div class="image-converter-layout">
+                <section class="info-card image-converter-controls" aria-label="Image converter controls">
+                    <h2>Convert</h2>
+
+                    <label class="image-converter-label" for="sourceFile">Select image file</label>
+                    <input id="sourceFile" class="image-converter-file" type="file" accept="image/*">
+
+                    <div class="image-converter-grid">
+                        <label class="image-converter-field" for="targetFormat">
+                            <span>Target format</span>
+                            <select id="targetFormat" class="image-converter-select">
+                                <option value="image/png">PNG</option>
+                                <option value="image/jpeg">JPEG</option>
+                                <option value="image/webp" selected>WebP</option>
+                            </select>
+                        </label>
+
+                        <label class="image-converter-field" for="qualityRange" id="qualityField">
+                            <span>Quality</span>
+                            <input id="qualityRange" type="range" min="10" max="100" value="90" step="1">
+                            <output id="qualityValue" for="qualityRange">90%</output>
+                        </label>
+                    </div>
+
+                    <div class="tool-actions image-converter-actions">
+                        <button type="button" class="btn btn-primary" id="convertBtn" disabled>Convert</button>
+                        <button type="button" class="btn btn-outline" id="downloadBtn" disabled>Download</button>
+                        <button type="button" class="btn btn-outline" id="clearBtn">Clear</button>
+                    </div>
+
+                    <p class="tool-status" id="toolStatus" aria-live="polite"></p>
+
+                    <ul class="tool-list image-converter-meta" id="metaList"></ul>
+                </section>
+
+                <section class="info-card image-converter-preview" aria-label="Image preview">
+                    <h2>Preview</h2>
+                    <div class="image-converter-preview-wrap" id="previewWrap">
+                        <img id="previewImage" class="image-converter-preview-image" alt="Uploaded image preview"
+                            hidden>
+                        <p id="previewPlaceholder" class="tool-note-inline">No image selected yet.</p>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; <span id="year"></span> Kam Hei Au. Tools.</p>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="../../script.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

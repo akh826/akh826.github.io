@@ -362,6 +362,7 @@ body.dark .catalog-favorite-btn[aria-pressed="true"] {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .card-toggle-chevron,
   .collapsible-body,
   .collapsible-card .card-head {
@@ -972,4 +973,229 @@ body.dark .permission-state.state-prompt {
 
 #attachmentsWrap .api-help code {
   font-size: 0.95em;
+}
+
+.qrcode-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 1rem;
+}
+
+.qrcode-controls-card,
+.qrcode-preview-card {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.qrcode-controls-card h2,
+.qrcode-preview-card h2 {
+  margin-bottom: 0.25rem;
+}
+
+.qrcode-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.qrcode-input,
+.qrcode-select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.qrcode-input {
+  padding: 0.7rem 0.85rem;
+  resize: vertical;
+  min-height: 120px;
+}
+
+.qrcode-select {
+  padding: 0.6rem 0.75rem;
+}
+
+.qrcode-input:focus,
+.qrcode-select:focus,
+.qrcode-field input[type="range"]:focus {
+  outline: 2px solid color-mix(in srgb, var(--primary) 40%, transparent);
+  outline-offset: 1px;
+}
+
+.qrcode-control-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.qrcode-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.qrcode-field span {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.qrcode-field output {
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.qrcode-field input[type="range"] {
+  width: 100%;
+}
+
+.qrcode-actions {
+  margin-bottom: 0;
+}
+
+.qrcode-preview-wrap {
+  display: grid;
+  place-items: center;
+  min-height: 280px;
+  border: 1px dashed color-mix(in srgb, var(--primary) 35%, var(--border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--primary) 5%, var(--surface));
+  padding: 16px;
+}
+
+.qrcode-output {
+  display: inline-grid;
+  place-items: center;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.14);
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.qrcode-output canvas,
+.qrcode-output img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+@media (max-width: 960px) {
+  .qrcode-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.image-converter-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 1rem;
+}
+
+.image-converter-controls,
+.image-converter-preview {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.image-converter-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.image-converter-file,
+.image-converter-select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.image-converter-file {
+  padding: 0.5rem;
+}
+
+.image-converter-select {
+  padding: 0.6rem 0.75rem;
+}
+
+.image-converter-file:focus,
+.image-converter-select:focus,
+.image-converter-field input[type="range"]:focus {
+  outline: 2px solid color-mix(in srgb, var(--primary) 40%, transparent);
+  outline-offset: 1px;
+}
+
+.image-converter-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.image-converter-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.image-converter-field span {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.image-converter-field output {
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.image-converter-field input[type="range"] {
+  width: 100%;
+}
+
+.image-converter-actions {
+  margin-bottom: 0;
+}
+
+.image-converter-meta {
+  margin: 0;
+}
+
+.image-converter-preview-wrap {
+  display: grid;
+  place-items: center;
+  min-height: 300px;
+  border: 1px dashed color-mix(in srgb, var(--primary) 35%, var(--border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--primary) 5%, var(--surface));
+  padding: 0.85rem;
+}
+
+.image-converter-preview-image {
+  display: block;
+  max-width: 100%;
+  max-height: 440px;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.14);
+  background: #ffffff;
+}
+
+@media (max-width: 960px) {
+  .image-converter-layout {
+    grid-template-columns: 1fr;
+  }
 }

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Responsive UI demo for mobile, tablet, and PC resolutions.">
+    <title>Responsive UI Builder Demo | Demos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../demos.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <nav class="nav container">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
+            <ul class="nav-links" id="navLinks">
+                <li class="nav-sections-group">
+                    <span class="nav-area-label">Portfolio</span>
+                    <ul class="nav-sections-list">
+                        <li><a href="../../index.html" class="nav-link nav-link-section">Home</a></li>
+                    </ul>
+                </li>
+                <li class="nav-divider" aria-hidden="true"></li>
+                <li>
+                    <a href="../../tools/index.html" class="nav-link nav-link-tools">
+                        <span class="nav-tools-icon" aria-hidden="true">⬡</span>
+                        Tools
+                    </a>
+                </li>
+                <li>
+                    <a href="../index.html" class="nav-link nav-link-demos active">
+                        <span class="nav-tools-icon" aria-hidden="true">▦</span>
+                        Demos
+                    </a>
+                </li>
+            </ul>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
+        </nav>
+    </header>
+
+    <main class="demo-tool-page section">
+        <div class="container">
+            <a class="demo-back" href="../index.html">&larr; Demos catalog</a>
+
+            <header class="demo-tool-header">
+                <h1>Responsive UI Builder Demo</h1>
+                <p class="demo-tool-intro">
+                    This demo simulates different resolutions so you can see how one layout adapts for
+                    mobile, tablet, and PC using breakpoints and container queries.
+                </p>
+            </header>
+
+            <div class="demo-layout">
+                <section class="demo-card" aria-label="Responsive controls">
+                    <h2>Viewport Controls</h2>
+
+                    <div class="demo-device-grid" id="deviceButtons">
+                        <button class="demo-device-btn" data-width="390">Mobile 390px</button>
+                        <button class="demo-device-btn" data-width="768">Tablet 768px</button>
+                        <button class="demo-device-btn" data-width="1024">Laptop 1024px</button>
+                        <button class="demo-device-btn" data-width="1280">Desktop 1280px</button>
+                    </div>
+
+                    <div class="demo-field">
+                        <label for="widthRange">Custom width</label>
+                        <input id="widthRange" type="range" min="320" max="1400" step="10" value="1024">
+                        <div class="demo-range-value" id="widthValue">1024 px</div>
+                    </div>
+
+                    <dl class="demo-metrics">
+                        <div>
+                            <dt>Active width</dt>
+                            <dd id="activeWidth">1024 px</dd>
+                        </div>
+                        <div>
+                            <dt>Breakpoint label</dt>
+                            <dd id="breakpointLabel">PC</dd>
+                        </div>
+                        <div>
+                            <dt>Layout behavior</dt>
+                            <dd id="layoutBehavior">Sidebar + 2-3 columns</dd>
+                        </div>
+                    </dl>
+
+                    <p class="tool-status" id="toolStatus" aria-live="polite"></p>
+                </section>
+
+                <section class="demo-card" aria-label="Responsive stage">
+                    <h2>Live Preview</h2>
+                    <div class="demo-stage-wrap">
+                        <div class="demo-stage" id="demoStage">
+                            <div class="responsive-app">
+                                <aside class="responsive-sidebar">
+                                    <div class="responsive-brand">Demo Admin</div>
+                                    <ul class="responsive-nav">
+                                        <li class="active">Dashboard</li>
+                                        <li>Orders</li>
+                                        <li>Customers</li>
+                                        <li>Reports</li>
+                                        <li>Settings</li>
+                                    </ul>
+                                </aside>
+
+                                <header class="responsive-header">
+                                    <div>
+                                        <h3>Sales Overview</h3>
+                                        <p>Responsive web UI preview</p>
+                                    </div>
+                                    <span class="responsive-chip" id="chipSize">PC</span>
+                                </header>
+
+                                <section class="responsive-main">
+                                    <article class="responsive-panel">
+                                        <h4>Revenue</h4>
+                                        <p>HK$ 183,240 this month</p>
+                                    </article>
+                                    <article class="responsive-panel">
+                                        <h4>Conversion</h4>
+                                        <p>4.8% overall conversion rate</p>
+                                    </article>
+                                    <article class="responsive-panel">
+                                        <h4>Top region</h4>
+                                        <p>Hong Kong Island leads this week</p>
+                                    </article>
+                                    <article class="responsive-panel">
+                                        <h4>Avg. basket size</h4>
+                                        <p>HK$ 530 per successful order</p>
+                                    </article>
+                                    <article class="responsive-panel">
+                                        <h4>New users</h4>
+                                        <p>+126 registered in 7 days</p>
+                                    </article>
+                                    <article class="responsive-panel">
+                                        <h4>Support queue</h4>
+                                        <p>12 open tickets pending reply</p>
+                                    </article>
+                                </section>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <section class="demo-explain-grid" aria-label="How and why this responsive demo works">
+                <article class="demo-card">
+                    <h2>How This Works</h2>
+                    <ul class="demo-explain-list">
+                        <li><strong>One HTML structure:</strong> same markup for all devices.</li>
+                        <li><strong>Container queries:</strong> layout changes based on the stage width, not window
+                            size.</li>
+                        <li><strong>Flexible grid:</strong> cards switch between 3, 2, and 1 columns.</li>
+                        <li><strong>Progressive simplification:</strong> sidebar hides on mobile to protect reading
+                            space.</li>
+                    </ul>
+                    <p class="tool-status success" id="explainSummary" aria-live="polite"></p>
+                </article>
+
+                <article class="demo-card">
+                    <h2>Why It Works</h2>
+                    <p class="demo-why-text" id="whyItWorksText">
+                        Responsive design succeeds because the layout is rule-driven and adapts continuously
+                        from available space instead of fixed device assumptions.
+                    </p>
+                    <div class="demo-rule-block">
+                        <p class="demo-rule-title">Active CSS Rule</p>
+                        <pre class="demo-code-block" id="activeRuleBlock">@container (min-width: 1024px) { ... }</pre>
+                    </div>
+                </article>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; <span id="year"></span> Kam Hei Au. Demos.</p>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="../../script.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

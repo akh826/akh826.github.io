@@ -174,6 +174,36 @@ body.dark .nav-link-tools.active {
   color: #99f6e4;
 }
 
+.nav-link-demos {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, #f97316 45%, var(--border));
+  background: color-mix(in srgb, #f97316 12%, var(--surface));
+  color: #c2410c;
+  font-weight: 700;
+}
+
+body.dark .nav-link-demos {
+  color: #fdba74;
+  border-color: color-mix(in srgb, #fdba74 40%, var(--border));
+  background: color-mix(in srgb, #f97316 18%, var(--surface));
+}
+
+.nav-link-demos:hover,
+.nav-link-demos.active {
+  color: #c2410c;
+  background: color-mix(in srgb, #f97316 22%, var(--surface));
+  border-color: color-mix(in srgb, #f97316 60%, var(--border));
+}
+
+body.dark .nav-link-demos:hover,
+body.dark .nav-link-demos.active {
+  color: #fed7aa;
+}
+
 .nav-tools-icon {
   font-size: 0.85rem;
   line-height: 1;
@@ -629,6 +659,7 @@ h1 {
   }
 
   @keyframes float-blob {
+
     0%,
     100% {
       transform: translate(0, 0) scale(1);
@@ -683,6 +714,7 @@ h1 {
 }
 
 @media (max-width: 900px) {
+
   .hero-grid,
   .skills-grid {
     grid-template-columns: 1fr 1fr;

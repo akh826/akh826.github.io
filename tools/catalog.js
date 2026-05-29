@@ -53,6 +53,20 @@ window.TOOL_CATALOG = [
     tags: ["API", "Debug", "Network", "Developer"]
   },
   {
+    slug: "qrcode-generator",
+    title: "QR Code Generator",
+    description:
+      "Generate QR codes from text or URLs with adjustable size, quiet zone, and error correction, then download as PNG.",
+    tags: ["Utility", "Browser", "Developer"]
+  },
+  {
+    slug: "image-format-converter",
+    title: "Image File Format Converter",
+    description:
+      "Convert uploaded images to PNG, JPEG, or WebP in-browser and download the result.",
+    tags: ["Utility", "Media", "Browser"]
+  },
+  {
     slug: "mock-server-setup",
     title: "Local Mock Server Setup",
     description:

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Generate QR codes from text or URLs and export as PNG.">
+    <title>QR Code Generator | Tools</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <nav class="nav container">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
+            <ul class="nav-links" id="navLinks">
+                <li class="nav-sections-group">
+                    <span class="nav-area-label">Portfolio</span>
+                    <ul class="nav-sections-list">
+                        <li><a href="../../index.html" class="nav-link nav-link-section">Home</a></li>
+                        <li><a href="index.html" class="nav-link nav-link-section active">QR Code Generator</a></li>
+                    </ul>
+                </li>
+                <li class="nav-divider" aria-hidden="true"></li>
+                <li>
+                    <a href="../index.html" class="nav-link nav-link-tools">
+                        <span class="nav-tools-icon" aria-hidden="true">⬡</span>
+                        Tools
+                    </a>
+                </li>
+            </ul>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
+        </nav>
+    </header>
+
+    <main class="tool-page section">
+        <div class="container">
+            <a class="tool-back" href="../index.html">&larr; Tool catalog</a>
+
+            <header class="tool-header">
+                <h1>QR Code Generator</h1>
+                <p class="tool-intro">
+                    Create a QR code from any URL or text, tune its size and error correction level,
+                    then download it as a PNG.
+                </p>
+            </header>
+
+            <div class="qrcode-layout">
+                <section class="info-card qrcode-controls-card" aria-label="QR code settings">
+                    <h2>Content</h2>
+
+                    <label class="qrcode-label" for="qrText">Text or URL</label>
+                    <textarea id="qrText" class="qrcode-input" rows="5" placeholder="https://akh826.github.io"
+                        spellcheck="false"></textarea>
+
+                    <div class="qrcode-control-grid">
+                        <label class="qrcode-field" for="qrSize">
+                            <span>Size</span>
+                            <input id="qrSize" type="range" min="128" max="512" value="256" step="16">
+                            <output id="qrSizeValue" for="qrSize">256 px</output>
+                        </label>
+
+                        <label class="qrcode-field" for="qrMargin">
+                            <span>Quiet zone</span>
+                            <input id="qrMargin" type="range" min="0" max="8" value="2" step="1">
+                            <output id="qrMarginValue" for="qrMargin">2 modules</output>
+                        </label>
+
+                        <label class="qrcode-field" for="qrLevel">
+                            <span>Error correction</span>
+                            <select id="qrLevel" class="qrcode-select">
+                                <option value="L">Low (L)</option>
+                                <option value="M" selected>Medium (M)</option>
+                                <option value="Q">Quartile (Q)</option>
+                                <option value="H">High (H)</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="tool-actions qrcode-actions">
+                        <button type="button" class="btn btn-primary" id="generateQr">Generate</button>
+                        <button type="button" class="btn btn-outline" id="downloadQr" disabled>Download PNG</button>
+                        <button type="button" class="btn btn-outline" id="copyText">Copy text</button>
+                        <button type="button" class="btn btn-outline" id="clearText">Clear</button>
+                    </div>
+
+                    <p class="tool-status" id="toolStatus" aria-live="polite"></p>
+                </section>
+
+                <section class="info-card qrcode-preview-card" aria-label="QR code preview">
+                    <h2>Preview</h2>
+                    <div class="qrcode-preview-wrap" id="qrPreviewWrap">
+                        <div class="qrcode-output" id="qrOutput" role="img" aria-label="QR code output"></div>
+                    </div>
+                    <p class="tool-note-inline">
+                        Tip: Keep enough contrast and avoid placing logos over critical finder patterns.
+                    </p>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; <span id="year"></span> Kam Hei Au. Tools.</p>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="../../script.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
