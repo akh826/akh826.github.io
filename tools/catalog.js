@@ -6,7 +6,8 @@
  *   slug: "my-tool",           // folder name: tools/my-tool/ (must contain index.html)
  *   title: "My Tool",
  *   description: "Short summary for the catalog.",
- *   tags: ["Utility"]
+ *   tags: ["Utility"],
+ *   hidden: true               // optional — omit from tools catalog (direct URL still works)
  * }
  */
 window.TOOL_CATALOG = [
@@ -33,10 +34,10 @@ window.TOOL_CATALOG = [
   },
   {
     slug: "storage-quota",
-    title: "Client Storage & Quota Analytics",
+    title: "Site Storage & Cache Inspector",
     description:
-      "Inspect origin storage quota, usage, and byte-size breakdown across localStorage, sessionStorage, and cookies.",
-    tags: ["Storage", "Debug", "Browser", "Performance"]
+      "Inspect localStorage, sessionStorage, cookies, Cache Storage, IndexedDB, service workers, and quota for the current origin.",
+    tags: ["Storage", "Cache", "Debug", "Browser"]
   },
   {
     slug: "performance-time",
@@ -51,6 +52,21 @@ window.TOOL_CATALOG = [
     description:
       "Build and send HTTP requests with custom method, headers, auth, body, and attachments, then inspect responses.",
     tags: ["API", "Debug", "Network", "Developer"]
+  },
+  {
+    slug: "jrxml-report-preview",
+    title: "JRXML Parameter & PDF Preview",
+    description:
+      "Parse JRXML parameters and preview PDF with local Java compile, or optionally via JasperReports Server.",
+    tags: ["JasperReports", "JRXML", "PDF", "Developer", "Debug"],
+    hidden: true
+  },
+  {
+    slug: "url-iframe-viewer",
+    title: "URL Iframe Viewer",
+    description:
+      "Enter a URL and preview the page in an embedded iframe with adjustable height, reload, and new-tab fallback.",
+    tags: ["Utility", "Browser", "Developer"]
   },
   {
     slug: "qrcode-generator",

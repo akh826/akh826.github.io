@@ -56,7 +56,7 @@ function toggleFavorite(slug) {
 }
 
 function getCatalog() {
-  return window.TOOL_CATALOG ?? [];
+  return (window.TOOL_CATALOG ?? []).filter((tool) => !tool.hidden);
 }
 
 function collectTags(catalog) {

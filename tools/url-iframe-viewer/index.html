@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Enter a URL and preview the page inside an embedded iframe.">
+    <title>URL Iframe Viewer | Tools</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <nav class="nav container">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
+            <ul class="nav-links" id="navLinks">
+                <li class="nav-sections-group">
+                    <span class="nav-area-label">Portfolio</span>
+                    <ul class="nav-sections-list">
+                        <li><a href="../../index.html" class="nav-link nav-link-section">Home</a></li>
+                        <li><a href="index.html" class="nav-link nav-link-section active">URL Iframe Viewer</a></li>
+                    </ul>
+                </li>
+                <li class="nav-divider" aria-hidden="true"></li>
+                <li>
+                    <a href="../index.html" class="nav-link nav-link-tools">
+                        <span class="nav-tools-icon" aria-hidden="true">⬡</span>
+                        Tools
+                    </a>
+                </li>
+            </ul>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
+        </nav>
+    </header>
+
+    <main class="tool-page section">
+        <div class="container container-wide">
+            <a class="tool-back" href="../index.html">&larr; Tool catalog</a>
+
+            <header class="tool-header">
+                <h1>URL Iframe Viewer</h1>
+                <p class="tool-intro">
+                    Enter an <code>http</code> or <code>https</code> URL and load it in an embedded frame for quick
+                    previews. Many sites block embedding with <code>X-Frame-Options</code> or CSP — use
+                    <strong>Open in new tab</strong> when the frame stays blank.
+                </p>
+            </header>
+
+            <section class="info-card iframe-viewer-controls" aria-label="URL controls">
+                <form id="urlForm" class="iframe-viewer-form">
+                    <label class="iframe-viewer-label" for="urlInput">URL</label>
+                    <div class="iframe-viewer-url-row">
+                        <input id="urlInput" class="iframe-viewer-input" type="text" inputmode="url"
+                            placeholder="https://example.com" spellcheck="false" autocomplete="url" required>
+                        <button type="submit" class="btn btn-primary">Open in frame</button>
+                    </div>
+                </form>
+
+                <div class="iframe-viewer-options">
+                    <label class="iframe-viewer-field" for="frameHeight">
+                        <span>Frame height</span>
+                        <input id="frameHeight" type="range" min="320" max="1200" value="720" step="20">
+                        <output id="frameHeightValue" for="frameHeight">720 px</output>
+                    </label>
+
+                    <div class="tool-actions iframe-viewer-actions">
+                        <button type="button" class="btn btn-outline" id="openNewTab" disabled>Open in new tab</button>
+                        <button type="button" class="btn btn-outline" id="reloadFrame" disabled>Reload</button>
+                        <button type="button" class="btn btn-outline" id="clearFrame">Clear</button>
+                    </div>
+                </div>
+
+                <p class="tool-status" id="viewerStatus" aria-live="polite"></p>
+            </section>
+
+            <section class="iframe-viewer-stage" aria-label="Iframe preview">
+                <p class="iframe-viewer-placeholder" id="framePlaceholder">Enter a URL and click Open in frame.</p>
+                <iframe id="previewFrame" class="iframe-viewer-frame" title="Embedded page preview" hidden
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads"></iframe>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; <span id="year"></span> Kam Hei Au. Tools.</p>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="../../script.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

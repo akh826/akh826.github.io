@@ -1,0 +1,177 @@
+:root {
+    color-scheme: light dark;
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --primary: #2563eb;
+    --primary-strong: #1d4ed8;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #0f172a;
+        --surface: #1e293b;
+        --text: #f1f5f9;
+        --muted: #94a3b8;
+        --border: #334155;
+        --primary: #60a5fa;
+        --primary-strong: #93c5fd;
+    }
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    width: 420px;
+    max-height: 560px;
+    overflow: auto;
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--text);
+    background: var(--bg);
+}
+
+.popup-header {
+    padding: 0.9rem 1rem 0.4rem;
+}
+
+.popup-header h1 {
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.popup-subtitle {
+    margin: 0.35rem 0 0;
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
+.popup-status {
+    margin: 0;
+    padding: 0 1rem;
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
+.popup-status.error {
+    color: #dc2626;
+}
+
+.popup-status.success {
+    color: #059669;
+}
+
+.popup-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    padding: 0.65rem 1rem;
+}
+
+button {
+    font: inherit;
+    cursor: pointer;
+    border-radius: 8px;
+    padding: 0.45rem 0.75rem;
+    border: 1px solid var(--border);
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary-strong);
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+}
+
+.popup-meta {
+    margin: 0 1rem 0.5rem;
+    padding: 0.55rem 0.65rem;
+    border-radius: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 0.78rem;
+    word-break: break-all;
+}
+
+.popup-meta code {
+    font-size: 0.76rem;
+}
+
+.popup-results {
+    padding: 0 1rem 0.75rem;
+}
+
+.section {
+    margin-bottom: 0.75rem;
+    padding: 0.6rem 0.65rem;
+    border-radius: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+}
+
+.section h2 {
+    margin: 0 0 0.35rem;
+    font-size: 0.88rem;
+}
+
+.section-note {
+    margin: 0 0 0.45rem;
+    color: var(--muted);
+    font-size: 0.75rem;
+}
+
+.section table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.76rem;
+}
+
+.section th,
+.section td {
+    text-align: left;
+    vertical-align: top;
+    padding: 0.25rem 0.35rem 0.25rem 0;
+    border-top: 1px solid var(--border);
+}
+
+.section th {
+    font-weight: 600;
+    width: 38%;
+    color: var(--muted);
+}
+
+.section tr:first-child th,
+.section tr:first-child td {
+    border-top: none;
+}
+
+.empty {
+    color: var(--muted);
+    font-size: 0.78rem;
+}
+
+.popup-footer {
+    padding: 0.55rem 1rem 0.85rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.75rem;
+}
+
+.popup-footer a {
+    color: var(--primary);
+}

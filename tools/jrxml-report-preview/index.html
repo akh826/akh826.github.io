@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Parse JRXML parameters and preview PDF locally with Java, or via JasperReports Server.">
+    <title>JRXML Parameter &amp; PDF Preview | Tools</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <nav class="nav container">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
+            <ul class="nav-links" id="navLinks">
+                <li class="nav-sections-group">
+                    <span class="nav-area-label">Portfolio</span>
+                    <ul class="nav-sections-list">
+                        <li><a href="../../index.html" class="nav-link nav-link-section">Home</a></li>
+                        <li><a href="index.html" class="nav-link nav-link-section active">JRXML Preview</a></li>
+                    </ul>
+                </li>
+                <li class="nav-divider" aria-hidden="true"></li>
+                <li>
+                    <a href="../index.html" class="nav-link nav-link-tools">
+                        <span class="nav-tools-icon" aria-hidden="true">⬡</span>
+                        Tools
+                    </a>
+                </li>
+            </ul>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
+        </nav>
+    </header>
+
+    <main class="tool-page section">
+        <div class="container container-wide">
+            <a class="tool-back" href="../index.html">&larr; Tool catalog</a>
+
+            <header class="tool-header">
+                <h1>JRXML Parameter &amp; PDF Preview</h1>
+                <p class="tool-intro">
+                    Upload a <code>.jrxml</code> file to detect parameters, enter values, and preview PDF.
+                    Use <strong>local compile</strong> (Java on your PC) or optional <strong>JasperReports Server</strong>.
+                </p>
+            </header>
+
+            <p class="tool-note">
+                Parameter detection runs in the browser. PDF preview needs <strong>Node.js 18+</strong> for
+                <code>jasper-proxy-server.js</code>, plus <strong>JDK 11+</strong> and a one-time Maven build for
+                local JRXML compile.
+            </p>
+
+            <div class="jrxml-layout">
+                <section class="info-card" aria-label="JRXML input">
+                    <h2>1. JRXML file</h2>
+                    <label class="jrxml-file-drop" id="jrxmlDropZone">
+                        <input id="jrxmlFile" type="file" accept=".jrxml,.xml,text/xml,application/xml" hidden>
+                        <span class="file-drop-zone-icon" aria-hidden="true">📄</span>
+                        <span class="file-drop-zone-text">Drop a .jrxml file here or click to browse</span>
+                    </label>
+                    <label class="jrxml-label" for="jrxmlPaste">Or paste JRXML</label>
+                    <textarea id="jrxmlPaste" class="jrxml-textarea" rows="8" spellcheck="false"
+                        placeholder="&lt;jasperReport ...&gt;"></textarea>
+                    <div class="tool-actions">
+                        <button type="button" class="btn btn-primary" id="parseJrxmlBtn">Detect parameters</button>
+                        <button type="button" class="btn btn-outline" id="clearJrxmlBtn">Clear</button>
+                    </div>
+                    <p class="tool-status" id="parseStatus" aria-live="polite"></p>
+                    <p class="jrxml-report-meta" id="reportMeta" hidden></p>
+                </section>
+
+                <section class="info-card" id="parametersSection" aria-label="Report parameters" hidden>
+                    <div class="jrxml-section-head">
+                        <h2>2. Parameters</h2>
+                        <label class="jrxml-checkbox">
+                            <input type="checkbox" id="promptingOnly" checked>
+                            Show prompting parameters only
+                        </label>
+                    </div>
+                    <div id="parametersForm" class="jrxml-parameters-form"></div>
+                    <div class="tool-actions">
+                        <button type="button" class="btn btn-outline" id="copyParamsJson">Copy JSON</button>
+                        <button type="button" class="btn btn-outline" id="copyRestUrl">Copy REST URL</button>
+                    </div>
+                </section>
+
+                <section class="info-card" aria-label="PDF preview settings">
+                    <h2>3. PDF preview</h2>
+
+                    <fieldset class="jrxml-mode-picker">
+                        <legend class="jrxml-mode-legend">Preview mode</legend>
+                        <label class="jrxml-radio">
+                            <input type="radio" name="previewMode" value="local" checked>
+                            Local compile (JRXML on this PC)
+                        </label>
+                        <label class="jrxml-radio">
+                            <input type="radio" name="previewMode" value="server">
+                            JasperReports Server (remote)
+                        </label>
+                    </fieldset>
+
+                    <label class="jrxml-field jrxml-field-wide">
+                        <span>Proxy URL (Node.js)</span>
+                        <input id="proxyUrl" type="url" value="http://localhost:8790"
+                            placeholder="http://localhost:8790">
+                    </label>
+
+                    <div id="localPreviewPanel">
+                        <p class="tool-note-inline">
+                            Compiles your uploaded JRXML with JasperReports (Java), then fills the report.
+                            Reports with SQL need optional JDBC below. Simple templates work with an empty datasource.
+                        </p>
+                        <div class="jrxml-server-grid">
+                            <label class="jrxml-field jrxml-field-wide">
+                                <span>JDBC URL (optional)</span>
+                                <input id="jdbcUrl" type="text"
+                                    placeholder="jdbc:oracle:thin:@host:1521:ORCL">
+                            </label>
+                            <label class="jrxml-field">
+                                <span>JDBC user</span>
+                                <input id="jdbcUser" type="text" autocomplete="off">
+                            </label>
+                            <label class="jrxml-field">
+                                <span>JDBC password</span>
+                                <input id="jdbcPassword" type="password" autocomplete="off">
+                            </label>
+                            <label class="jrxml-field jrxml-field-wide">
+                                <span>JDBC driver class (optional)</span>
+                                <input id="jdbcDriver" type="text"
+                                    placeholder="oracle.jdbc.OracleDriver">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="serverPreviewPanel" hidden>
+                        <p class="tool-note-inline">
+                            Username and password are optional (HTTP Basic Auth). Report must already be deployed on
+                            the server.
+                        </p>
+                        <div class="jrxml-server-grid">
+                            <label class="jrxml-field">
+                                <span>Jasper base URL</span>
+                                <input id="jasperBaseUrl" type="url"
+                                    placeholder="https://jasper.example.com/jasperserver">
+                            </label>
+                            <label class="jrxml-field jrxml-field-wide">
+                                <span>Report URI (under /rest_v2/reports/)</span>
+                                <input id="jasperReportUri" type="text"
+                                    placeholder="organization/folder/MyReport">
+                            </label>
+                            <label class="jrxml-field">
+                                <span>Username (optional)</span>
+                                <input id="jasperUsername" type="text" autocomplete="username">
+                            </label>
+                            <label class="jrxml-field">
+                                <span>Password (optional)</span>
+                                <input id="jasperPassword" type="password" autocomplete="current-password">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="tool-actions">
+                        <button type="button" class="btn btn-primary" id="previewPdfBtn" disabled>Preview PDF</button>
+                        <button type="button" class="btn btn-outline" id="downloadPdfBtn" disabled>Download PDF</button>
+                    </div>
+                    <p class="tool-status" id="previewStatus" aria-live="polite"></p>
+                </section>
+
+                <section class="info-card jrxml-preview-card" aria-label="PDF preview" hidden id="previewSection">
+                    <h2>PDF preview</h2>
+                    <iframe id="pdfPreviewFrame" class="jrxml-pdf-frame" title="Report PDF preview"></iframe>
+                </section>
+            </div>
+
+            <details class="jrxml-help" open>
+                <summary>Prerequisites &amp; local proxy setup</summary>
+                <h3 class="jrxml-help-subtitle">Prerequisites (local compile)</h3>
+                <ul class="tool-list">
+                    <li>
+                        <strong>Node.js 18+</strong> —
+                        <a href="https://nodejs.org/" target="_blank" rel="noopener noreferrer">nodejs.org</a>
+                        (<code>node --version</code>)
+                    </li>
+                    <li>
+                        <strong>JDK 11+</strong> —
+                        <a href="https://adoptium.net/" target="_blank" rel="noopener noreferrer">Adoptium</a>
+                        (<code>java -version</code>)
+                    </li>
+                    <li>
+                        <strong>Apache Maven</strong> (one-time build) —
+                        <a href="https://maven.apache.org/" target="_blank" rel="noopener noreferrer">maven.apache.org</a>
+                        (<code>mvn -version</code>)
+                    </li>
+                </ul>
+                <h3 class="jrxml-help-subtitle">Build Java runner (once)</h3>
+                <pre class="api-code-block">cd tools/jrxml-report-preview
+build-runner.bat</pre>
+                <p class="tool-note-inline">Or: <code>cd java &amp;&amp; mvn package</code> → creates
+                    <code>java/target/jrxml-local-runner.jar</code></p>
+                <h3 class="jrxml-help-subtitle">Download &amp; run proxy</h3>
+                <div class="tool-actions jrxml-proxy-download">
+                    <a class="btn btn-primary" href="./jasper-proxy-server.js" download="jasper-proxy-server.js">
+                        Download jasper-proxy-server.js
+                    </a>
+                </div>
+                <p class="api-help">Deployed script URL:</p>
+                <pre class="api-code-block">https://akh826.github.io/tools/jrxml-report-preview/jasper-proxy-server.js</pre>
+                <p class="api-help">Start the proxy (default port <code>8790</code>):</p>
+                <pre class="api-code-block">node jasper-proxy-server.js</pre>
+                <p class="api-help">From this repo:</p>
+                <pre class="api-code-block">node tools/jrxml-report-preview/jasper-proxy-server.js</pre>
+                <p class="tool-note-inline">
+                    <strong>Local mode:</strong> POST <code>/api/local/preview</code> with your JRXML + parameters.<br>
+                    <strong>Server mode:</strong> deploy report on Jasper Server; URI is the path after
+                    <code>/rest_v2/reports/</code>.
+                </p>
+            </details>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; <span id="year"></span> Kam Hei Au. Tools.</p>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="../../script.js"></script>
+    <script src="jrxml-parser.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Storage Inspector</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+    <header class="popup-header">
+        <h1>Storage Inspector</h1>
+        <p class="popup-subtitle">Reads storage for the <strong>active tab</strong> you are viewing.</p>
+    </header>
+
+    <p class="popup-status" id="status" aria-live="polite">Open a website tab, then click Inspect.</p>
+
+    <div class="popup-actions">
+        <button type="button" class="btn-primary" id="inspectBtn">Inspect active tab</button>
+        <button type="button" class="btn-secondary" id="openReportBtn" disabled>Open full report</button>
+    </div>
+
+    <div class="popup-meta" id="tabMeta" hidden></div>
+    <div class="popup-results" id="results" hidden></div>
+
+    <footer class="popup-footer">
+        <a href="https://akh826.github.io/tools/storage-quota/index.html" target="_blank" rel="noopener noreferrer">Web tool (this origin only)</a>
+    </footer>
+
+    <script src="render.js"></script>
+    <script src="popup.js"></script>
+</body>
+
+</html>

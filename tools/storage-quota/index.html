@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Inspect browser storage quota and local storage usage breakdown for this origin.">
-    <title>Client Storage &amp; Quota Analytics | Tools</title>
+    <meta name="description" content="Inspect cache storage, IndexedDB, localStorage, sessionStorage, cookies, and quota for the current website origin.">
+    <title>Site Storage &amp; Cache Inspector | Tools</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -22,7 +22,7 @@
                     <span class="nav-area-label">Portfolio</span>
                     <ul class="nav-sections-list">
                         <li><a href="../../index.html" class="nav-link nav-link-section">Home</a></li>
-                        <li><a href="index.html" class="nav-link nav-link-section active">Storage Analytics</a></li>
+                        <li><a href="index.html" class="nav-link nav-link-section active">Storage Inspector</a></li>
                     </ul>
                 </li>
                 <li class="nav-divider" aria-hidden="true"></li>
@@ -42,19 +42,53 @@
             <a class="tool-back" href="../index.html">&larr; Tool catalog</a>
 
             <header class="tool-header">
-                <h1>Client Storage &amp; Quota Analytics</h1>
+                <h1>Site Storage &amp; Cache Inspector</h1>
                 <p class="tool-intro">
-                    Analyze how much storage this origin can use and how much it currently consumes, including a
-                    breakdown
-                    for localStorage, sessionStorage, and cookies.
+                    Inspect everything this browser exposes for the current website: localStorage, sessionStorage,
+                    cookies, Cache Storage, IndexedDB, service workers, and overall storage quota.
                 </p>
             </header>
 
             <p class="tool-note">
-                Quota values come from Storage Quota API and may include IndexedDB, Cache Storage, and other origin
-                data.
-                Cookie size shown here is based on the current document cookie string visible to this page.
+                This web page can only read storage for <strong>its own origin</strong>. To inspect another website,
+                use the browser extension below on that site’s tab. HTTP disk cache cannot be listed from JavaScript.
             </p>
+
+            <article class="info-card storage-extension-card">
+                <h2>Inspect other websites</h2>
+                <p class="tool-note-inline">
+                    Install the companion extension, open any site, then click the toolbar icon →
+                    <strong>Inspect active tab</strong> (includes HttpOnly cookies).
+                </p>
+
+                <div class="storage-extension-install-actions">
+                    <a class="btn btn-primary"
+                        href="../../extension/storage-inspector-extension.zip"
+                        download="storage-inspector-extension.zip">
+                        Download extension (ZIP)
+                    </a>
+                    <a class="btn btn-outline"
+                        href="../../extension/storage-inspector-extension/Install.bat"
+                        download="Install.bat">
+                        Install.bat only (repo clone)
+                    </a>
+                </div>
+
+                <p class="tool-note-inline storage-extension-install-hint">
+                    <strong>One click after extract:</strong> unzip → double-click <code>Install.bat</code>
+                    (Windows) or <code>Install.command</code> (Mac). Chrome/Edge opens with the extension loaded.
+                    Windows may show SmartScreen — choose “More info” → “Run anyway”.
+                </p>
+
+                <details class="storage-extension-manual">
+                    <summary>Manual install (Load unpacked)</summary>
+                    <ol class="storage-extension-steps">
+                        <li>Open <code>chrome://extensions</code> → enable <strong>Developer mode</strong>.</li>
+                        <li><strong>Load unpacked</strong> → select the unzipped
+                            <code>storage-inspector-extension</code> folder.</li>
+                    </ol>
+                </details>
+            </article>
 
             <div class="tool-actions">
                 <button type="button" class="btn btn-primary" id="refreshStorageAnalytics">Refresh analytics</button>

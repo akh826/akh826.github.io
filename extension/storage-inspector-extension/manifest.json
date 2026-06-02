@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Site Storage Inspector",
+  "version": "1.0.0",
+  "description": "Inspect localStorage, sessionStorage, cookies (including HttpOnly), Cache Storage, and IndexedDB for the active browser tab.",
+  "permissions": ["activeTab", "scripting", "cookies", "storage"],
+  "action": {
+    "default_title": "Inspect active tab storage",
+    "default_popup": "popup.html"
+  }
+}
