@@ -16,7 +16,7 @@
 <body>
     <top-nav page="demos" root="../.."></top-nav>
 
-    <main class="demo-tool-page section">
+    <main class="demo-tool-page demo-tool-page--wide section">
         <div class="container">
             <a class="demo-back" href="../index.html">&larr; Demos catalog</a>
 
@@ -27,7 +27,9 @@
                     mobile, tablet, and PC using breakpoints and container queries.
                 </p>
             </header>
+        </div>
 
+        <div class="demo-workspace">
             <div class="demo-layout">
                 <section class="demo-card" aria-label="Responsive controls">
                     <h2>Viewport Controls</h2>
@@ -67,8 +69,10 @@
                     <h2>Live Preview</h2>
                     <div class="demo-stage-wrap">
                         <div class="demo-stage" id="demoStage">
-                            <div class="responsive-app">
-                                <aside class="responsive-sidebar">
+                            <div class="responsive-app" id="responsiveApp">
+                                <div class="responsive-nav-backdrop" id="navBackdrop" hidden></div>
+
+                                <aside class="responsive-sidebar" id="responsiveSidebar" aria-label="Main navigation">
                                     <div class="responsive-brand">Demo Admin</div>
                                     <ul class="responsive-nav">
                                         <li class="active">Dashboard</li>
@@ -80,9 +84,19 @@
                                 </aside>
 
                                 <header class="responsive-header">
-                                    <div>
+                                    <button type="button" class="responsive-menu-toggle" id="previewMenuToggle"
+                                        aria-label="Open navigation menu" aria-expanded="false"
+                                        aria-controls="responsiveSidebar">
+                                        <span aria-hidden="true">☰</span>
+                                    </button>
+                                    <div class="responsive-header-main">
                                         <h3>Sales Overview</h3>
                                         <p>Responsive web UI preview</p>
+                                    </div>
+                                    <div class="responsive-header-actions" aria-label="Quick actions">
+                                        <button type="button" class="responsive-icon-btn" aria-label="Search">⌕</button>
+                                        <button type="button" class="responsive-icon-btn" aria-label="Notifications">🔔</button>
+                                        <span class="responsive-avatar" title="Account">KA</span>
                                     </div>
                                     <span class="responsive-chip" id="chipSize">PC</span>
                                 </header>
@@ -127,8 +141,8 @@
                         <li><strong>Container queries:</strong> layout changes based on the stage width, not window
                             size.</li>
                         <li><strong>Flexible grid:</strong> cards switch between 3, 2, and 1 columns.</li>
-                        <li><strong>Progressive simplification:</strong> sidebar hides on mobile to protect reading
-                            space.</li>
+                        <li><strong>Progressive simplification:</strong> tablet and mobile use a menu button and slide-out
+                            navigation instead of a fixed sidebar.</li>
                     </ul>
                     <p class="tool-status success" id="explainSummary" aria-live="polite"></p>
                 </article>
