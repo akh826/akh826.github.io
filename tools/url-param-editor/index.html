@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Parse a URL, edit or add query parameters, and copy the rebuilt URL.">
+    <title>URL Parameter Editor | Tools</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <nav class="nav container">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
+            <ul class="nav-links" id="navLinks">
+                <li class="nav-sections-group">
+                    <span class="nav-area-label">Portfolio</span>
+                    <ul class="nav-sections-list">
+                        <li><a href="../../index.html" class="nav-link nav-link-section">Home</a></li>
+                        <li><a href="index.html" class="nav-link nav-link-section active">URL Parameter Editor</a></li>
+                    </ul>
+                </li>
+                <li class="nav-divider" aria-hidden="true"></li>
+                <li>
+                    <a href="../index.html" class="nav-link nav-link-tools">
+                        <span class="nav-tools-icon" aria-hidden="true">⬡</span>
+                        Tools
+                    </a>
+                </li>
+            </ul>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
+        </nav>
+    </header>
+
+    <main class="tool-page section">
+        <div class="container container-wide">
+            <a class="tool-back" href="../index.html">&larr; Tool catalog</a>
+
+            <header class="tool-header">
+                <h1>URL Parameter Editor</h1>
+                <p class="tool-intro">
+                    Paste any <code>http</code> or <code>https</code> URL to inspect its query string, edit or add
+                    parameters, and copy the rebuilt URL. Hash fragments are preserved separately.
+                </p>
+            </header>
+
+            <section class="info-card url-param-input-card" aria-label="URL input">
+                <form id="parseForm" class="url-param-form">
+                    <label class="url-param-label" for="urlInput">URL</label>
+                    <div class="url-param-url-row">
+                        <input id="urlInput" class="url-param-input" type="text" inputmode="url"
+                            placeholder="https://example.com/search?q=hello&amp;page=2" spellcheck="false"
+                            autocomplete="url" required>
+                        <button type="submit" class="btn btn-primary">Parse URL</button>
+                    </div>
+                </form>
+                <p class="tool-status" id="inputStatus" aria-live="polite"></p>
+            </section>
+
+            <section class="url-param-editor" id="editorPanel" hidden aria-label="Parameter editor">
+                <section class="info-card url-param-base-card">
+                    <h2>URL parts</h2>
+                    <div class="url-param-parts-grid">
+                        <label class="url-param-field" for="baseUrl">
+                            <span>Base URL <small>(origin + path)</small></span>
+                            <input id="baseUrl" class="url-param-text-input" type="text" spellcheck="false">
+                        </label>
+                        <label class="url-param-field" for="hashPart">
+                            <span>Hash <small>(without #)</small></span>
+                            <input id="hashPart" class="url-param-text-input" type="text" spellcheck="false"
+                                placeholder="optional">
+                        </label>
+                    </div>
+                </section>
+
+                <section class="info-card url-param-table-card">
+                    <div class="url-param-table-head">
+                        <h2>Query parameters</h2>
+                        <button type="button" class="btn btn-outline btn-sm" id="addParam">+ Add parameter</button>
+                    </div>
+
+                    <div class="url-param-table-wrap">
+                        <table class="url-param-table" id="paramTable">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Key</th>
+                                    <th scope="col">Value</th>
+                                    <th scope="col"><span class="sr-only">Actions</span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="paramBody"></tbody>
+                        </table>
+                        <p class="url-param-empty" id="paramEmpty" hidden>No query parameters. Click Add parameter to
+                            create one.</p>
+                    </div>
+                </section>
+
+                <section class="info-card url-param-output-card">
+                    <h2>Rebuilt URL</h2>
+                    <label class="url-param-label" for="outputUrl">Complete URL</label>
+                    <textarea id="outputUrl" class="url-param-output" rows="3" readonly spellcheck="false"></textarea>
+
+                    <div class="tool-actions url-param-actions">
+                        <button type="button" class="btn btn-primary" id="copyUrl">Copy URL</button>
+                        <button type="button" class="btn btn-outline" id="openUrl">Open in new tab</button>
+                        <button type="button" class="btn btn-outline" id="reparseOutput">Use as input</button>
+                        <button type="button" class="btn btn-outline" id="resetEditor">Reset</button>
+                    </div>
+                    <p class="tool-status" id="outputStatus" aria-live="polite"></p>
+                </section>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; <span id="year"></span> Kam Hei Au. Tools.</p>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="../../script.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

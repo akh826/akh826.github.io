@@ -69,6 +69,13 @@ window.TOOL_CATALOG = [
     tags: ["Utility", "Browser", "Developer"]
   },
   {
+    slug: "url-param-editor",
+    title: "URL Parameter Editor",
+    description:
+      "Parse a URL, view and edit query parameters in a clear table, add new params, and copy the rebuilt URL.",
+    tags: ["Utility", "Browser", "Developer", "Debug"]
+  },
+  {
     slug: "qrcode-generator",
     title: "QR Code Generator",
     description:
