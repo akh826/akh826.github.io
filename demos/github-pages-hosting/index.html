@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Interactive demo: host a static website on GitHub Pages with live URL and command generation.">
+    <title>Host a Static Site on GitHub Pages | Demos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../demos.css">
+</head>
+
+<body>
+    <top-nav page="demos" root="../.."></top-nav>
+
+    <main class="demo-tool-page section">
+        <div class="container">
+            <a class="demo-back" href="../index.html">&larr; Demos catalog</a>
+
+            <header class="demo-tool-header">
+                <h1>Host a Static Site on GitHub Pages</h1>
+                <p class="demo-tool-intro">
+                    Walk through GitHub Pages setup with a live configurator. Enter your GitHub username and repository
+                    name to generate the publish URL, folder layout, and copy-ready git commands.
+                </p>
+            </header>
+
+            <div class="ghpages-layout">
+                <section class="demo-card ghpages-config-card" aria-label="Site configuration">
+                    <h2>Your site setup</h2>
+
+                    <fieldset class="ghpages-fieldset">
+                        <legend>Site type</legend>
+                        <div class="ghpages-radio-row">
+                            <label class="ghpages-radio">
+                                <input type="radio" name="siteType" value="project" checked>
+                                <span>Project site</span>
+                                <small>Any repo → username.github.io/repo-name/</small>
+                            </label>
+                            <label class="ghpages-radio">
+                                <input type="radio" name="siteType" value="user">
+                                <span>User site</span>
+                                <small>Repo must be username.github.io → username.github.io</small>
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <div class="ghpages-form-grid">
+                        <label class="ghpages-field" for="githubUser">
+                            <span>GitHub username</span>
+                            <input id="githubUser" type="text" value="akh826" spellcheck="false" autocomplete="off">
+                        </label>
+                        <label class="ghpages-field" for="repoName">
+                            <span>Repository name</span>
+                            <input id="repoName" type="text" value="my-static-site" spellcheck="false"
+                                autocomplete="off">
+                        </label>
+                        <label class="ghpages-field" for="branchName">
+                            <span>Branch</span>
+                            <input id="branchName" type="text" value="main" spellcheck="false" autocomplete="off">
+                        </label>
+                        <label class="ghpages-field" for="publishFolder">
+                            <span>Publish from</span>
+                            <select id="publishFolder" class="ghpages-select">
+                                <option value="root" selected>/ (root)</option>
+                                <option value="docs">/docs</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <dl class="ghpages-summary">
+                        <div>
+                            <dt>Live site URL</dt>
+                            <dd>
+                                <a id="liveUrl" class="ghpages-live-url" href="#" target="_blank"
+                                    rel="noopener noreferrer">https://akh826.github.io/my-static-site/</a>
+                            </dd>
+                        </div>
+                        <div>
+                            <dt>Settings path</dt>
+                            <dd id="settingsPath">github.com/akh826/my-static-site/settings/pages</dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <section class="demo-card ghpages-preview-card" aria-label="Published file preview">
+                    <h2>What gets published</h2>
+                    <div class="ghpages-preview-grid">
+                        <div class="ghpages-tree-wrap">
+                            <p class="ghpages-tree-title">Repository files</p>
+                            <pre class="demo-code-block ghpages-tree" id="fileTree"></pre>
+                        </div>
+                        <div class="ghpages-sample-wrap">
+                            <p class="ghpages-tree-title">Browser preview</p>
+                            <div class="ghpages-sample-site" id="sampleSite">
+                                <header class="ghpages-sample-header">
+                                    <span class="ghpages-sample-dot"></span>
+                                    <span class="ghpages-sample-dot"></span>
+                                    <span class="ghpages-sample-dot"></span>
+                                    <span class="ghpages-sample-address" id="sampleAddress"></span>
+                                </header>
+                                <div class="ghpages-sample-body">
+                                    <h3>Hello, GitHub Pages</h3>
+                                    <p>Your static files are served over HTTPS for free.</p>
+                                    <a class="ghpages-sample-link" id="sampleLink" href="#">Open live URL</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="demo-card ghpages-steps-card" aria-label="Setup steps">
+                    <h2>Step-by-step</h2>
+                    <ol class="ghpages-steps">
+                        <li>
+                            <h3>Create the repository</h3>
+                            <p>Create a new public repo on GitHub. For a user site, name it <code id="userRepoHint">username.github.io</code>.</p>
+                        </li>
+                        <li>
+                            <h3>Add static files locally</h3>
+                            <p>At minimum, include an <code>index.html</code> in the publish folder shown above.</p>
+                            <pre class="demo-code-block" id="sampleIndexHtml"></pre>
+                        </li>
+                        <li>
+                            <h3>Push to GitHub</h3>
+                            <p>Run these commands in your project folder (edit if you already initialized git):</p>
+                            <div class="ghpages-command-block">
+                                <pre class="demo-code-block" id="gitCommands"></pre>
+                                <button type="button" class="btn btn-outline btn-sm ghpages-copy" data-copy="gitCommands">Copy commands</button>
+                            </div>
+                        </li>
+                        <li>
+                            <h3>Enable GitHub Pages</h3>
+                            <p>
+                                Open <a id="settingsLink" href="#" target="_blank" rel="noopener noreferrer">Repository
+                                    → Settings → Pages</a>.
+                                Set <strong>Source</strong> to <code id="pagesSourceBranch">main</code> and folder to
+                                <code id="pagesSourceFolder">/ (root)</code>, then save.
+                            </p>
+                        </li>
+                        <li>
+                            <h3>Visit your site</h3>
+                            <p>
+                                After the first deploy (usually 1–3 minutes), open
+                                <a id="finalUrl" href="#" target="_blank" rel="noopener noreferrer">your live URL</a>.
+                                Every push to the publish branch rebuilds the site automatically.
+                            </p>
+                        </li>
+                    </ol>
+                </section>
+
+                <section class="demo-card ghpages-tips-card" aria-label="Tips">
+                    <h2>Tips</h2>
+                    <ul class="demo-explain-list">
+                        <li><strong>Custom domain:</strong> add a <code>CNAME</code> file or set a domain under Pages settings.</li>
+                        <li><strong>Relative links:</strong> on project sites, use paths like <code>./about.html</code> or a <code>&lt;base href&gt;</code> tag.</li>
+                        <li><strong>404 page:</strong> add <code>404.html</code> at the publish root for a custom not-found page.</li>
+                        <li><strong>This portfolio:</strong> this site itself is hosted on GitHub Pages at
+                            <a href="https://akh826.github.io/" target="_blank" rel="noopener noreferrer">akh826.github.io</a>.
+                        </li>
+                    </ul>
+                    <p class="tool-status" id="toolStatus" aria-live="polite"></p>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; <span id="year"></span> Kam Hei Au. Demos.</p>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="../../shared/top-nav.js"></script>
+    <script src="../../script.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

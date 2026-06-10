@@ -668,4 +668,252 @@ body.dark .catalog-favorite-btn[aria-pressed="true"] {
     .demo-explain-grid {
         grid-template-columns: 1fr;
     }
+
+    .ghpages-preview-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.ghpages-layout {
+    display: grid;
+    gap: 1rem;
+}
+
+.ghpages-fieldset {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.75rem 0.9rem;
+    margin: 0 0 0.9rem;
+}
+
+.ghpages-fieldset legend {
+    padding: 0 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.ghpages-radio-row {
+    display: grid;
+    gap: 0.55rem;
+}
+
+@media (min-width: 720px) {
+    .ghpages-radio-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.ghpages-radio {
+    display: grid;
+    gap: 0.15rem;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    background: color-mix(in srgb, var(--text) 2%, var(--surface));
+}
+
+.ghpages-radio:has(input:checked) {
+    border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+    background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+}
+
+.ghpages-radio input {
+    margin-right: 0.35rem;
+}
+
+.ghpages-radio span {
+    font-weight: 600;
+}
+
+.ghpages-radio small {
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
+.ghpages-form-grid {
+    display: grid;
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+}
+
+@media (min-width: 720px) {
+    .ghpages-form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.ghpages-field {
+    display: grid;
+    gap: 0.3rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+.ghpages-field input,
+.ghpages-select {
+    width: 100%;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+}
+
+.ghpages-field input:focus,
+.ghpages-select:focus {
+    outline: 2px solid color-mix(in srgb, var(--primary) 40%, transparent);
+    border-color: var(--primary);
+}
+
+.ghpages-field input:read-only {
+    opacity: 0.85;
+    background: color-mix(in srgb, var(--text) 4%, var(--surface));
+}
+
+.ghpages-summary {
+    display: grid;
+    gap: 0.65rem;
+    margin: 0;
+}
+
+.ghpages-summary div {
+    display: grid;
+    gap: 0.2rem;
+}
+
+.ghpages-summary dt {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.ghpages-summary dd {
+    margin: 0;
+    word-break: break-word;
+}
+
+.ghpages-live-url {
+    font-weight: 600;
+    color: var(--primary-strong);
+}
+
+.ghpages-preview-grid {
+    display: grid;
+    gap: 0.85rem;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.ghpages-tree-title {
+    margin: 0 0 0.45rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.ghpages-tree {
+    margin: 0;
+    min-height: 10.5rem;
+}
+
+.ghpages-sample-site {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: #ffffff;
+    color: #0f172a;
+    min-height: 10.5rem;
+}
+
+.ghpages-sample-header {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.6rem;
+    background: #e2e8f0;
+    border-bottom: 1px solid #cbd5e1;
+}
+
+.ghpages-sample-dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: #94a3b8;
+}
+
+.ghpages-sample-address {
+    margin-left: 0.35rem;
+    font-size: 0.72rem;
+    color: #475569;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ghpages-sample-body {
+    padding: 1rem 0.9rem 1.1rem;
+}
+
+.ghpages-sample-body h3 {
+    margin: 0 0 0.35rem;
+    font-size: 1.05rem;
+}
+
+.ghpages-sample-body p {
+    margin: 0 0 0.75rem;
+    color: #475569;
+    font-size: 0.9rem;
+}
+
+.ghpages-sample-link {
+    display: inline-block;
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: #1d4ed8;
+    text-decoration: none;
+}
+
+.ghpages-sample-link:hover {
+    text-decoration: underline;
+}
+
+.ghpages-steps {
+    margin: 0;
+    padding-left: 1.2rem;
+    display: grid;
+    gap: 1rem;
+}
+
+.ghpages-steps h3 {
+    margin: 0 0 0.35rem;
+    font-size: 1rem;
+    color: var(--primary-strong);
+}
+
+.ghpages-steps p {
+    margin: 0 0 0.55rem;
+    color: var(--muted);
+}
+
+.ghpages-steps li:last-child p:last-child {
+    margin-bottom: 0;
+}
+
+.ghpages-command-block {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.ghpages-copy.btn-sm {
+    justify-self: start;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.82rem;
 }
