@@ -1749,3 +1749,221 @@ body.dark .permission-state.state-prompt {
   white-space: nowrap;
   border: 0;
 }
+
+/* WebRTC manual signaling chat */
+.webrtc-status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.webrtc-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--text) 4%, var(--surface));
+  color: var(--muted);
+}
+
+.webrtc-badge[data-state="connected"] {
+  color: #15803d;
+  border-color: color-mix(in srgb, #15803d 35%, var(--border));
+  background: color-mix(in srgb, #15803d 10%, var(--surface));
+}
+
+.webrtc-badge[data-state="failed"],
+.webrtc-badge[data-state="disconnected"] {
+  color: #b91c1c;
+  border-color: color-mix(in srgb, #b91c1c 35%, var(--border));
+  background: color-mix(in srgb, #b91c1c 10%, var(--surface));
+}
+
+.webrtc-badge[data-state="connecting"],
+.webrtc-badge[data-state="gathering-ice"],
+.webrtc-badge[data-state="waiting-for-answer"],
+.webrtc-badge[data-state="waiting-for-host"] {
+  color: var(--primary-strong);
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+}
+
+.webrtc-meta {
+  flex: 1 1 16rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.webrtc-layout {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 960px) {
+  .webrtc-layout {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    align-items: start;
+  }
+}
+
+.webrtc-role-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.2rem;
+  background: color-mix(in srgb, var(--text) 3%, var(--surface));
+}
+
+.webrtc-role-btn {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.webrtc-role-btn.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+.webrtc-steps {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 1.1rem;
+}
+
+.webrtc-steps > li::marker {
+  color: var(--primary-strong);
+  font-weight: 700;
+}
+
+.webrtc-step-label {
+  margin: 0 0 0.65rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.webrtc-field-label {
+  display: block;
+  margin: 0.65rem 0 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--primary-strong);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.webrtc-signal-text {
+  width: 100%;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+.webrtc-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.55rem;
+}
+
+.webrtc-reset-actions {
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+}
+
+.webrtc-chat-hint {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.webrtc-messages {
+  min-height: 14rem;
+  max-height: 22rem;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem;
+  margin-bottom: 0.85rem;
+  background: color-mix(in srgb, var(--text) 2%, var(--surface));
+}
+
+.webrtc-messages-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.webrtc-message {
+  padding: 0.55rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+}
+
+.webrtc-message:last-child {
+  border-bottom: 0;
+}
+
+.webrtc-message-system .webrtc-message-author {
+  color: var(--muted);
+}
+
+.webrtc-message-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.2rem;
+}
+
+.webrtc-message-author {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary-strong);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.webrtc-message-time {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.webrtc-message-body {
+  font-size: 0.92rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.webrtc-compose {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.55rem;
+}
+
+.webrtc-help-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.45rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}

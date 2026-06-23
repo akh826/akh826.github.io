@@ -95,5 +95,12 @@ window.TOOL_CATALOG = [
     description:
       "Step-by-step guide to run mock-server.js locally so Postman can receive real mocked HTTP status codes.",
     tags: ["API", "Developer", "Node.js", "Setup"]
+  },
+  {
+    slug: "webrtc-manual-chat",
+    title: "WebRTC Manual Signaling Chat",
+    description:
+      "1-to-1 browser chat over WebRTC with copy-paste SDP exchange — no backend server required.",
+    tags: ["WebRTC", "Network", "Debug", "Developer"]
   }
 ];

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="1-to-1 browser chat over WebRTC with manual copy-paste SDP exchange — no backend server.">
+    <title>WebRTC Manual Signaling Chat | Tools</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <nav class="nav container">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
+            <ul class="nav-links" id="navLinks">
+                <li class="nav-sections-group">
+                    <span class="nav-area-label">Portfolio</span>
+                    <ul class="nav-sections-list">
+                        <li><a href="../../index.html" class="nav-link nav-link-section">Home</a></li>
+                        <li><a href="index.html" class="nav-link nav-link-section active">WebRTC Chat</a></li>
+                    </ul>
+                </li>
+                <li class="nav-divider" aria-hidden="true"></li>
+                <li>
+                    <a href="../index.html" class="nav-link nav-link-tools">
+                        <span class="nav-tools-icon" aria-hidden="true">⬡</span>
+                        Tools
+                    </a>
+                </li>
+            </ul>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
+        </nav>
+    </header>
+
+    <main class="tool-page section">
+        <div class="container">
+            <a class="tool-back" href="../index.html">&larr; Tool catalog</a>
+
+            <header class="tool-header">
+                <h1>WebRTC Manual Signaling Chat</h1>
+                <p class="tool-intro">
+                    A serverless 1-to-1 chat demo. Two browsers exchange WebRTC session data by copy-paste
+                    (or any side channel). Once connected, messages travel directly over a WebRTC data channel.
+                </p>
+            </header>
+
+            <p class="tool-note">
+                This is a <strong>peer-to-peer demo for two people</strong>, not a multi-user chat room.
+                You need a second device or browser profile. STUN is used only for NAT traversal; no chat
+                messages pass through any server.
+            </p>
+
+            <section class="webrtc-status-strip" aria-label="Connection status">
+                <div class="webrtc-badge" id="connectionBadge" role="status" aria-live="polite">Idle</div>
+                <div class="webrtc-meta" id="connectionMeta">Choose a role to begin signaling.</div>
+            </section>
+
+            <div class="webrtc-layout">
+                <section class="info-card webrtc-signaling-card" aria-label="Signaling steps">
+                    <div class="card-head">
+                        <h2>Signaling</h2>
+                        <div class="webrtc-role-toggle" role="tablist" aria-label="Peer role">
+                            <button type="button" class="webrtc-role-btn active" id="roleHost" role="tab"
+                                aria-selected="true" data-role="host">Host</button>
+                            <button type="button" class="webrtc-role-btn" id="roleGuest" role="tab"
+                                aria-selected="false" data-role="guest">Guest</button>
+                        </div>
+                    </div>
+
+                    <ol class="webrtc-steps" id="hostSteps">
+                        <li>
+                            <p class="webrtc-step-label">Create an offer and send it to the guest.</p>
+                            <button type="button" class="btn btn-primary" id="createOfferBtn">Create offer</button>
+                            <label class="webrtc-field-label" for="hostOfferOut">Offer (copy to guest)</label>
+                            <textarea id="hostOfferOut" class="api-textarea webrtc-signal-text" rows="6" readonly
+                                spellcheck="false" placeholder="Offer appears here after you create it."></textarea>
+                            <div class="webrtc-inline-actions">
+                                <button type="button" class="btn btn-outline" id="copyHostOfferBtn" disabled>Copy
+                                    offer</button>
+                            </div>
+                        </li>
+                        <li>
+                            <p class="webrtc-step-label">Paste the guest's answer below and apply it.</p>
+                            <label class="webrtc-field-label" for="hostAnswerIn">Answer (from guest)</label>
+                            <textarea id="hostAnswerIn" class="api-textarea webrtc-signal-text" rows="6"
+                                spellcheck="false" placeholder="Paste the guest answer here."></textarea>
+                            <div class="webrtc-inline-actions">
+                                <button type="button" class="btn btn-primary" id="applyHostAnswerBtn" disabled>Apply
+                                    answer</button>
+                            </div>
+                        </li>
+                    </ol>
+
+                    <ol class="webrtc-steps" id="guestSteps" hidden>
+                        <li>
+                            <p class="webrtc-step-label">Paste the host offer and create your answer.</p>
+                            <label class="webrtc-field-label" for="guestOfferIn">Offer (from host)</label>
+                            <textarea id="guestOfferIn" class="api-textarea webrtc-signal-text" rows="6"
+                                spellcheck="false" placeholder="Paste the host offer here."></textarea>
+                            <div class="webrtc-inline-actions">
+                                <button type="button" class="btn btn-primary" id="createAnswerBtn" disabled>Create
+                                    answer</button>
+                            </div>
+                        </li>
+                        <li>
+                            <p class="webrtc-step-label">Send this answer back to the host.</p>
+                            <label class="webrtc-field-label" for="guestAnswerOut">Answer (copy to host)</label>
+                            <textarea id="guestAnswerOut" class="api-textarea webrtc-signal-text" rows="6" readonly
+                                spellcheck="false" placeholder="Answer appears here after you create it."></textarea>
+                            <div class="webrtc-inline-actions">
+                                <button type="button" class="btn btn-outline" id="copyGuestAnswerBtn" disabled>Copy
+                                    answer</button>
+                            </div>
+                        </li>
+                    </ol>
+
+                    <p class="tool-status" id="signalingStatus" aria-live="polite"></p>
+
+                    <div class="tool-actions webrtc-reset-actions">
+                        <button type="button" class="btn btn-outline" id="resetSessionBtn">Reset session</button>
+                    </div>
+                </section>
+
+                <section class="info-card webrtc-chat-card" aria-label="Chat panel">
+                    <div class="card-head">
+                        <h2>Chat</h2>
+                        <span class="webrtc-chat-hint" id="chatHint">Connect via signaling first.</span>
+                    </div>
+
+                    <div class="webrtc-messages" id="messageLog" role="log" aria-live="polite" aria-relevant="additions">
+                        <p class="webrtc-messages-empty" id="messageEmpty">No messages yet.</p>
+                    </div>
+
+                    <form class="webrtc-compose" id="chatForm">
+                        <label class="sr-only" for="messageInput">Message</label>
+                        <input id="messageInput" class="api-input" type="text" autocomplete="off"
+                            placeholder="Type a message…" disabled>
+                        <button type="submit" class="btn btn-primary" id="sendMessageBtn" disabled>Send</button>
+                    </form>
+                </section>
+            </div>
+
+            <section class="info-card webrtc-help-card">
+                <h2>How to try it</h2>
+                <ol class="webrtc-help-list">
+                    <li>Open this page on <strong>two browsers</strong> (or one normal window + one private window).</li>
+                    <li>On device A, stay on <strong>Host</strong> and click <strong>Create offer</strong>. Copy the offer text.</li>
+                    <li>On device B, switch to <strong>Guest</strong>, paste the offer, and click <strong>Create answer</strong>.</li>
+                    <li>Copy the answer back to device A and click <strong>Apply answer</strong>.</li>
+                    <li>When the badge shows <strong>Connected</strong>, both sides can chat. Use chat apps, email, or QR codes to move the offer/answer strings.</li>
+                </ol>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; <span id="year"></span> Kam Hei Au. Tools.</p>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="../../script.js"></script>
+    <script>
+        (function () {
+            const path = location.pathname;
+            const base = path.endsWith("/")
+                ? path
+                : path.endsWith(".html")
+                    ? path.slice(0, path.lastIndexOf("/") + 1)
+                    : `${path}/`;
+            const script = document.createElement("script");
+            script.src = `${base}app.js`;
+            document.body.appendChild(script);
+        }());
+    </script>
+</body>
+
+</html>
