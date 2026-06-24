@@ -109,5 +109,12 @@ window.TOOL_CATALOG = [
     description:
       "Extensible investing math tool for compound growth, CAGR, real returns, position sizing, and withdrawal planning.",
     tags: ["Finance", "Utility", "Calculator"]
+  },
+  {
+    slug: "retirement-calculator",
+    title: "Retirement Calculator",
+    description:
+      "Estimate retirement corpus and savings needs from monthly income, target lifetime, and inflation-aware projections.",
+    tags: ["Finance", "Utility", "Calculator", "Retirement"]
   }
 ];
