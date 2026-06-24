@@ -1847,6 +1847,10 @@ body.dark .permission-state.state-prompt {
   gap: 1.1rem;
 }
 
+.webrtc-steps[hidden] {
+  display: none !important;
+}
+
 .webrtc-steps > li::marker {
   color: var(--primary-strong);
   font-weight: 700;
