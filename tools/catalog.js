@@ -102,5 +102,12 @@ window.TOOL_CATALOG = [
     description:
       "1-to-1 browser chat over WebRTC with copy-paste SDP exchange — no backend server required.",
     tags: ["WebRTC", "Network", "Debug", "Developer"]
+  },
+  {
+    slug: "investment-calculator",
+    title: "Investment Calculator",
+    description:
+      "Extensible investing math tool for compound growth, CAGR, real returns, position sizing, and withdrawal planning.",
+    tags: ["Finance", "Utility", "Calculator"]
   }
 ];

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Extensible investment calculator for compound growth, CAGR, real returns, position sizing, and more.">
+    <title>Investment Calculator | Tools</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <nav class="nav container">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
+            <ul class="nav-links" id="navLinks">
+                <li class="nav-sections-group">
+                    <span class="nav-area-label">Portfolio</span>
+                    <ul class="nav-sections-list">
+                        <li><a href="../../index.html" class="nav-link nav-link-section">Home</a></li>
+                        <li><a href="index.html" class="nav-link nav-link-section active">Investment Calculator</a></li>
+                    </ul>
+                </li>
+                <li class="nav-divider" aria-hidden="true"></li>
+                <li>
+                    <a href="../index.html" class="nav-link nav-link-tools">
+                        <span class="nav-tools-icon" aria-hidden="true">⬡</span>
+                        Tools
+                    </a>
+                </li>
+            </ul>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
+        </nav>
+    </header>
+
+    <main class="tool-page section">
+        <div class="container container-wide">
+            <a class="tool-back" href="../index.html">&larr; Tool catalog</a>
+
+            <header class="tool-header">
+                <h1>Investment Calculator</h1>
+                <p class="tool-intro">
+                    Run common investing formulas in the browser. Pick a calculator, adjust inputs, and see results
+                    update instantly. Add new formulas by editing <code>formulas.js</code>.
+                </p>
+            </header>
+
+            <p class="tool-note">
+                For planning and education only — not financial advice. Numbers assume simplified models unless a
+                formula note says otherwise.
+            </p>
+
+            <div class="invest-layout">
+                <section class="info-card invest-picker-card" aria-label="Formula picker">
+                    <h2>Formula</h2>
+                    <label class="invest-label" for="formulaSelect">Choose a calculator</label>
+                    <select id="formulaSelect" class="invest-select invest-formula-select"></select>
+                    <p class="invest-formula-description" id="formulaDescription"></p>
+                </section>
+
+                <div class="invest-main">
+                    <form id="calcForm" class="info-card invest-form-card" aria-labelledby="formulaTitle">
+                        <div class="card-head">
+                            <h2 id="formulaTitle">Calculator</h2>
+                            <div class="invest-form-actions">
+                                <button type="button" class="btn btn-outline" id="resetInputsBtn">Reset</button>
+                                <button type="submit" class="btn btn-primary">Calculate</button>
+                            </div>
+                        </div>
+
+                        <div class="invest-inputs-grid" id="inputsGrid"></div>
+                        <p class="tool-status" id="calcStatus" aria-live="polite"></p>
+                    </form>
+
+                    <section class="info-card invest-results-card" aria-label="Calculation results">
+                        <h2>Results</h2>
+                        <div class="invest-outputs-grid" id="outputsGrid"></div>
+
+                        <div class="invest-breakdown-wrap" id="breakdownCard" hidden>
+                            <h3 class="invest-subheading">Breakdown</h3>
+                            <table class="info-table invest-breakdown-table">
+                                <tbody id="breakdownBody"></tbody>
+                            </table>
+                        </div>
+
+                        <ul class="invest-notes" id="formulaNotes"></ul>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; <span id="year"></span> Kam Hei Au. Tools.</p>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="../../script.js"></script>
+    <script>
+        (function () {
+            const path = location.pathname;
+            const base = path.endsWith("/")
+                ? path
+                : path.endsWith(".html")
+                    ? path.slice(0, path.lastIndexOf("/") + 1)
+                    : `${path}/`;
+
+            function loadScript(src) {
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement("script");
+                    script.src = src;
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.body.appendChild(script);
+                });
+            }
+
+            loadScript(`${base}formulas.js`)
+                .then(() => loadScript(`${base}app.js`))
+                .catch(() => {
+                    const status = document.getElementById("calcStatus");
+                    if (status) {
+                        status.textContent = "Could not load calculator scripts.";
+                        status.classList.add("error");
+                    }
+                });
+        }());
+    </script>
+</body>
+
+</html>

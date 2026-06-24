@@ -1971,3 +1971,178 @@ body.dark .permission-state.state-prompt {
   font-size: 0.92rem;
   line-height: 1.5;
 }
+
+/* Investment calculator */
+.invest-layout {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 960px) {
+  .invest-layout {
+    grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.35fr);
+    align-items: start;
+  }
+}
+
+.invest-main {
+  display: grid;
+  gap: 1rem;
+}
+
+.invest-formula-select {
+  width: 100%;
+  margin-bottom: 0.75rem;
+}
+
+.invest-formula-description {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.invest-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.invest-inputs-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+@media (min-width: 640px) {
+  .invest-inputs-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.invest-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.invest-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--primary-strong);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.invest-label-unit {
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.invest-input,
+.invest-select {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+.invest-input-shell {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.invest-input-shell .invest-input {
+  border: 0;
+  border-radius: 0;
+  min-width: 0;
+}
+
+.invest-input-prefix,
+.invest-input-suffix {
+  padding: 0 0.65rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.invest-input:focus,
+.invest-select:focus {
+  outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
+  outline-offset: 1px;
+}
+
+.invest-outputs-grid {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+@media (min-width: 640px) {
+  .invest-outputs-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.invest-output-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  background: color-mix(in srgb, var(--text) 2%, var(--surface));
+}
+
+.invest-output-primary {
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+}
+
+.invest-output-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.invest-output-value {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--primary-strong);
+  line-height: 1.2;
+}
+
+.invest-subheading {
+  margin: 0 0 0.65rem;
+  font-size: 0.88rem;
+  color: var(--primary-strong);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.invest-breakdown-wrap {
+  margin-bottom: 0.85rem;
+}
+
+.invest-breakdown-table th {
+  font-weight: 600;
+  text-align: left;
+}
+
+.invest-notes {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
