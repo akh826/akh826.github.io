@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Fetch stock market data from Massive.com, compare multiple tickers, and overlay technical indicators like MACD and RSI.">
+    <title>Market Data Viewer | Tools</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <nav class="nav container">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
+            <ul class="nav-links" id="navLinks">
+                <li class="nav-sections-group">
+                    <span class="nav-area-label">Portfolio</span>
+                    <ul class="nav-sections-list">
+                        <li><a href="../../index.html" class="nav-link nav-link-section">Home</a></li>
+                        <li><a href="index.html" class="nav-link nav-link-section active">Market Data</a></li>
+                    </ul>
+                </li>
+                <li class="nav-divider" aria-hidden="true"></li>
+                <li>
+                    <a href="../index.html" class="nav-link nav-link-tools">
+                        <span class="nav-tools-icon" aria-hidden="true">⬡</span>
+                        Tools
+                    </a>
+                </li>
+            </ul>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
+        </nav>
+    </header>
+
+    <main class="tool-page section">
+        <div class="container container-wide">
+            <a class="tool-back" href="../index.html" id="mktToolBack">&larr; Tool catalog</a>
+
+            <header class="tool-header" id="mktPageHeader">
+                <h1>Market Data Viewer</h1>
+                <p class="tool-intro">
+                    Connect to the <a href="https://massive.com/" target="_blank" rel="noopener noreferrer">Massive</a>
+                    stock API, compare multiple tickers on one chart, and apply technical indicators such as MACD, RSI,
+                    and Bollinger Bands. Add new indicators in <code>formulas.js</code>.
+                </p>
+            </header>
+
+            <p class="tool-note" id="apiKeyToolNote">
+                Your API key is stored only in this browser's localStorage. Market data availability depends on your
+                Massive plan. For education and research — not financial advice.
+            </p>
+
+            <div class="mkt-layout" id="mktLayout">
+                <section class="info-card mkt-api-key-card" id="apiKeyGate" aria-label="API key settings">
+                    <h2>API Key</h2>
+                    <p class="mkt-card-hint">
+                        Get a key from your <a href="https://massive.com/" target="_blank"
+                            rel="noopener noreferrer">Massive dashboard</a>. Sent as
+                        <code>?apiKey=</code> on each request.
+                    </p>
+                    <label class="mkt-field" for="apiKeyInput">
+                        <span class="invest-label">Massive API key</span>
+                        <input type="password" id="apiKeyInput" class="invest-input" autocomplete="off"
+                            placeholder="Paste your API key" />
+                    </label>
+                    <div class="mkt-btn-row">
+                        <button type="button" class="btn btn-primary" id="saveApiKeyBtn">Save key</button>
+                        <button type="button" class="btn btn-outline" id="clearApiKeyBtn">Clear</button>
+                    </div>
+                    <p class="tool-status" id="apiKeyStatus" aria-live="polite"></p>
+                </section>
+
+                <div id="mktAppContent" class="mkt-app-content" hidden>
+                    <div class="mkt-app-toolbar">
+                        <button type="button" class="btn btn-outline btn-sm mkt-change-key" id="changeApiKeyBtn">
+                            Change API key
+                        </button>
+                    </div>
+
+                    <div class="mkt-charts" id="mktCharts">
+                        <section class="info-card mkt-chart-card" aria-label="Price comparison chart">
+                            <h2>Comparison chart</h2>
+                            <div class="mkt-chart-canvas-wrap">
+                                <canvas id="priceChart" aria-label="Stock price comparison chart"></canvas>
+                            </div>
+                        </section>
+
+                        <section class="info-card mkt-chart-card" id="indicatorChartWrap" hidden
+                            aria-label="Technical indicator chart">
+                            <h2 id="indicatorChartTitle">Indicator</h2>
+                            <div class="mkt-chart-canvas-wrap mkt-chart-canvas-wrap--short">
+                                <canvas id="indicatorChart" aria-label="Technical indicator chart"></canvas>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div class="mkt-settings" id="mktSettings">
+                        <section class="info-card" aria-label="Ticker selection">
+                            <h2>Tickers</h2>
+                            <label class="mkt-field" for="tickerSearch">
+                                <span class="invest-label">Search symbol</span>
+                                <input type="search" id="tickerSearch" class="invest-input"
+                                    placeholder="e.g. AAPL, Microsoft" autocomplete="off" />
+                            </label>
+                            <ul class="mkt-search-results" id="searchResults" hidden></ul>
+                            <div class="mkt-chips" id="tickerChips"></div>
+                        </section>
+
+                        <section class="info-card" aria-label="Chart settings">
+                            <h2>Data range</h2>
+                            <div class="mkt-range-presets">
+                                <button type="button" class="btn btn-outline btn-sm" data-range="30">1M</button>
+                                <button type="button" class="btn btn-outline btn-sm" data-range="90">3M</button>
+                                <button type="button" class="btn btn-outline btn-sm" data-range="180">6M</button>
+                                <button type="button" class="btn btn-outline btn-sm" data-range="365">1Y</button>
+                                <button type="button" class="btn btn-outline btn-sm" data-range="730">2Y</button>
+                            </div>
+                            <div class="mkt-dates-grid">
+                                <label class="mkt-field">
+                                    <span class="invest-label">From</span>
+                                    <input type="date" id="dateFrom" class="invest-input" />
+                                </label>
+                                <label class="mkt-field">
+                                    <span class="invest-label">To</span>
+                                    <input type="date" id="dateTo" class="invest-input" />
+                                </label>
+                            </div>
+                            <label class="mkt-field" for="timespan">
+                                <span class="invest-label">Bar size</span>
+                                <select id="timespan" class="invest-select">
+                                    <option value="day" selected>Daily</option>
+                                    <option value="week">Weekly</option>
+                                    <option value="month">Monthly</option>
+                                </select>
+                            </label>
+                            <label class="mkt-field" for="chartMode">
+                                <span class="invest-label">Compare as</span>
+                                <select id="chartMode" class="invest-select">
+                                    <option value="percent" selected>% change (normalized)</option>
+                                    <option value="price">Close price (USD)</option>
+                                </select>
+                            </label>
+                            <button type="button" class="btn btn-primary mkt-fetch-btn" id="fetchBtn">Fetch &amp;
+                                plot</button>
+                            <p class="tool-status" id="fetchStatus" aria-live="polite"></p>
+                        </section>
+
+                        <section class="info-card" aria-label="Technical indicator">
+                            <h2>Indicator</h2>
+                            <label class="mkt-field" for="indicatorSelect">
+                                <span class="invest-label">Formula</span>
+                                <select id="indicatorSelect" class="invest-select"></select>
+                            </label>
+                            <p class="mkt-card-hint" id="indicatorDescription"></p>
+                            <label class="mkt-field" for="indicatorTarget">
+                                <span class="invest-label">Apply to</span>
+                                <select id="indicatorTarget" class="invest-select"></select>
+                            </label>
+                            <div class="mkt-indicator-params" id="indicatorParams"></div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; <span id="year"></span> Kam Hei Au. Tools.</p>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="../../script.js"></script>
+    <script>
+        (function () {
+            const path = location.pathname;
+            const base = path.endsWith("/")
+                ? path
+                : path.endsWith(".html")
+                    ? path.slice(0, path.lastIndexOf("/") + 1)
+                    : `${path}/`;
+
+            function loadScript(src) {
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement("script");
+                    script.src = src;
+                    script.onload = resolve;
+                    script.onerror = () => reject(new Error(`Failed to load ${src}`));
+                    document.body.appendChild(script);
+                });
+            }
+
+            const chartSrc = "https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js";
+
+            loadScript(chartSrc)
+                .then(() => loadScript(`${base}api.js`))
+                .then(() => loadScript(`${base}formulas.js`))
+                .then(() => loadScript(`${base}app.js`))
+                .catch((error) => {
+                    const status = document.getElementById("fetchStatus");
+                    if (status) {
+                        status.textContent = error?.message || "Could not load market data scripts.";
+                        status.classList.add("error");
+                    }
+                });
+        }());
+    </script>
+</body>
+
+</html>

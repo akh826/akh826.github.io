@@ -109,5 +109,12 @@ window.TOOL_CATALOG = [
     description:
       "Extensible investing math tool for compound growth, CAGR, real returns, position sizing, and withdrawal planning.",
     tags: ["Finance", "Utility", "Calculator"]
+  },
+  {
+    slug: "market-data-viewer",
+    title: "Market Data Viewer",
+    description:
+      "Fetch stock OHLC data from Massive.com, compare multiple tickers on a chart, and apply MACD, RSI, and other indicators.",
+    tags: ["Finance", "API", "Chart", "Developer"]
   }
 ];
