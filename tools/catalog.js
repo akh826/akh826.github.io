@@ -116,5 +116,12 @@ window.TOOL_CATALOG = [
     description:
       "Fetch stock OHLC data from Massive.com, compare multiple tickers on a chart, and apply MACD, RSI, and other indicators.",
     tags: ["Finance", "API", "Chart", "Developer"]
+  },
+  {
+    slug: "retirement-calculator",
+    title: "Retirement Calculator",
+    description:
+      "Estimate retirement corpus and savings needs from monthly income, target lifetime, and inflation-aware projections.",
+    tags: ["Finance", "Utility", "Calculator", "Retirement"]
   }
 ];
