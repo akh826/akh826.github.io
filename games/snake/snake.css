@@ -1,0 +1,276 @@
+.game-tool-page {
+    padding-top: 1rem;
+    padding-bottom: 4rem;
+}
+
+.game-tool-intro {
+    color: var(--muted);
+}
+
+.game-back {
+    display: inline-block;
+    color: var(--muted);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.game-back:hover {
+    color: var(--primary-strong);
+}
+
+.game-page-nav {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.game-page-title {
+    margin: 0;
+    font-size: clamp(1.35rem, 4vw, 1.75rem);
+}
+
+.snake-page-container {
+    width: 100%;
+}
+
+.snake-intro,
+.snake-help {
+    width: 100%;
+    margin: 0;
+    text-align: left;
+    color: var(--muted);
+    font-size: 0.9rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.snake-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    width: 100%;
+}
+
+.snake-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.snake-stat {
+    padding: 0.75rem 0.85rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    text-align: center;
+}
+
+.snake-stat-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin-bottom: 0.25rem;
+}
+
+.snake-stat-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #15803d;
+}
+
+body.dark .snake-stat-value {
+    color: #86efac;
+}
+
+.snake-difficulty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.snake-difficulty--inboard {
+    max-width: 280px;
+}
+
+.snake-difficulty-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+}
+
+.snake-difficulty--inboard .snake-difficulty-label {
+    color: #94a3b8;
+}
+
+.snake-difficulty-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.snake-difficulty-btn {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.5rem 0.65rem;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.snake-difficulty--inboard .snake-difficulty-btn {
+    border-color: rgba(148, 163, 184, 0.35);
+    background: rgba(30, 41, 59, 0.85);
+    color: #e2e8f0;
+}
+
+.snake-difficulty-btn:hover {
+    border-color: color-mix(in srgb, #22c55e 40%, var(--border));
+    background: color-mix(in srgb, #22c55e 8%, var(--surface));
+}
+
+.snake-difficulty--inboard .snake-difficulty-btn:hover {
+    border-color: rgba(134, 239, 172, 0.5);
+    background: rgba(34, 197, 94, 0.15);
+}
+
+.snake-difficulty-btn.active {
+    background: color-mix(in srgb, #22c55e 16%, var(--surface));
+    border-color: color-mix(in srgb, #22c55e 50%, var(--border));
+    color: #15803d;
+}
+
+.snake-difficulty--inboard .snake-difficulty-btn.active {
+    background: rgba(34, 197, 94, 0.25);
+    border-color: #86efac;
+    color: #86efac;
+}
+
+.snake-board-wrap {
+    position: relative;
+    width: 480px;
+    max-width: 100%;
+    margin-inline: auto;
+    flex-shrink: 0;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 0.75rem;
+    box-shadow: var(--shadow);
+}
+
+#gameCanvas {
+    display: block;
+    width: 480px;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    background: #0f172a;
+    touch-action: none;
+}
+
+.snake-overlay {
+    position: absolute;
+    inset: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    background: rgba(15, 23, 42, 0.82);
+    border-radius: 8px;
+    color: #f8fafc;
+    text-align: center;
+    padding: 1rem;
+}
+
+.snake-overlay[hidden] {
+    display: none;
+}
+
+.snake-overlay h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #86efac;
+}
+
+.snake-overlay p {
+    margin: 0;
+    color: #cbd5e1;
+    max-width: 28ch;
+}
+
+.snake-dpad {
+    display: none;
+    grid-template-columns: repeat(3, 3.25rem);
+    grid-template-rows: repeat(3, 3.25rem);
+    gap: 0.35rem;
+    justify-content: center;
+    margin-top: 0.5rem;
+}
+
+.snake-dpad-btn {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.snake-dpad-btn:hover {
+    background: color-mix(in srgb, #22c55e 12%, var(--surface));
+    border-color: color-mix(in srgb, #22c55e 40%, var(--border));
+}
+
+.snake-dpad-btn:active {
+    transform: scale(0.95);
+}
+
+.snake-dpad-btn[data-dir="up"] {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.snake-dpad-btn[data-dir="left"] {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.snake-dpad-btn[data-dir="down"] {
+    grid-column: 2;
+    grid-row: 3;
+}
+
+.snake-dpad-btn[data-dir="right"] {
+    grid-column: 3;
+    grid-row: 2;
+}
+
+@media (max-width: 640px) {
+    .snake-dpad {
+        display: grid;
+    }
+
+    .snake-help-keyboard {
+        display: none;
+    }
+}

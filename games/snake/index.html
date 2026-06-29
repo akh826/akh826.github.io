@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Classic snake game — eat food and grow without hitting walls or yourself.">
+    <title>貪吃蛇 | Games</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="snake.css">
+</head>
+
+<body>
+    <top-nav page="games" root="../.."></top-nav>
+
+    <main class="game-tool-page game-tool-page--snake section">
+        <div class="container game-page-nav">
+            <a class="game-back" href="../index.html">&larr; Games catalog</a>
+            <h1 class="game-page-title">貪吃蛇</h1>
+        </div>
+        <div class="container snake-page-container">
+            <div class="snake-layout">
+                <div class="snake-board-wrap">
+                    <canvas id="gameCanvas" width="480" height="480" aria-label="Snake game board"></canvas>
+                    <div class="snake-overlay" id="startOverlay">
+                        <h2>Ready?</h2>
+                        <p>Choose difficulty, then press Start or hit Space.</p>
+                        <div class="snake-difficulty snake-difficulty--inboard" role="group" aria-label="Difficulty">
+                            <span class="snake-difficulty-label">Difficulty</span>
+                            <div class="snake-difficulty-options" id="difficultyOptions">
+                                <button type="button" class="snake-difficulty-btn" data-difficulty="easy">Easy</button>
+                                <button type="button" class="snake-difficulty-btn active" data-difficulty="normal">Normal</button>
+                                <button type="button" class="snake-difficulty-btn" data-difficulty="hard">Hard</button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary" id="startBtn">Start</button>
+                    </div>
+                    <div class="snake-overlay" id="gameOverOverlay" hidden>
+                        <h2>Game Over</h2>
+                        <p id="gameOverMessage">You crashed!</p>
+                        <div class="snake-difficulty snake-difficulty--inboard" role="group" aria-label="Difficulty">
+                            <span class="snake-difficulty-label">Difficulty</span>
+                            <div class="snake-difficulty-options">
+                                <button type="button" class="snake-difficulty-btn" data-difficulty="easy">Easy</button>
+                                <button type="button" class="snake-difficulty-btn active" data-difficulty="normal">Normal</button>
+                                <button type="button" class="snake-difficulty-btn" data-difficulty="hard">Hard</button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary" id="restartBtn">Play again</button>
+                    </div>
+                </div>
+
+                <div class="snake-stats">
+                    <div class="snake-stat">
+                        <span class="snake-stat-label">Score</span>
+                        <span class="snake-stat-value" id="scoreValue">0</span>
+                    </div>
+                    <div class="snake-stat">
+                        <span class="snake-stat-label">Best</span>
+                        <span class="snake-stat-value" id="bestValue">0</span>
+                    </div>
+                    <div class="snake-stat">
+                        <span class="snake-stat-label">Length</span>
+                        <span class="snake-stat-value" id="lengthValue">1</span>
+                    </div>
+                </div>
+
+                <p class="game-tool-intro snake-intro">
+                    Use arrow keys or WASD to steer the snake. Eat the red food to grow and score points.
+                    Passing through a wall wraps you to the opposite side — only your own tail ends the game.
+                </p>
+
+                <p class="snake-help snake-help-keyboard">
+                    Controls: Arrow keys or WASD to move · Space to start
+                </p>
+
+                <div class="snake-dpad" id="dpad" aria-label="Direction pad">
+                    <button type="button" class="snake-dpad-btn" data-dir="up" aria-label="Up">▲</button>
+                    <button type="button" class="snake-dpad-btn" data-dir="left" aria-label="Left">◀</button>
+                    <button type="button" class="snake-dpad-btn" data-dir="down" aria-label="Down">▼</button>
+                    <button type="button" class="snake-dpad-btn" data-dir="right" aria-label="Right">▶</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; <span id="year"></span> Kam Hei Au. Games.</p>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="../../shared/top-nav.js"></script>
+    <script src="../../script.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

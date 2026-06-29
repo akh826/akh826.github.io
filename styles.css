@@ -204,6 +204,36 @@ body.dark .nav-link-demos.active {
   color: #fed7aa;
 }
 
+.nav-link-games {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, #22c55e 45%, var(--border));
+  background: color-mix(in srgb, #22c55e 12%, var(--surface));
+  color: #15803d;
+  font-weight: 700;
+}
+
+body.dark .nav-link-games {
+  color: #86efac;
+  border-color: color-mix(in srgb, #86efac 40%, var(--border));
+  background: color-mix(in srgb, #22c55e 18%, var(--surface));
+}
+
+.nav-link-games:hover,
+.nav-link-games.active {
+  color: #15803d;
+  background: color-mix(in srgb, #22c55e 22%, var(--surface));
+  border-color: color-mix(in srgb, #22c55e 60%, var(--border));
+}
+
+body.dark .nav-link-games:hover,
+body.dark .nav-link-games.active {
+  color: #bbf7d0;
+}
+
 .nav-tools-icon {
   font-size: 0.85rem;
   line-height: 1;
@@ -761,7 +791,9 @@ h1 {
     margin: 0.15rem 0;
   }
 
-  .nav-link-tools {
+  .nav-link-tools,
+  .nav-link-demos,
+  .nav-link-games {
     justify-content: center;
   }
 

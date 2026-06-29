@@ -8,10 +8,12 @@
             const isHome = page === "home";
             const isTools = page === "tools";
             const isDemos = page === "demos";
+            const isGames = page === "games";
 
             const homeHref = isHome ? "#home" : `${root}/index.html`;
             const toolsHref = isTools ? "index.html" : `${root}/tools/index.html`;
             const demosHref = isDemos ? "index.html" : `${root}/demos/index.html`;
+            const gamesHref = isGames ? "index.html" : `${root}/games/index.html`;
 
             const sectionLinks = isHome
                 ? `
@@ -55,6 +57,12 @@
         <a href="${demosHref}" class="nav-link nav-link-demos${isDemos ? " active" : ""}">
           <span class="nav-tools-icon" aria-hidden="true">▦</span>
           Demos
+        </a>
+      </li>
+      <li>
+        <a href="${gamesHref}" class="nav-link nav-link-games${isGames ? " active" : ""}">
+          <span class="nav-tools-icon" aria-hidden="true">◉</span>
+          Games
         </a>
       </li>
       ${githubLink}
