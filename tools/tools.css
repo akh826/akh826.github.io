@@ -1563,6 +1563,69 @@ body.dark .permission-state.state-prompt {
   }
 }
 
+.pdf-to-image-page-nav {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.pdf-to-image-page-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pdf-to-image-page-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.pdf-to-image-page-btn {
+  min-width: 2.5rem;
+  padding-inline: 0.65rem;
+}
+
+.pdf-to-image-page-field {
+  display: inline-flex;
+}
+
+.pdf-to-image-page-input {
+  width: 4.5rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  padding: 0.55rem 0.65rem;
+  text-align: center;
+}
+
+.pdf-to-image-page-input:focus {
+  outline: 2px solid color-mix(in srgb, var(--primary) 40%, transparent);
+  outline-offset: 1px;
+}
+
+.pdf-to-image-page-total {
+  font-size: 0.9rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .url-param-input-card {
   margin-bottom: 1rem;
 }

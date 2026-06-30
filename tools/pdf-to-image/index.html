@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Convert PDF pages to PNG, JPEG, or WebP images in your browser.">
+    <title>PDF to Image | Tools</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <nav class="nav container">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
+            <ul class="nav-links" id="navLinks">
+                <li class="nav-sections-group">
+                    <span class="nav-area-label">Portfolio</span>
+                    <ul class="nav-sections-list">
+                        <li><a href="../../index.html" class="nav-link nav-link-section">Home</a></li>
+                        <li><a href="index.html" class="nav-link nav-link-section active">PDF to Image</a></li>
+                    </ul>
+                </li>
+                <li class="nav-divider" aria-hidden="true"></li>
+                <li>
+                    <a href="../index.html" class="nav-link nav-link-tools">
+                        <span class="nav-tools-icon" aria-hidden="true">⬡</span>
+                        Tools
+                    </a>
+                </li>
+            </ul>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
+        </nav>
+    </header>
+
+    <main class="tool-page section">
+        <div class="container">
+            <a class="tool-back" href="../index.html">&larr; Tool catalog</a>
+
+            <header class="tool-header">
+                <h1>PDF to Image</h1>
+                <p class="tool-intro">
+                    Upload a PDF, preview each page, and export as PNG, JPEG, or WebP.
+                    All processing runs locally in your browser — files are not uploaded.
+                </p>
+            </header>
+
+            <div class="image-converter-layout">
+                <section class="info-card image-converter-controls" aria-label="PDF to image controls">
+                    <h2>Convert</h2>
+
+                    <label class="image-converter-label" for="sourceFile">Select PDF file</label>
+                    <input id="sourceFile" class="image-converter-file" type="file" accept=".pdf,application/pdf">
+
+                    <div class="pdf-to-image-page-nav" id="pageNav" hidden>
+                        <span class="pdf-to-image-page-label">Page</span>
+                        <div class="pdf-to-image-page-controls">
+                            <button type="button" class="btn btn-outline pdf-to-image-page-btn" id="prevPageBtn"
+                                aria-label="Previous page">&larr;</button>
+                            <label class="pdf-to-image-page-field" for="pageNumber">
+                                <span class="visually-hidden">Page number</span>
+                                <input id="pageNumber" class="pdf-to-image-page-input" type="number" min="1" value="1">
+                            </label>
+                            <span class="pdf-to-image-page-total" id="pageTotal">/ 1</span>
+                            <button type="button" class="btn btn-outline pdf-to-image-page-btn" id="nextPageBtn"
+                                aria-label="Next page">&rarr;</button>
+                        </div>
+                    </div>
+
+                    <div class="image-converter-grid">
+                        <label class="image-converter-field" for="scaleRange">
+                            <span>Scale</span>
+                            <input id="scaleRange" type="range" min="50" max="300" value="150" step="10">
+                            <output id="scaleValue" for="scaleRange">150%</output>
+                        </label>
+
+                        <label class="image-converter-field" for="targetFormat">
+                            <span>Target format</span>
+                            <select id="targetFormat" class="image-converter-select">
+                                <option value="image/png">PNG</option>
+                                <option value="image/jpeg">JPEG</option>
+                                <option value="image/webp" selected>WebP</option>
+                            </select>
+                        </label>
+
+                        <label class="image-converter-field" for="qualityRange" id="qualityField">
+                            <span>Quality</span>
+                            <input id="qualityRange" type="range" min="10" max="100" value="90" step="1">
+                            <output id="qualityValue" for="qualityRange">90%</output>
+                        </label>
+                    </div>
+
+                    <div class="tool-actions image-converter-actions">
+                        <button type="button" class="btn btn-primary" id="downloadPageBtn" disabled>Download page</button>
+                        <button type="button" class="btn btn-outline" id="downloadAllBtn" disabled>Download all (ZIP)</button>
+                        <button type="button" class="btn btn-outline" id="clearBtn">Clear</button>
+                    </div>
+
+                    <p class="tool-status" id="toolStatus" aria-live="polite"></p>
+
+                    <ul class="tool-list image-converter-meta" id="metaList"></ul>
+                </section>
+
+                <section class="info-card image-converter-preview" aria-label="Page preview">
+                    <h2>Preview</h2>
+                    <div class="image-converter-preview-wrap" id="previewWrap">
+                        <img id="previewImage" class="image-converter-preview-image" alt="PDF page preview" hidden>
+                        <p id="previewPlaceholder" class="tool-note-inline">No PDF selected yet.</p>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; <span id="year"></span> Kam Hei Au. Tools.</p>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="../../script.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

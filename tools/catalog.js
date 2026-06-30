@@ -90,6 +90,13 @@ window.TOOL_CATALOG = [
     tags: ["Utility", "Media", "Browser"]
   },
   {
+    slug: "pdf-to-image",
+    title: "PDF to Image",
+    description:
+      "Convert PDF pages to PNG, JPEG, or WebP locally in your browser, with single-page or ZIP export.",
+    tags: ["Utility", "Media", "PDF", "Browser"]
+  },
+  {
     slug: "mock-server-setup",
     title: "Local Mock Server Setup",
     description:
