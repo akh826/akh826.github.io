@@ -8,5 +8,12 @@ window.GAME_CATALOG = [
         description:
             "Classic snake game — eat food, grow longer, wrap through walls, and avoid hitting yourself.",
         tags: ["Classic", "Arcade", "Keyboard"]
+    },
+    {
+        slug: "stellar-idle",
+        title: "星晶採集",
+        description:
+            "Idle clicker — harvest stellar crystals, buy buildings, unlock upgrades, and prestige for permanent bonuses.",
+        tags: ["Idle", "Clicker", "Incremental"]
     }
 ];

@@ -244,3 +244,9 @@ body.dark .catalog-favorite-btn[aria-pressed="true"] {
 .catalog-all-section {
     margin-top: 0.25rem;
 }
+
+/* Shared idle game page utilities */
+.game-tool-page--idle .game-back,
+.game-tool-page--idle .game-page-title {
+    flex-shrink: 0;
+}
