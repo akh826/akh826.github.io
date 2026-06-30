@@ -1,6 +1,8 @@
 .game-tool-page--idle {
     padding-top: 0.75rem;
     padding-bottom: 3rem;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .game-tool-page--idle .game-back {
@@ -130,6 +132,138 @@ body.dark .idle-stats-crystal {
     overflow: hidden;
 }
 
+.idle-mission-hud,
+.idle-event-hud {
+    position: absolute;
+    top: 0.35rem;
+    z-index: 8;
+    width: min(240px, 42vw);
+    pointer-events: auto;
+}
+
+.idle-mission-hud {
+    left: 0.35rem;
+}
+
+.idle-event-hud {
+    right: 0.35rem;
+}
+
+.idle-mission-card,
+.idle-event-card-compact {
+    padding: 0.45rem 0.55rem;
+    border-radius: 10px;
+    border: 1px solid color-mix(in srgb, var(--border) 85%, #0ea5e9 15%);
+    background: color-mix(in srgb, var(--surface) 88%, #0f172a 12%);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.2);
+}
+
+.idle-mission-title,
+.idle-event-title-compact {
+    margin: 0;
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+}
+
+.idle-mission-task,
+.idle-event-text-compact {
+    margin: 0.14rem 0 0;
+    font-size: 0.8rem;
+    line-height: 1.35;
+}
+
+.idle-mission-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.45rem;
+    margin-top: 0.35rem;
+}
+
+.idle-mission-progress {
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+
+.idle-mission-claim {
+    padding: 0.16rem 0.44rem;
+    font-size: 0.72rem;
+}
+
+.idle-click-wrap {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.idle-skill-hud {
+    position: absolute;
+    left: 50%;
+    bottom: 0.35rem;
+    transform: translateX(-50%);
+    z-index: 8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    min-height: 2.6rem;
+    width: min(520px, 95%);
+}
+
+.idle-skill-icon-btn {
+    width: 2.45rem;
+    height: 2.45rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--border) 60%, #22d3ee 40%);
+    background: color-mix(in srgb, #0ea5e9 22%, var(--surface));
+    color: #fff;
+    cursor: pointer;
+    padding: 0;
+    font-size: 1.2rem;
+    line-height: 1;
+    box-shadow: 0 6px 14px rgba(2, 132, 199, 0.28);
+}
+
+.idle-skill-icon-btn:disabled {
+    opacity: 0.62;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.idle-skill-icon-btn[data-cd]::after {
+    content: attr(data-cd);
+    position: absolute;
+    margin-top: 2.78rem;
+    font-size: 0.68rem;
+    color: var(--muted);
+}
+
+body.dark .idle-skill-icon-btn {
+    background: color-mix(in srgb, #0284c7 36%, var(--surface));
+}
+
+.idle-skill-icon-btn--status {
+    cursor: default;
+    border-color: color-mix(in srgb, var(--border) 50%, #f59e0b 50%);
+    background: color-mix(in srgb, #fb923c 26%, var(--surface));
+}
+
+.idle-skill-icon-btn--status:focus-visible {
+    outline: 2px solid color-mix(in srgb, #f59e0b 62%, white 38%);
+    outline-offset: 2px;
+}
+
+.idle-skill-icon-btn--locked {
+    opacity: 0.82;
+    border-style: dashed;
+}
+
 .idle-star-layer {
     position: absolute;
     inset: 0;
@@ -211,11 +345,48 @@ body.dark .idle-stats-crystal {
     opacity: 0.85;
 }
 
+.idle-shockwave-flash,
+.idle-shockwave-ring {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.idle-shockwave-flash {
+    z-index: 4;
+    width: min(120px, 28vmin);
+    height: min(120px, 28vmin);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(224, 242, 254, 0.95) 0%, rgba(56, 189, 248, 0.55) 45%, rgba(56, 189, 248, 0) 80%);
+    opacity: 0;
+}
+
+.idle-shockwave-flash--active {
+    animation: idle-shockwave-flash 0.28s ease-out forwards;
+}
+
+.idle-shockwave-ring {
+    z-index: 4;
+    width: min(90px, 20vmin);
+    height: min(90px, 20vmin);
+    border-radius: 50%;
+    border: 3px solid rgba(56, 189, 248, 0.85);
+    box-shadow: 0 0 18px rgba(56, 189, 248, 0.55), inset 0 0 10px rgba(186, 230, 253, 0.35);
+    opacity: 0;
+}
+
+.idle-shockwave-ring--active {
+    animation: idle-shockwave-ring 0.62s cubic-bezier(0.2, 0.85, 0.2, 1) forwards;
+}
+
 @keyframes idle-star-fly {
     from {
         left: var(--x0);
         top: var(--y0);
     }
+
     to {
         left: var(--x1);
         top: var(--y1);
@@ -228,11 +399,13 @@ body.dark .idle-stats-crystal {
         transform: scale(1);
         filter: brightness(1.1);
     }
+
     40% {
         opacity: 1;
         transform: scale(1.35);
         filter: brightness(1.35);
     }
+
     100% {
         opacity: 0;
         transform: scale(1.75);
@@ -245,9 +418,43 @@ body.dark .idle-stats-crystal {
         opacity: 0.95;
         transform: scale(0.65);
     }
+
     100% {
         opacity: 0;
         transform: scale(1.55);
+    }
+}
+
+@keyframes idle-shockwave-flash {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+
+    30% {
+        opacity: 0.92;
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.35);
+    }
+}
+
+@keyframes idle-shockwave-ring {
+    0% {
+        opacity: 0.88;
+        transform: translate(-50%, -50%) scale(0.45);
+    }
+
+    70% {
+        opacity: 0.6;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(5.2);
     }
 }
 
@@ -313,7 +520,20 @@ body.dark .idle-stats-crystal {
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
+    position: relative;
+    isolation: isolate;
     animation: idle-btn-breathe 3.2s ease-in-out infinite;
+}
+
+.idle-click-btn::after {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
 }
 
 .idle-click-btn:hover {
@@ -351,6 +571,133 @@ body.dark .idle-stats-crystal {
     --btn-highlight: #a7f3d0;
     border-color: color-mix(in srgb, #34d399 65%, #fff);
     animation: idle-btn-hybrid 0.55s ease-in-out infinite;
+}
+
+.idle-click-btn--tier-1::after {
+    opacity: 0.65;
+    border-color: rgba(99, 102, 241, 0.45);
+    box-shadow: 0 0 16px rgba(99, 102, 241, 0.25);
+}
+
+.idle-click-btn--tier-2::after {
+    opacity: 0.75;
+    border-color: rgba(34, 211, 238, 0.5);
+    box-shadow: 0 0 22px rgba(34, 211, 238, 0.32);
+}
+
+.idle-click-btn--tier-3::after {
+    opacity: 0.82;
+    border-color: rgba(245, 158, 11, 0.58);
+    box-shadow: 0 0 26px rgba(245, 158, 11, 0.38);
+    animation: idle-tier-ring 2.6s ease-in-out infinite;
+}
+
+.idle-click-btn--tier-4::after {
+    opacity: 0.9;
+    border-color: rgba(16, 185, 129, 0.62);
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.45);
+    animation: idle-tier-ring 1.9s ease-in-out infinite;
+}
+
+.idle-click-btn--tier-3 .idle-click-label,
+.idle-click-btn--tier-4 .idle-click-label {
+    text-shadow: 0 0 14px color-mix(in srgb, #ffffff 45%, transparent);
+}
+
+@keyframes idle-tier-ring {
+    0% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+
+    50% {
+        transform: scale(1.04);
+        filter: brightness(1.08);
+    }
+
+    100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+}
+
+.idle-artifact-automation {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.55rem;
+    margin-bottom: 0.65rem;
+}
+
+.idle-artifact-automation-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.18rem;
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: color-mix(in srgb, #f59e0b 8%, var(--surface));
+    color: var(--text-color);
+    padding: 0.5rem 0.62rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.12s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.idle-artifact-automation-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, #f59e0b 45%, var(--border));
+    box-shadow: 0 8px 18px color-mix(in srgb, #f59e0b 22%, transparent);
+}
+
+.idle-artifact-automation-btn.active {
+    border-color: color-mix(in srgb, #10b981 60%, var(--border));
+    background: color-mix(in srgb, #10b981 14%, var(--surface));
+}
+
+.idle-artifact-automation-btn:disabled {
+    opacity: 0.68;
+    cursor: not-allowed;
+}
+
+.idle-artifact-automation-label {
+    font-size: 0.82rem;
+}
+
+.idle-artifact-automation-meta {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.idle-artifact-automation-frequency {
+    display: flex;
+    flex-direction: column;
+    gap: 0.28rem;
+    border: 1px dashed color-mix(in srgb, #f59e0b 35%, var(--border));
+    border-radius: 10px;
+    padding: 0.48rem 0.62rem;
+    background: color-mix(in srgb, #fef3c7 40%, var(--surface));
+    font-size: 0.74rem;
+    color: var(--muted);
+    font-weight: 700;
+}
+
+.idle-artifact-automation-frequency select {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text-color);
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.32rem 0.42rem;
+}
+
+.idle-artifact-automation-frequency select:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
 }
 
 .idle-click-icon {
@@ -405,10 +752,12 @@ body.dark .idle-auto-tick {
         opacity: 0.45;
         transform: scale(1);
     }
+
     40% {
         opacity: 0.9;
         transform: scale(1.08);
     }
+
     100% {
         opacity: 0.55;
         transform: scale(1);
@@ -554,6 +903,10 @@ body.dark .idle-buy-mode-btn.active {
 .idle-artifact-panel.idle-shop-panel--active {
     display: grid;
     gap: 0.65rem;
+}
+
+.idle-event-card--active {
+    border-color: color-mix(in srgb, #38bdf8 45%, var(--border));
 }
 
 .idle-shop-item {
@@ -960,43 +1313,107 @@ body.dark .idle-codex-tab-btn.active {
 }
 
 @keyframes idle-glow-breathe {
-    0%, 100% { transform: scale(1); opacity: 0.45; }
-    50% { transform: scale(1.06); opacity: 0.65; }
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.45;
+    }
+
+    50% {
+        transform: scale(1.06);
+        opacity: 0.65;
+    }
 }
 
 @keyframes idle-glow-hold {
-    0%, 100% { transform: scale(1); opacity: 0.75; }
-    50% { transform: scale(1.1); opacity: 0.95; }
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.75;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.95;
+    }
 }
 
 @keyframes idle-glow-auto {
-    0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.5; }
-    50% { transform: scale(1.08) rotate(8deg); opacity: 0.75; }
+
+    0%,
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: scale(1.08) rotate(8deg);
+        opacity: 0.75;
+    }
 }
 
 @keyframes idle-glow-hybrid {
-    0%, 100% { transform: scale(1); opacity: 0.8; }
-    50% { transform: scale(1.12); opacity: 1; }
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: scale(1.12);
+        opacity: 1;
+    }
 }
 
 @keyframes idle-btn-breathe {
-    0%, 100% { box-shadow: 0 18px 44px color-mix(in srgb, #4338ca 38%, transparent), inset 0 2px 12px color-mix(in srgb, #fff 22%, transparent); }
-    50% { box-shadow: 0 22px 52px color-mix(in srgb, #6366f1 48%, transparent), inset 0 2px 16px color-mix(in srgb, #fff 28%, transparent); }
+
+    0%,
+    100% {
+        box-shadow: 0 18px 44px color-mix(in srgb, #4338ca 38%, transparent), inset 0 2px 12px color-mix(in srgb, #fff 22%, transparent);
+    }
+
+    50% {
+        box-shadow: 0 22px 52px color-mix(in srgb, #6366f1 48%, transparent), inset 0 2px 16px color-mix(in srgb, #fff 28%, transparent);
+    }
 }
 
 @keyframes idle-btn-hold {
-    0%, 100% { box-shadow: 0 0 0 4px color-mix(in srgb, #fbbf24 22%, transparent), 0 16px 40px color-mix(in srgb, #d97706 45%, transparent); }
-    50% { box-shadow: 0 0 0 8px color-mix(in srgb, #fbbf24 35%, transparent), 0 20px 48px color-mix(in srgb, #f59e0b 55%, transparent); }
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 4px color-mix(in srgb, #fbbf24 22%, transparent), 0 16px 40px color-mix(in srgb, #d97706 45%, transparent);
+    }
+
+    50% {
+        box-shadow: 0 0 0 8px color-mix(in srgb, #fbbf24 35%, transparent), 0 20px 48px color-mix(in srgb, #f59e0b 55%, transparent);
+    }
 }
 
 @keyframes idle-btn-auto {
-    0%, 100% { filter: brightness(1); }
-    50% { filter: brightness(1.12); }
+
+    0%,
+    100% {
+        filter: brightness(1);
+    }
+
+    50% {
+        filter: brightness(1.12);
+    }
 }
 
 @keyframes idle-btn-hybrid {
-    0%, 100% { box-shadow: 0 0 0 4px color-mix(in srgb, #34d399 25%, transparent), 0 16px 40px color-mix(in srgb, #059669 45%, transparent); }
-    50% { box-shadow: 0 0 0 9px color-mix(in srgb, #34d399 38%, transparent), 0 22px 50px color-mix(in srgb, #10b981 55%, transparent); }
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 4px color-mix(in srgb, #34d399 25%, transparent), 0 16px 40px color-mix(in srgb, #059669 45%, transparent);
+    }
+
+    50% {
+        box-shadow: 0 0 0 9px color-mix(in srgb, #34d399 38%, transparent), 0 22px 50px color-mix(in srgb, #10b981 55%, transparent);
+    }
 }
 
 @media (max-width: 860px) {

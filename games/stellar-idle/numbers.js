@@ -1,6 +1,7 @@
 (() => {
     const GROWTH_NUM = 115n;
     const GROWTH_DEN = 100n;
+    const growthFactorCache = new Map([[0, { num: 1n, den: 1n }]]);
 
     const GENERAL_SUFFIXES = ["", "k", "M", "B", "T"];
     const CUSTOM_SUFFIX_START_GROUP = GENERAL_SUFFIXES.length;
@@ -26,17 +27,43 @@
         return value < 0n ? 0n : value;
     }
 
-    function powGrowth(baseCost, exponent) {
-        let num = toBigInt(baseCost);
-        let den = 1n;
-        const exp = Number(exponent);
+    function powBigInt(base, exponent) {
+        let result = 1n;
+        let factor = base;
+        let exp = Math.max(0, Math.floor(Number(exponent)));
 
-        for (let i = 0; i < exp; i++) {
-            num *= GROWTH_NUM;
-            den *= GROWTH_DEN;
+        while (exp > 0) {
+            if (exp % 2 === 1) {
+                result *= factor;
+            }
+            exp = Math.floor(exp / 2);
+            if (exp > 0) {
+                factor *= factor;
+            }
         }
 
-        return num / den;
+        return result;
+    }
+
+    function getGrowthFactor(exponent) {
+        const exp = Math.max(0, Math.floor(Number(exponent)));
+        const cached = growthFactorCache.get(exp);
+        if (cached) {
+            return cached;
+        }
+
+        const factor = {
+            num: powBigInt(GROWTH_NUM, exp),
+            den: powBigInt(GROWTH_DEN, exp)
+        };
+        growthFactorCache.set(exp, factor);
+        return factor;
+    }
+
+    function powGrowth(baseCost, exponent) {
+        const base = toBigInt(baseCost);
+        const factor = getGrowthFactor(exponent);
+        return (base * factor.num) / factor.den;
     }
 
     function buildingCost(baseCost, owned, quantity = 1) {

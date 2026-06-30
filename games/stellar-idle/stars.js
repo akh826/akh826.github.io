@@ -1,15 +1,19 @@
 (() => {
     const { SHOOTING_STAR, UPGRADES } = window.IdleData;
+    const SHOCKWAVE_CHECK_SECONDS = 10;
 
     let layer = null;
     let activeStars = [];
     let lastSpawnAt = 0;
+    let lastShockwaveAt = 0;
     let spawnCheckAccumulator = 0;
+    let shockwaveCheckAccumulator = 0;
     let hasUpgrade = () => false;
     let getClickMultiplier = () => 1;
     let getArtifactStarBonuses = () => ({ spawnMult: 1, rewardMult: 1 });
-    let addCrystals = () => {};
-    let onCatch = () => {};
+    let addCrystals = () => { };
+    let onCatch = () => { };
+    let onShockwave = () => { };
     let formatShort = (n) => String(n);
 
     function isUnlocked() {
@@ -28,6 +32,9 @@
         });
         const artifactBonuses = getArtifactStarBonuses();
         mult *= artifactBonuses.spawnMult || 1;
+        if (typeof artifactBonuses.extraSpawnMult === "number" && Number.isFinite(artifactBonuses.extraSpawnMult)) {
+            mult *= Math.max(0, artifactBonuses.extraSpawnMult);
+        }
         return mult;
     }
 
@@ -77,6 +84,8 @@
                 maxActive += upgrade.effect.starMaxActiveAdd;
             }
         });
+        const artifactBonuses = getArtifactStarBonuses();
+        maxActive += Math.max(0, Math.floor(artifactBonuses.maxActiveAdd || 0));
         return Math.max(1, Math.floor(maxActive));
     }
 
@@ -90,6 +99,8 @@
                 gap *= upgrade.effect.starMinGapMult;
             }
         });
+        const artifactBonuses = getArtifactStarBonuses();
+        gap *= Math.max(0.2, Math.min(1, artifactBonuses.minGapMult || 1));
         return Math.max(800, Math.floor(gap));
     }
 
@@ -102,11 +113,70 @@
     }
 
     function dismissActive() {
+        const cleared = activeStars.length;
         activeStars.forEach((starRecord) => {
             window.clearTimeout(starRecord.timeoutId);
             starRecord.element.remove();
         });
         activeStars = [];
+        return cleared;
+    }
+
+    function playShockwaveAnimation() {
+        if (!layer) {
+            return;
+        }
+
+        const flash = document.createElement("span");
+        flash.className = "idle-shockwave-flash";
+        flash.setAttribute("aria-hidden", "true");
+
+        const ring = document.createElement("span");
+        ring.className = "idle-shockwave-ring";
+        ring.setAttribute("aria-hidden", "true");
+
+        layer.appendChild(flash);
+        layer.appendChild(ring);
+
+        requestAnimationFrame(() => {
+            flash.classList.add("idle-shockwave-flash--active");
+            ring.classList.add("idle-shockwave-ring--active");
+        });
+
+        window.setTimeout(() => flash.remove(), 280);
+        window.setTimeout(() => ring.remove(), 620);
+    }
+
+    function triggerShockwave() {
+        if (activeStars.length === 0) {
+            return false;
+        }
+
+        const bonuses = getArtifactStarBonuses();
+        const chance = Math.min(1, Math.max(0, bonuses.shockwaveChancePerCheck || bonuses.shockwaveChancePerSec || 0));
+        if (chance <= 0) {
+            return false;
+        }
+
+        const now = Date.now();
+        if (now - lastShockwaveAt < SHOCKWAVE_CHECK_SECONDS * 1000) {
+            return false;
+        }
+
+        if (Math.random() >= chance) {
+            return false;
+        }
+
+        playShockwaveAnimation();
+
+        const cleared = dismissActive();
+        if (cleared <= 0) {
+            return false;
+        }
+
+        lastShockwaveAt = now;
+        onShockwave(cleared);
+        return true;
     }
 
     function catchStar(event) {
@@ -209,6 +279,18 @@
             return;
         }
 
+        shockwaveCheckAccumulator += deltaMs / 1000;
+        if (shockwaveCheckAccumulator >= SHOCKWAVE_CHECK_SECONDS) {
+            const checks = Math.floor(shockwaveCheckAccumulator);
+            const windows = Math.floor(checks / SHOCKWAVE_CHECK_SECONDS);
+            shockwaveCheckAccumulator -= windows * SHOCKWAVE_CHECK_SECONDS;
+            for (let i = 0; i < windows; i++) {
+                if (triggerShockwave()) {
+                    break;
+                }
+            }
+        }
+
         const now = Date.now();
         if (now - lastSpawnAt < getMinGapMs()) {
             return;
@@ -221,7 +303,10 @@
 
         const checks = Math.floor(spawnCheckAccumulator);
         spawnCheckAccumulator -= checks;
+        const artifactBonuses = getArtifactStarBonuses();
         const chance = SHOOTING_STAR.baseSpawnChancePerSec * getSpawnMultiplier();
+        const multiSpawnChainChance = Math.max(0, Math.min(0.9, artifactBonuses.multiSpawnChainChance || 0));
+        const multiSpawnMaxExtra = Math.max(0, Math.floor(artifactBonuses.multiSpawnMaxExtra || 0));
         const maxActive = getMaxActiveStars();
 
         for (let i = 0; i < checks; i++) {
@@ -230,6 +315,18 @@
             }
             if (Math.random() < chance) {
                 spawnStar();
+                let extrasSpawned = 0;
+                let safety = 0;
+                while (
+                    activeStars.length < maxActive &&
+                    extrasSpawned < multiSpawnMaxExtra &&
+                    Math.random() < multiSpawnChainChance &&
+                    safety < 256
+                ) {
+                    spawnStar();
+                    extrasSpawned += 1;
+                    safety += 1;
+                }
             }
         }
     }
@@ -241,21 +338,47 @@
         getArtifactStarBonuses = deps.getArtifactStarBonuses || getArtifactStarBonuses;
         addCrystals = deps.addCrystals;
         onCatch = deps.onCatch;
+        onShockwave = deps.onShockwave || onShockwave;
         formatShort = deps.formatShort;
     }
 
     function reset() {
         dismissActive();
         lastSpawnAt = 0;
+        lastShockwaveAt = 0;
         spawnCheckAccumulator = 0;
+        shockwaveCheckAccumulator = 0;
+    }
+
+    function forceSpawn(count = 1) {
+        const amount = Math.max(1, Math.floor(count));
+        for (let i = 0; i < amount; i++) {
+            if (activeStars.length >= getMaxActiveStars()) {
+                break;
+            }
+            spawnStar();
+        }
+    }
+
+    function getShockwaveStatus() {
+        const cycleSec = SHOCKWAVE_CHECK_SECONDS;
+        const elapsed = Math.max(0, shockwaveCheckAccumulator % cycleSec);
+        const secondsRemaining = elapsed === 0 ? cycleSec : Math.max(0, cycleSec - elapsed);
+        return {
+            enabled: isUnlocked(),
+            checkSeconds: cycleSec,
+            secondsRemaining
+        };
     }
 
     window.IdleStars = {
         init,
         tick,
         reset,
+        forceSpawn,
         dismissActive,
         isUnlocked,
-        getRewardAmount
+        getRewardAmount,
+        getShockwaveStatus
     };
 })();
