@@ -20,7 +20,7 @@ window.GAME_CATALOG = [
         slug: "texas-holdem-simulator",
         title: "Texas Hold'em Win Rate Simulator",
         description:
-            "Set up a poker table, run Monte Carlo equity, and practice with quiz and cheater-quiz modes.",
-        tags: ["Poker", "Card", "Quiz", "Simulator"]
+            "Set up a poker table, run Monte Carlo equity, quiz modes, or play a full chip-based game against bots.",
+        tags: ["Poker", "Card", "Quiz", "Chips"]
     }
 ];

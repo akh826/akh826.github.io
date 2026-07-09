@@ -1,4 +1,5 @@
 const engine = window.POKER_ENGINE;
+const play = window.POKER_PLAY;
 
 const YOU_PLAYER_NAME = "You";
 const QUIZ_ITERATIONS = 10000;
@@ -36,11 +37,34 @@ let players = [
 ];
 let activeSlot = null;
 let pickerSuitFilter = "all";
-let activeMode = "calculator";
+let activeMode = "play";
 let lastEquities = null;
 let quizScenario = null;
 let quizStats = { rounds: 0, correct: 0 };
 let cheaterQuizStats = { rounds: 0, correct: 0 };
+let playState = null;
+let playBotTimer = null;
+let playAutoNextTimer = null;
+let playAutoNextKey = "";
+let playToolbarCollapsed = false;
+let playVisualCue = {
+    handNumber: -1,
+    boardCount: 0,
+    bets: [],
+    pot: 0
+};
+
+const CHIP_DENOMS = [
+    { value: 100, color: "black", label: "100" },
+    { value: 25, color: "green", label: "25" },
+    { value: 10, color: "blue", label: "10" },
+    { value: 5, color: "red", label: "5" },
+    { value: 1, color: "white", label: "1" }
+];
+
+function isPlayMode(mode = activeMode) {
+    return mode === "play";
+}
 
 function isQuizLikeMode(mode = activeMode) {
     return mode === "quiz" || mode === "cheater-quiz";
@@ -112,6 +136,22 @@ function parseSlotKey(key) {
 }
 
 function getTableState() {
+    if (isPlayMode() && playState) {
+        const revealed = playState.revealAll
+            ? 5
+            : playState.board.filter(Boolean).length;
+        return {
+            players: playState.players.map((player) => ({
+                name: player.name,
+                hole: player.hole
+            })),
+            board: playState.board,
+            revealedBoardCount: revealed,
+            revealedPeeks: [],
+            interactive: false,
+            play: playState
+        };
+    }
     if (isQuizLikeMode() && quizScenario) {
         return {
             players: quizScenario.players,
@@ -401,11 +441,14 @@ function createCardSlot(key, code, label, interactive) {
     return button;
 }
 
-function renderStaticCard(code, hideUnknown = false, peeked = false) {
+function renderStaticCard(code, hideUnknown = false, peeked = false, animate = false) {
     const span = document.createElement("span");
     span.className = "poker-card-slot static";
     if (peeked) {
         span.classList.add("is-peeked");
+    }
+    if (animate) {
+        span.classList.add("is-deal-in");
     }
     if (code) {
         span.classList.add("filled");
@@ -427,6 +470,87 @@ function formatEquityBadge(equity) {
     return `${equity.equityPct.toFixed(1)}%`;
 }
 
+function breakdownChipPieces(amount, maxChips = 5) {
+    const pieces = [];
+    let remaining = Math.max(0, Math.floor(amount));
+    CHIP_DENOMS.forEach((denom) => {
+        while (remaining >= denom.value && pieces.length < maxChips) {
+            pieces.push(denom);
+            remaining -= denom.value;
+        }
+    });
+    if (pieces.length === 0 && amount > 0) {
+        pieces.push(CHIP_DENOMS[CHIP_DENOMS.length - 1]);
+    }
+    return pieces;
+}
+
+function createPokerChip(denom, index = 0) {
+    const chip = document.createElement("span");
+    chip.className = `poker-chip poker-chip--${denom.color}`;
+    chip.style.setProperty("--chip-layer", index);
+    chip.setAttribute("aria-hidden", "true");
+    const face = document.createElement("span");
+    face.className = "poker-chip-face";
+    face.textContent = denom.label;
+    chip.append(face);
+    return chip;
+}
+
+function createChipStack(amount, options = {}) {
+    const {
+        size = "sm",
+        animate = false,
+        showLabel = true,
+        maxChips = 5
+    } = options;
+    const stack = document.createElement("div");
+    stack.className = `poker-chip-stack poker-chip-stack--${size}${animate ? " is-anim-in" : ""}`;
+
+    if (amount <= 0) {
+        stack.classList.add("is-empty");
+        return stack;
+    }
+
+    breakdownChipPieces(amount, maxChips).forEach((denom, index) => {
+        stack.appendChild(createPokerChip(denom, index));
+    });
+
+    if (showLabel) {
+        const label = document.createElement("span");
+        label.className = "poker-chip-stack-label";
+        label.textContent = play.formatChips(amount);
+        stack.appendChild(label);
+    }
+
+    return stack;
+}
+
+function shouldAnimateHoleCards(handNumber) {
+    return handNumber !== playVisualCue.handNumber;
+}
+
+function shouldAnimateBoardCard(index, handNumber, boardCount) {
+    return handNumber === playVisualCue.handNumber && index < boardCount && index >= playVisualCue.boardCount;
+}
+
+function shouldAnimateBet(playerIndex, betAmount) {
+    return betAmount > (playVisualCue.bets[playerIndex] ?? 0);
+}
+
+function syncPlayVisualCue() {
+    if (!playState) {
+        playVisualCue = { handNumber: -1, boardCount: 0, bets: [], pot: 0 };
+        return;
+    }
+    playVisualCue = {
+        handNumber: playState.handNumber,
+        boardCount: playState.board.filter(Boolean).length,
+        bets: playState.players.map((player) => player.betThisStreet),
+        pot: playState.pot
+    };
+}
+
 function renderSeats(state) {
     const mount = $("pokerSeats");
     if (!mount) {
@@ -441,9 +565,16 @@ function renderSeats(state) {
         const region = seatRegion(x, y);
         const isHero = playerIndex === 0;
         const equity = lastEquities?.[playerIndex] ?? null;
+        const playPlayer = state.play?.players?.[playerIndex] ?? null;
 
         const seat = document.createElement("div");
         seat.className = `poker-seat poker-seat-${region}${isHero ? " poker-seat-hero" : ""}`;
+        if (state.play && state.play.actionIndex === playerIndex && state.play.phase === "betting") {
+            seat.classList.add("is-action-seat");
+        }
+        if (state.play && state.play.buttonIndex === playerIndex) {
+            seat.classList.add("is-dealer-seat");
+        }
         seat.style.setProperty("--seat-x", `${x}%`);
         seat.style.setProperty("--seat-y", `${y}%`);
 
@@ -454,10 +585,30 @@ function renderSeats(state) {
 
         const info = document.createElement("div");
         info.className = `poker-seat-info${isHero ? " is-hero-seat" : ""}`;
+        if (playPlayer?.folded) {
+            info.classList.add("is-folded-seat");
+        }
+        if (playPlayer?.busted) {
+            info.classList.add("is-busted-seat");
+        }
 
         const name = document.createElement("div");
         name.className = "poker-seat-name";
-        name.textContent = player.name;
+        if (state.play) {
+            name.replaceChildren();
+            const stackIcon = createChipStack(Math.min(playPlayer?.chips ?? 0, 500), {
+                showLabel: false,
+                maxChips: 2,
+                size: "xs"
+            });
+            stackIcon.classList.add("poker-seat-stack-icon");
+            const nameText = document.createElement("span");
+            nameText.className = "poker-seat-name-text";
+            nameText.textContent = `${player.name} · ${play.formatChips(playPlayer?.chips ?? 0)}`;
+            name.append(stackIcon, nameText);
+        } else {
+            name.textContent = player.name;
+        }
 
         const avatar = document.createElement("div");
         avatar.className = "poker-seat-avatar";
@@ -469,7 +620,12 @@ function renderSeats(state) {
             hole.push(null);
         }
 
-        const showHole = state.interactive || isHero;
+        const animateHole = state.play
+            && shouldAnimateHoleCards(state.play.handNumber)
+            && !playPlayer?.folded;
+
+        const showAllPlay = state.play?.revealAll;
+        const showHole = state.interactive || isHero || showAllPlay;
         hole.forEach((code, cardIndex) => {
             const key = slotKey("player", playerIndex, cardIndex);
             const label = `${player.name} hole card ${cardIndex + 1}`;
@@ -477,6 +633,18 @@ function renderSeats(state) {
             const cardVisible = showHole || peeked;
             if (state.interactive) {
                 cards.appendChild(createCardSlot(key, code, label, true));
+            } else if (cardVisible && !playPlayer?.folded) {
+                const cardEl = renderStaticCard(code, !code, peeked, animateHole);
+                if (animateHole) {
+                    cardEl.style.animationDelay = `${cardIndex * 70}ms`;
+                }
+                cards.appendChild(cardEl);
+            } else if (state.play && !playPlayer?.folded) {
+                const cardEl = renderStaticCard(null, true, false, animateHole);
+                if (animateHole) {
+                    cardEl.style.animationDelay = `${cardIndex * 70}ms`;
+                }
+                cards.appendChild(cardEl);
             } else if (cardVisible) {
                 cards.appendChild(renderStaticCard(code, !code, peeked));
             } else {
@@ -486,14 +654,60 @@ function renderSeats(state) {
 
         avatar.appendChild(cards);
 
-        const equityEl = document.createElement("div");
-        equityEl.className = `poker-seat-equity${equity ? " has-equity" : ""}`;
-        equityEl.title = "Equity %";
-        equityEl.textContent = formatEquityBadge(equity);
+        const footer = document.createElement("div");
+        if (state.play) {
+            footer.className = "poker-seat-chips";
+            if (playPlayer?.folded) {
+                footer.textContent = "Folded";
+            } else if (playPlayer?.allIn) {
+                footer.textContent = "All-in";
+            } else {
+                footer.innerHTML = "&nbsp;";
+            }
+        } else {
+            footer.className = `poker-seat-equity${equity ? " has-equity" : ""}`;
+            footer.title = "Equity %";
+            footer.textContent = formatEquityBadge(equity);
+        }
 
-        info.append(name, avatar, equityEl);
+        info.append(name, avatar, footer);
         pod.appendChild(info);
         mountSeatContent(seat, pod);
+
+        if (state.play && playPlayer?.betThisStreet > 0) {
+            const betMount = document.createElement("div");
+            betMount.className = "poker-seat-bet";
+            betMount.appendChild(createChipStack(playPlayer.betThisStreet, {
+                animate: shouldAnimateBet(playerIndex, playPlayer.betThisStreet),
+                showLabel: true,
+                size: "sm"
+            }));
+            seat.appendChild(betMount);
+        }
+
+        if (state.play && state.play.buttonIndex === playerIndex && !playPlayer?.busted) {
+            const dealer = document.createElement("span");
+            dealer.className = "poker-dealer-chip";
+            dealer.textContent = "D";
+            dealer.title = "Dealer button";
+            seat.appendChild(dealer);
+        }
+
+        if (state.play && state.play.smallBlindIndex === playerIndex && !playPlayer?.busted) {
+            const sb = document.createElement("span");
+            sb.className = "poker-blind-chip poker-blind-chip--sb";
+            sb.textContent = "SB";
+            sb.title = `Small blind (${state.play.config.smallBlind})`;
+            seat.appendChild(sb);
+        }
+
+        if (state.play && state.play.bigBlindIndex === playerIndex && !playPlayer?.busted) {
+            const bb = document.createElement("span");
+            bb.className = "poker-blind-chip poker-blind-chip--bb";
+            bb.textContent = "BB";
+            bb.title = `Big blind (${state.play.config.bigBlind})`;
+            seat.appendChild(bb);
+        }
 
         mount.appendChild(seat);
     });
@@ -511,21 +725,64 @@ function renderBoard(state) {
         cards.push(null);
     }
 
+    const playHand = state.play;
+    const boardCount = playHand
+        ? state.board.filter(Boolean).length
+        : state.revealedBoardCount;
+
     cards.forEach((code, index) => {
         const key = slotKey("board", 0, index);
         const label = `Board card ${index + 1}`;
         const revealed = index < state.revealedBoardCount;
+        const animateBoard = playHand
+            && code
+            && shouldAnimateBoardCard(index, playHand.handNumber, boardCount);
         if (state.interactive) {
             row.appendChild(createCardSlot(key, code, label, true));
         } else {
-            row.appendChild(renderStaticCard(revealed ? code : null, !revealed || !code));
+            const cardEl = renderStaticCard(revealed ? code : null, !revealed || !code, false, animateBoard);
+            if (animateBoard) {
+                cardEl.style.animationDelay = `${index * 85}ms`;
+            }
+            row.appendChild(cardEl);
         }
     });
 
     const label = $("boardLabel");
     if (label) {
-        const known = cards.filter((code, index) => code && index < state.revealedBoardCount).length;
-        label.textContent = known > 0 ? `${known} / 5 community cards` : "Community cards";
+        if (state.play) {
+            const street = state.play.street ? state.play.street.toUpperCase() : "WAITING";
+            label.textContent = `Pot ${play.formatChips(state.play.pot)} · ${street}`;
+        } else {
+            const known = cards.filter((code, index) => code && index < state.revealedBoardCount).length;
+            label.textContent = known > 0 ? `${known} / 5 community cards` : "Community cards";
+        }
+    }
+}
+
+function renderPotDisplay() {
+    const mount = $("potChips");
+    const display = $("potDisplay");
+    if (!mount || !playState || !isPlayMode()) {
+        if (display) {
+            display.hidden = true;
+        }
+        return;
+    }
+
+    if (display) {
+        display.hidden = false;
+        display.setAttribute("aria-hidden", playState.pot > 0 ? "false" : "true");
+    }
+
+    const animate = playState.pot > playVisualCue.pot;
+    mount.replaceChildren();
+    if (playState.pot > 0) {
+        mount.appendChild(createChipStack(playState.pot, {
+            size: "lg",
+            animate,
+            maxChips: 6
+        }));
     }
 }
 
@@ -533,6 +790,16 @@ function renderTable() {
     const state = getTableState();
     renderBoard(state);
     renderSeats(state);
+    if (isPlayMode()) {
+        renderPotDisplay();
+        renderPlayDock();
+        syncPlayVisualCue();
+    } else {
+        const potDisplay = $("potDisplay");
+        if (potDisplay) {
+            potDisplay.hidden = true;
+        }
+    }
 
     const clearBtn = $("clearSlotBtn");
     if (clearBtn) {
@@ -696,6 +963,10 @@ async function runSimulation() {
 
 function switchMode(mode) {
     const previousMode = activeMode;
+    if (isPlayMode(previousMode) && !isPlayMode(mode)) {
+        stopPlayBots();
+        stopAutoNextTimer();
+    }
     activeMode = mode;
     activeSlot = null;
     lastEquities = null;
@@ -707,11 +978,15 @@ function switchMode(mode) {
     });
 
     const quizLike = isQuizLikeMode(mode);
+    const playMode = isPlayMode(mode);
     document.body.classList.toggle("poker-mode-quiz", quizLike);
     document.body.classList.toggle("poker-mode-cheater-quiz", mode === "cheater-quiz");
+    document.body.classList.toggle("poker-mode-play", playMode);
     $("calculatorPanel").hidden = mode !== "calculator";
     $("quizDock").hidden = !quizLike;
+    $("playDock").hidden = !playMode;
     $("calcToolbar").hidden = mode !== "calculator";
+    $("playToolbar").hidden = !playMode;
 
     const quizDock = $("quizDock");
     if (quizDock) {
@@ -720,10 +995,18 @@ function switchMode(mode) {
 
     const intro = document.querySelector(".poker-game-intro");
     if (intro) {
-        intro.hidden = quizLike;
+        intro.hidden = quizLike || playMode;
     }
 
-    if (quizLike) {
+    if (playMode) {
+        stopPlayBots();
+        if (!playState || !isPlayMode(previousMode)) {
+            startNewPlayGame();
+        } else {
+            renderPlayDock();
+            renderTable();
+        }
+    } else if (quizLike) {
         const needsNewScenario = !quizScenario
             || !isQuizLikeMode(previousMode)
             || Boolean(quizScenario.cheater) !== isCheaterQuizMode(mode);
@@ -873,6 +1156,317 @@ async function checkQuizGuess(guessAnswer) {
     }
 }
 
+function stopPlayBots() {
+    if (playBotTimer) {
+        clearTimeout(playBotTimer);
+        playBotTimer = null;
+    }
+}
+
+function stopAutoNextTimer() {
+    if (playAutoNextTimer) {
+        clearTimeout(playAutoNextTimer);
+        playAutoNextTimer = null;
+    }
+    playAutoNextKey = "";
+}
+
+function getPlayConfigFromUi() {
+    const playerCount = Number.parseInt($("playPlayerCount")?.value ?? "4", 10);
+    const startingChips = Number.parseInt($("playStartingChips")?.value ?? "1000", 10);
+    let smallBlind = Number.parseInt($("playSmallBlind")?.value ?? "5", 10);
+    let bigBlind = Number.parseInt($("playBigBlind")?.value ?? "10", 10);
+    smallBlind = Math.max(1, Number.isFinite(smallBlind) ? smallBlind : 5);
+    bigBlind = Math.max(smallBlind, Number.isFinite(bigBlind) ? bigBlind : 10);
+    return {
+        playerCount,
+        startingChips,
+        smallBlind,
+        bigBlind
+    };
+}
+
+function getPlayAutoNextConfigFromUi() {
+    const enabled = Boolean($("playAutoNext")?.checked);
+    let seconds = Number.parseInt($("playAutoNextSeconds")?.value ?? "2", 10);
+    seconds = Math.max(1, Math.min(30, Number.isFinite(seconds) ? seconds : 2));
+    return {
+        enabled,
+        seconds,
+        delayMs: seconds * 1000
+    };
+}
+
+function syncPlayAutoNextControls() {
+    const config = getPlayAutoNextConfigFromUi();
+    const secondsInput = $("playAutoNextSeconds");
+    if (secondsInput && Number.parseInt(secondsInput.value, 10) !== config.seconds) {
+        secondsInput.value = String(config.seconds);
+    }
+    if (secondsInput) {
+        secondsInput.disabled = !config.enabled;
+    }
+}
+
+function updatePlayToolbarSummary() {
+    const summary = $("playToolbarSummary");
+    if (!summary) {
+        return;
+    }
+    const config = getPlayConfigFromUi();
+    const autoNext = getPlayAutoNextConfigFromUi();
+    const autoText = autoNext.enabled ? `Auto ${autoNext.seconds}s` : "Auto off";
+    summary.textContent = `${config.playerCount} players · ${play.formatChips(config.startingChips)} chips · SB ${config.smallBlind} / BB ${config.bigBlind} · ${autoText}`;
+}
+
+function setPlayToolbarCollapsed(collapsed) {
+    playToolbarCollapsed = collapsed;
+    const toolbar = $("playToolbar");
+    const toggle = $("playToolbarToggle");
+    if (toolbar) {
+        toolbar.classList.toggle("poker-play-toolbar--collapsed", collapsed);
+    }
+    if (toggle) {
+        toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    }
+    updatePlayToolbarSummary();
+}
+
+function syncPlaySettingsDisabled() {
+    const inHand = playState?.phase === "betting";
+    ["playPlayerCount", "playStartingChips", "playSmallBlind", "playBigBlind"].forEach((id) => {
+        const input = $(id);
+        if (input) {
+            input.disabled = inHand;
+        }
+    });
+}
+
+function syncPlayConfigFromUi() {
+    if (!playState || playState.phase === "betting") {
+        return;
+    }
+    const ui = getPlayConfigFromUi();
+    playState.config.smallBlind = ui.smallBlind;
+    playState.config.bigBlind = ui.bigBlind;
+    playState.minRaise = ui.bigBlind;
+}
+
+function scheduleAutoNextHand() {
+    if (!playState) {
+        stopAutoNextTimer();
+        return;
+    }
+    const isTerminal = playState.phase === "hand-complete" || playState.phase === "game-over";
+    if (!isTerminal) {
+        stopAutoNextTimer();
+        return;
+    }
+    const config = getPlayAutoNextConfigFromUi();
+    if (!config.enabled) {
+        stopAutoNextTimer();
+        return;
+    }
+    const key = `${playState.handNumber}:${playState.phase}:${config.seconds}`;
+    if (playAutoNextTimer && playAutoNextKey === key) {
+        return;
+    }
+    stopAutoNextTimer();
+    playAutoNextKey = key;
+    playAutoNextTimer = setTimeout(() => {
+        playAutoNextTimer = null;
+        playAutoNextKey = "";
+        if (!isPlayMode() || !playState) {
+            return;
+        }
+        dealPlayHand();
+    }, config.delayMs);
+}
+
+function startNewPlayGame() {
+    stopPlayBots();
+    stopAutoNextTimer();
+    setPlayToolbarCollapsed(false);
+    playState = play.createGame(getPlayConfigFromUi());
+    playVisualCue = { handNumber: -1, boardCount: 0, bets: [], pot: 0 };
+    lastEquities = null;
+    renderTable();
+    setTableLog(playState.message);
+    renderPlayDock();
+}
+
+function dealPlayHand() {
+    if (!playState) {
+        startNewPlayGame();
+        return;
+    }
+    stopPlayBots();
+    stopAutoNextTimer();
+    const nextHandBtn = $("nextHandBtn");
+    if (nextHandBtn) {
+        nextHandBtn.hidden = true;
+    }
+
+    if (playState.phase === "game-over") {
+        startNewPlayGame();
+        return;
+    }
+
+    if (playState.phase === "betting") {
+        play.syncActionIndex(playState);
+        if (playState.phase === "betting") {
+            if (!play.isHumanTurn(playState)) {
+                schedulePlayBots();
+                setTableLog("Current hand is still running. Finishing it now…");
+                return;
+            }
+            renderTable();
+            setTableLog("Finish the current hand before dealing the next one.");
+            return;
+        }
+    }
+
+    syncPlayConfigFromUi();
+    const started = play.startHand(playState);
+    if (!started) {
+        startNewPlayGame();
+        return;
+    }
+    setPlayToolbarCollapsed(true);
+    renderTable();
+    setTableLog(playState.message);
+    renderPlayDock();
+    schedulePlayBots();
+}
+
+function actionLabel(action) {
+    if (action.type === "fold") {
+        return "Fold";
+    }
+    if (action.type === "check") {
+        return "Check";
+    }
+    if (action.type === "call") {
+        return action.allIn ? `Call all-in ${play.formatChips(action.amount)}` : `Call ${play.formatChips(action.amount)}`;
+    }
+    if (action.type === "all-in") {
+        return `All-in ${play.formatChips(action.amount)}`;
+    }
+    return `Raise to ${play.formatChips(action.total)}`;
+}
+
+function renderPlayDock() {
+    if (!playState) {
+        return;
+    }
+
+    const potLabel = $("playPotLabel");
+    const streetLabel = $("playStreetLabel");
+    const message = $("playMessage");
+    const actionsMount = $("playActions");
+    const nextHandBtn = $("nextHandBtn");
+    const dealBtn = $("dealHandBtn");
+    const autoNextConfig = getPlayAutoNextConfigFromUi();
+
+    if (potLabel) {
+        potLabel.textContent = `Pot: ${play.formatChips(playState.pot)}`;
+    }
+    if (streetLabel) {
+        const street = playState.street ? playState.street.toUpperCase() : "IDLE";
+        let blindText = `Blinds ${playState.config.smallBlind}/${playState.config.bigBlind}`;
+        if (playState.smallBlindIndex >= 0 && playState.bigBlindIndex >= 0) {
+            const sbName = playState.players[playState.smallBlindIndex]?.name ?? "?";
+            const bbName = playState.players[playState.bigBlindIndex]?.name ?? "?";
+            blindText = `SB: ${sbName} (${playState.config.smallBlind}) · BB: ${bbName} (${playState.config.bigBlind})`;
+        }
+        streetLabel.textContent = `${street} · ${blindText}`;
+    }
+    if (message) {
+        message.textContent = playState.message;
+    }
+
+    if (actionsMount) {
+        actionsMount.replaceChildren();
+        if (playState.phase === "betting" && play.isHumanTurn(playState)) {
+            const legal = play.getLegalActions(playState);
+            legal.forEach((action) => {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = `btn ${action.type === "fold" ? "btn-outline" : "btn-primary"}`;
+                button.textContent = actionLabel(action);
+                button.addEventListener("click", () => {
+                    applyHeroPlayAction(action);
+                });
+                actionsMount.appendChild(button);
+            });
+        }
+    }
+
+    if (nextHandBtn) {
+        const showNext = playState.phase === "hand-complete" || playState.phase === "game-over";
+        nextHandBtn.hidden = !showNext;
+        nextHandBtn.textContent = playState.phase === "game-over" ? "New game" : "Next hand";
+        if (showNext && autoNextConfig.enabled) {
+            nextHandBtn.textContent = `${nextHandBtn.textContent} (${autoNextConfig.seconds}s)`;
+        }
+    }
+    if (dealBtn) {
+        dealBtn.disabled = playState.phase === "betting";
+    }
+    syncPlaySettingsDisabled();
+    syncPlayAutoNextControls();
+    updatePlayToolbarSummary();
+    scheduleAutoNextHand();
+}
+
+function applyHeroPlayAction(action) {
+    if (!playState || !play.applyAction(playState, action)) {
+        return;
+    }
+    renderTable();
+    setTableLog(playState.message);
+    schedulePlayBots();
+}
+
+function schedulePlayBots() {
+    stopPlayBots();
+    if (!playState || playState.phase !== "betting") {
+        renderPlayDock();
+        return;
+    }
+
+    play.syncActionIndex(playState);
+    if (!playState || playState.phase !== "betting") {
+        renderTable();
+        setTableLog(playState?.message ?? "");
+        return;
+    }
+
+    if (play.isHumanTurn(playState)) {
+        renderPlayDock();
+        return;
+    }
+    playBotTimer = setTimeout(() => {
+        if (!playState || playState.phase !== "betting" || play.isHumanTurn(playState)) {
+            renderPlayDock();
+            return;
+        }
+        play.syncActionIndex(playState);
+        if (!playState || playState.phase !== "betting") {
+            renderTable();
+            setTableLog(playState?.message ?? "");
+            return;
+        }
+        const botAction = play.botChooseAction(playState);
+        if (!play.applyAction(playState, botAction)) {
+            play.syncActionIndex(playState);
+        }
+        renderTable();
+        setTableLog(playState.message);
+        schedulePlayBots();
+    }, 550);
+}
+
 function bindEvents() {
     $("playerCount")?.addEventListener("change", (event) => {
         syncPlayerCount(Number.parseInt(event.target.value, 10));
@@ -913,13 +1507,47 @@ function bindEvents() {
             }
         });
     });
+
+    $("newPlayGameBtn")?.addEventListener("click", startNewPlayGame);
+    $("dealHandBtn")?.addEventListener("click", dealPlayHand);
+    $("nextHandBtn")?.addEventListener("click", dealPlayHand);
+    $("playToolbarToggle")?.addEventListener("click", () => {
+        setPlayToolbarCollapsed(!playToolbarCollapsed);
+    });
+    ["playPlayerCount", "playStartingChips", "playSmallBlind", "playBigBlind"].forEach((id) => {
+        $(id)?.addEventListener("input", () => {
+            const config = getPlayConfigFromUi();
+            const sbInput = $("playSmallBlind");
+            const bbInput = $("playBigBlind");
+            if (sbInput && Number.parseInt(sbInput.value, 10) !== config.smallBlind) {
+                sbInput.value = String(config.smallBlind);
+            }
+            if (bbInput && Number.parseInt(bbInput.value, 10) !== config.bigBlind) {
+                bbInput.value = String(config.bigBlind);
+            }
+            updatePlayToolbarSummary();
+        });
+    });
+    $("playAutoNext")?.addEventListener("change", () => {
+        syncPlayAutoNextControls();
+        updatePlayToolbarSummary();
+        scheduleAutoNextHand();
+        renderPlayDock();
+    });
+    $("playAutoNextSeconds")?.addEventListener("input", () => {
+        syncPlayAutoNextControls();
+        updatePlayToolbarSummary();
+        scheduleAutoNextHand();
+        renderPlayDock();
+    });
 }
 
 function init() {
     bindEvents();
     syncPlayerCount(playerCount);
-    renderCardPicker();
-    updatePickerTarget();
+    syncPlayAutoNextControls();
+    updatePlayToolbarSummary();
+    switchMode("play");
 }
 
 init();

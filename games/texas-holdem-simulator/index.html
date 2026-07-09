@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="poker.css">
 </head>
 
-<body class="poker-page">
+<body class="poker-page poker-mode-play">
     <top-nav page="games" root="../.."></top-nav>
 
     <main class="game-tool-page game-tool-page--poker section">
@@ -25,20 +25,80 @@
                 <h1 class="game-page-title">Texas Hold'em Win Rate Simulator</h1>
             </div>
 
-            <p class="game-tool-intro poker-game-intro">
+            <p class="game-tool-intro poker-game-intro" hidden>
                 Set up the table like a live game — click cards on the felt to assign them, then run the simulation.
             </p>
 
             <div class="poker-mode-tabs" role="tablist" aria-label="Simulator mode">
-                <button type="button" class="poker-mode-tab active" role="tab" aria-selected="true"
+                <button type="button" class="poker-mode-tab" role="tab" aria-selected="false"
                     data-mode="calculator" id="tabCalculator">Equity calculator</button>
                 <button type="button" class="poker-mode-tab" role="tab" aria-selected="false" data-mode="quiz"
                     id="tabQuiz">Quiz mode</button>
                 <button type="button" class="poker-mode-tab" role="tab" aria-selected="false" data-mode="cheater-quiz"
                     id="tabCheaterQuiz">Cheater quiz</button>
+                <button type="button" class="poker-mode-tab active" role="tab" aria-selected="true" data-mode="play"
+                    id="tabPlay">Play</button>
             </div>
 
-            <div class="poker-toolbar" id="calcToolbar">
+            <div class="poker-toolbar poker-play-toolbar" id="playToolbar">
+                <div class="poker-play-toolbar-compact">
+                    <button type="button" class="btn btn-outline btn-sm poker-play-settings-toggle" id="playToolbarToggle"
+                        aria-expanded="true" aria-controls="playToolbarSettings">
+                        <span class="poker-play-settings-toggle-expanded">Hide settings</span>
+                        <span class="poker-play-settings-toggle-collapsed">Settings</span>
+                    </button>
+                    <p class="poker-play-toolbar-summary" id="playToolbarSummary" aria-live="polite"></p>
+                    <div class="poker-play-toolbar-actions">
+                        <button type="button" class="btn btn-outline" id="newPlayGameBtn">New game</button>
+                        <button type="button" class="btn btn-primary" id="dealHandBtn">Deal hand</button>
+                    </div>
+                </div>
+                <div class="poker-play-toolbar-settings" id="playToolbarSettings">
+                    <label class="poker-toolbar-field">
+                        <span>Players</span>
+                        <select id="playPlayerCount" class="poker-select poker-select-compact">
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4" selected>4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                        </select>
+                    </label>
+                    <label class="poker-toolbar-field">
+                        <span>Starting chips</span>
+                        <input id="playStartingChips" class="poker-input poker-input-narrow" type="number" min="100"
+                            step="100" value="1000">
+                    </label>
+                    <label class="poker-toolbar-field">
+                        <span>Small blind</span>
+                        <input id="playSmallBlind" class="poker-input poker-input-narrow" type="number" min="1"
+                            step="1" value="5">
+                    </label>
+                    <label class="poker-toolbar-field">
+                        <span>Big blind</span>
+                        <input id="playBigBlind" class="poker-input poker-input-narrow" type="number" min="1"
+                            step="1" value="10">
+                    </label>
+                    <label class="poker-toolbar-field poker-toolbar-field-checkbox">
+                        <span>Auto next hand</span>
+                        <span class="poker-inline-controls">
+                            <label class="poker-check-inline">
+                                <input id="playAutoNext" type="checkbox">
+                                <span>Enable</span>
+                            </label>
+                            <input id="playAutoNextSeconds" class="poker-input poker-input-narrow" type="number" min="1"
+                                max="30" step="1" value="2">
+                            <span class="poker-inline-unit">sec</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="poker-toolbar" id="calcToolbar" hidden>
                 <label class="poker-toolbar-field">
                     <span>Players</span>
                     <input id="playerCount" class="poker-input poker-input-narrow" type="number" min="2" max="10"
@@ -64,6 +124,9 @@
                     <div class="poker-table-felt">
                         <div class="poker-seats" id="pokerSeats" aria-label="Player seats"></div>
                         <div class="poker-board">
+                            <div class="poker-pot-display" id="potDisplay" aria-hidden="true">
+                                <div class="poker-pot-chips" id="potChips"></div>
+                            </div>
                             <div class="poker-board-cards" id="boardRow" aria-label="Community cards"></div>
                             <p class="poker-board-label" id="boardLabel">Community cards</p>
                         </div>
@@ -93,6 +156,16 @@
                     </div>
                     <p class="tool-status poker-quiz-dock-status" id="quizStatus" aria-live="polite"></p>
                 </div>
+
+                <div class="poker-play-dock" id="playDock" role="tabpanel" aria-labelledby="tabPlay">
+                    <div class="poker-play-dock-head">
+                        <p class="poker-play-pot" id="playPotLabel">Pot: 0</p>
+                        <p class="poker-meta poker-play-street" id="playStreetLabel">Waiting to deal</p>
+                    </div>
+                    <p class="poker-play-message" id="playMessage" aria-live="polite">Start a new game, then deal a hand.</p>
+                    <div class="poker-play-actions" id="playActions"></div>
+                    <button type="button" class="btn btn-outline" id="nextHandBtn" hidden>Next hand</button>
+                </div>
             </div>
 
             <div class="poker-picker-overlay" id="cardPickerOverlay" hidden>
@@ -117,7 +190,7 @@
                 </div>
             </div>
 
-            <section id="calculatorPanel" class="poker-panel" role="tabpanel" aria-labelledby="tabCalculator">
+            <section id="calculatorPanel" class="poker-panel" role="tabpanel" aria-labelledby="tabCalculator" hidden>
                 <section class="info-card poker-results-card" aria-label="Simulation results">
                     <h2>Equity breakdown</h2>
                     <p class="poker-results-empty" id="resultsEmpty">
@@ -154,6 +227,7 @@
     <script src="../../shared/top-nav.js"></script>
     <script src="../../script.js"></script>
     <script src="poker-engine.js"></script>
+    <script src="poker-play.js"></script>
     <script src="app.js"></script>
 </body>
 
