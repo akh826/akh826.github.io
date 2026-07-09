@@ -44,6 +44,9 @@
 
                     <div class="idle-click-scene" id="clickScene">
                         <div class="idle-star-layer" id="starLayer" aria-hidden="true"></div>
+                        <div class="idle-mission-hud" id="missionHud" aria-live="polite"></div>
+                        <div class="idle-event-hud" id="eventHud" aria-live="polite"></div>
+                        <div class="idle-skill-hud" id="skillHud" aria-label="主動技能"></div>
                         <div class="idle-click-glow" id="clickGlow" aria-hidden="true"></div>
                         <div class="idle-click-wrap">
                             <button type="button" class="idle-click-btn" id="clickBtn" aria-label="手動採集星晶">
@@ -58,7 +61,8 @@
                     <div class="idle-shop-toolbar">
                         <div class="idle-tab-bar" id="tabBar" role="tablist" aria-label="商店分頁"></div>
                         <div class="idle-shop-toolbar-actions">
-                            <button type="button" class="idle-desc-toggle" id="descToggleBtn" aria-pressed="false" hidden>
+                            <button type="button" class="idle-desc-toggle" id="descToggleBtn" aria-pressed="false"
+                                hidden>
                                 說明
                             </button>
                             <button type="button" class="idle-desc-toggle" id="codexOpenBtn" aria-haspopup="dialog">
@@ -69,7 +73,8 @@
                     </div>
 
                     <div class="idle-shop-content">
-                        <div class="idle-shop-list idle-shop-panel--active" id="buildingList" role="tabpanel" aria-label="建築"></div>
+                        <div class="idle-shop-list idle-shop-panel--active" id="buildingList" role="tabpanel"
+                            aria-label="建築"></div>
                         <div class="idle-shop-list" id="upgradeList" role="tabpanel" aria-label="升級" hidden></div>
                         <div class="idle-prestige-panel" id="prestigePanel" role="tabpanel" aria-label="轉生" hidden>
                             <div class="idle-prestige-preview" id="prestigePreview"></div>
@@ -78,8 +83,10 @@
                             </button>
                         </div>
                         <div class="idle-artifact-panel" id="artifactPanel" role="tabpanel" aria-label="神器" hidden>
+                            <div class="idle-artifact-automation" id="artifactAutomation"></div>
                             <div class="idle-artifact-preview" id="artifactPreview"></div>
                         </div>
+
                     </div>
                 </section>
             </div>

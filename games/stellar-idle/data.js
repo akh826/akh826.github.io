@@ -278,22 +278,31 @@
             effect: { starRewardMult: 3 }
         },
         {
+            id: "star_shockwave_charge_1",
+            name: "震波共振手套",
+            description: "手動點擊或按住採集時，會提高流星震波觸發機率。",
+            type: "star",
+            cost: 520000n,
+            unlock: { lifetime: 260000n, requires: ["star_unlock", "click_hold"] },
+            effect: { manualShockwaveChancePerClick: 0.003, manualShockwaveChanceCap: 0.6 }
+        },
+        {
             id: "star_duration_1",
             name: "緩時力場",
-            description: "流星停留時間 +50%，更容易點中。",
+            description: "流星停留時間 +15%，更容易點中。",
             type: "star",
             cost: 18000n,
             unlock: { lifetime: 9000n, requires: ["star_unlock"] },
-            effect: { starDurationMult: 1.5 }
+            effect: { starDurationMult: 1.15 }
         },
         {
             id: "star_duration_2",
             name: "時域扭曲環",
-            description: "流星停留時間再 +70%。",
+            description: "流星停留時間再 +20%。",
             type: "star",
             cost: 280000n,
             unlock: { lifetime: 120000n, requires: ["star_duration_1"] },
-            effect: { starDurationMult: 1.7 }
+            effect: { starDurationMult: 1.2 }
         },
         {
             id: "star_spawn_3",
@@ -330,6 +339,24 @@
             cost: 6500000n,
             unlock: { lifetime: 1800000n, requires: ["star_multi_1", "star_reward_3"] },
             effect: { starMaxActiveAdd: 1, starMinGapMult: 0.6 }
+        },
+        {
+            id: "star_multi_3",
+            name: "群星協同陣列",
+            description: "允許同時存在 4 顆流星。",
+            type: "star",
+            cost: 18500000n,
+            unlock: { lifetime: 5200000n, requires: ["star_multi_2", "global_3"] },
+            effect: { starMaxActiveAdd: 1 }
+        },
+        {
+            id: "star_multi_4",
+            name: "天穹裂光網",
+            description: "允許同時存在 5 顆流星，且最小間隔再縮短。",
+            type: "star",
+            cost: 78000000n,
+            unlock: { lifetime: 22000000n, requires: ["star_multi_3", "global_4"] },
+            effect: { starMaxActiveAdd: 1, starMinGapMult: 0.75 }
         },
         {
             id: "probe_eff_1",
@@ -555,6 +582,42 @@
             effect: { clickMult: 3 }
         },
         {
+            id: "skill_unlock_overdrive",
+            name: "技能協定：超頻",
+            description: "解鎖主動技能【星核超頻】。",
+            type: "click",
+            cost: 550000n,
+            unlock: { lifetime: 260000n, requires: ["click_4"] },
+            effect: { unlockSkill: "skill_overdrive" }
+        },
+        {
+            id: "skill_unlock_meteor",
+            name: "技能協定：召星",
+            description: "解鎖主動技能【流星召喚】。",
+            type: "star",
+            cost: 1600000n,
+            unlock: { lifetime: 700000n, requires: ["star_multi_1", "skill_unlock_overdrive"] },
+            effect: { unlockSkill: "skill_meteor_call" }
+        },
+        {
+            id: "skill_unlock_income",
+            name: "技能協定：洪流",
+            description: "解鎖主動技能【星晶洪流】。",
+            type: "global",
+            cost: 4500000n,
+            unlock: { lifetime: 1600000n, requires: ["global_3", "skill_unlock_meteor"] },
+            effect: { unlockSkill: "skill_income_burst" }
+        },
+        {
+            id: "mission_auto_claim",
+            name: "任務調度 AI",
+            description: "自動領取已完成任務獎勵並立即補上新任務。",
+            type: "global",
+            cost: 12000000n,
+            unlock: { lifetime: 3500000n, requires: ["skill_unlock_income", "global_3"] },
+            effect: { autoMissionClaim: true }
+        },
+        {
             id: "artifact_rarity_infinite",
             name: "神器精鑄學",
             description: "可重複購買：每次神器稀有度上限 +10。",
@@ -592,10 +655,111 @@
         }
     ];
 
+    const TASKS = [
+        {
+            id: "task_clicks",
+            name: "手感訓練",
+            description: "手動採集 50 次。",
+            track: "click",
+            target: 50,
+            rewardCrystals: 1500n
+        },
+        {
+            id: "task_buildings",
+            name: "擴張工地",
+            description: "累計購買 20 棟建築。",
+            track: "building",
+            target: 20,
+            rewardCrystals: 5000n
+        },
+        {
+            id: "task_upgrades",
+            name: "研究突破",
+            description: "累計購買 5 個升級。",
+            track: "upgrade",
+            target: 5,
+            rewardCrystals: 8000n
+        },
+        {
+            id: "task_stars",
+            name: "流星捕手",
+            description: "捕獲 3 顆流星。",
+            track: "star",
+            target: 3,
+            rewardCrystals: 9000n
+        },
+        {
+            id: "task_income",
+            name: "星晶累積",
+            description: "累積獲得 25000 星晶。",
+            track: "earn",
+            target: 25000,
+            rewardCrystals: 12000n
+        }
+    ];
+
+    const ACTIVE_SKILLS = [
+        {
+            id: "skill_overdrive",
+            name: "星核超頻",
+            description: "15 秒內全域產出 ×2、點擊收益 ×3。",
+            requiredUpgradeId: "skill_unlock_overdrive",
+            cooldownMs: 60000,
+            durationMs: 15000,
+            effect: { globalMult: 2, clickMult: 3 }
+        },
+        {
+            id: "skill_meteor_call",
+            name: "流星召喚",
+            description: "立刻生成 3 顆流星，並在 20 秒內提高流星出現率。",
+            requiredUpgradeId: "skill_unlock_meteor",
+            cooldownMs: 90000,
+            durationMs: 20000,
+            effect: { starSpawnMult: 1.5, spawnStars: 3 }
+        },
+        {
+            id: "skill_income_burst",
+            name: "星晶洪流",
+            description: "立即獲得 5 分鐘目前總 CPS 的星晶。",
+            requiredUpgradeId: "skill_unlock_income",
+            cooldownMs: 120000,
+            effect: { instantCpsSeconds: 300 }
+        }
+    ];
+
+    const RANDOM_EVENTS = [
+        {
+            id: "event_comet_showers",
+            name: "彗星雨",
+            description: "短時間內大量流星劃過畫面。",
+            chancePerSec: 0.0015,
+            cooldownMs: 120000,
+            durationMs: 15000,
+            effect: { starSpawnMult: 1.75, spawnStars: 2 }
+        },
+        {
+            id: "event_stellar_tide",
+            name: "星潮湧動",
+            description: "突然湧出的星潮帶來額外星晶。",
+            chancePerSec: 0.0012,
+            cooldownMs: 150000,
+            effect: { instantCpsSeconds: 120 }
+        },
+        {
+            id: "event_relic_echo",
+            name: "遺跡回響",
+            description: "古老遺跡回饋一段短暫的產出增益。",
+            chancePerSec: 0.0009,
+            cooldownMs: 180000,
+            durationMs: 12000,
+            effect: { globalMult: 1.35, clickMult: 1.5 }
+        }
+    ];
+
     const PRESTIGE = {
         unlockLifetime: 1000000n,
         divisor: 1000000n,
-        bonusPerShard: 0.05
+        bonusPerShard: 0.01
     };
 
     const ARTIFACTS = [
@@ -604,6 +768,12 @@
             name: "時序透鏡",
             description: "提高轉生時的碎片收益。",
             effect: { shardGainPerRarity: 0.01 }
+        },
+        {
+            id: "genesis_cache",
+            name: "創始晶藏",
+            description: "每次轉生後提供一筆起始星晶。",
+            effect: { prestigeStartCrystalsPerRarity: 0.15 }
         },
         {
             id: "gravity_shard",
@@ -624,6 +794,18 @@
             effect: { starSpawnPerRarity: 0.01, starRewardPerRarity: 0.012 }
         },
         {
+            id: "meteor_accelerator",
+            name: "流星加速核",
+            description: "降低流星生成間隔並提高同時存在上限。",
+            effect: { starMinGapReducePerRarity: 0.0012, starMaxActivePerRarity: 0.01 }
+        },
+        {
+            id: "meteor_splitter",
+            name: "流星裂變核",
+            description: "允許單次觸發同時生成多顆流星；稀有度越高，一次生成越多。",
+            effect: { starMultiSpawnPerRarity: 0.01 }
+        },
+        {
             id: "architect_seal",
             name: "匠星印記",
             description: "提高全部建築產出倍率。",
@@ -634,6 +816,30 @@
             name: "遺跡羅盤",
             description: "提高神器掉落率。",
             effect: { artifactDropPerRarity: 0.0075 }
+        },
+        {
+            id: "auto_constructor",
+            name: "工匠自治核",
+            description: "解鎖自動建築購買；稀有度越高，自動購買折扣越高。",
+            effect: { autoBuildEnabled: true }
+        },
+        {
+            id: "auto_optimizer",
+            name: "優化先知核",
+            description: "解鎖自動購買最便宜升級；稀有度越高，自動購買折扣越高。",
+            effect: { autoUpgradeEnabled: true }
+        },
+        {
+            id: "shockwave_emitter",
+            name: "震波發射核",
+            description: "小機率觸發星域震波，瞬間清除場上全部流星（每 10 秒判定）。",
+            effect: { starShockwavePerRarity: 0.012 }
+        },
+        {
+            id: "gilded_tail",
+            name: "鎏金星尾",
+            description: "捕獲流星時有機率額外掉落目前星晶的 1%（機率上限 100%）。",
+            effect: { starGoldDropChancePerRarity: 0.018 }
         }
     ];
 
@@ -655,6 +861,9 @@
         BASE_CLICK,
         BUILDINGS,
         UPGRADES,
+        TASKS,
+        ACTIVE_SKILLS,
+        RANDOM_EVENTS,
         PRESTIGE,
         ARTIFACTS,
         ARTIFACT_SYSTEM,
