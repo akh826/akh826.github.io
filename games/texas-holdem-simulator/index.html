@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Texas Hold'em win rate simulator — enter known hole and board cards, run Monte Carlo equity, and practice with random quiz scenarios.">
+    <title>Texas Hold'em Win Rate Simulator | Games</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../games.css">
+    <link rel="stylesheet" href="poker.css">
+</head>
+
+<body class="poker-page">
+    <top-nav page="games" root="../.."></top-nav>
+
+    <main class="game-tool-page game-tool-page--poker section">
+        <div class="container container-wide">
+            <div class="game-page-nav poker-page-nav">
+                <a class="game-back" href="../index.html">&larr; Games catalog</a>
+                <h1 class="game-page-title">Texas Hold'em Win Rate Simulator</h1>
+            </div>
+
+            <p class="game-tool-intro poker-game-intro">
+                Set up the table like a live game — click cards on the felt to assign them, then run the simulation.
+            </p>
+
+            <div class="poker-mode-tabs" role="tablist" aria-label="Simulator mode">
+                <button type="button" class="poker-mode-tab active" role="tab" aria-selected="true"
+                    data-mode="calculator" id="tabCalculator">Equity calculator</button>
+                <button type="button" class="poker-mode-tab" role="tab" aria-selected="false" data-mode="quiz"
+                    id="tabQuiz">Quiz mode</button>
+                <button type="button" class="poker-mode-tab" role="tab" aria-selected="false" data-mode="cheater-quiz"
+                    id="tabCheaterQuiz">Cheater quiz</button>
+            </div>
+
+            <div class="poker-toolbar" id="calcToolbar">
+                <label class="poker-toolbar-field">
+                    <span>Players</span>
+                    <input id="playerCount" class="poker-input poker-input-narrow" type="number" min="2" max="10"
+                        value="2">
+                </label>
+                <label class="poker-toolbar-field">
+                    <span>Simulations</span>
+                    <select id="iterations" class="poker-select poker-select-compact">
+                        <option value="5000">5,000</option>
+                        <option value="10000" selected>10,000</option>
+                        <option value="25000">25,000</option>
+                        <option value="50000">50,000</option>
+                        <option value="100000">100,000</option>
+                    </select>
+                </label>
+                <button type="button" class="btn btn-primary" id="runSimBtn">Calculate win rate</button>
+                <button type="button" class="btn btn-outline" id="clearTableBtn">Clear table</button>
+                <button type="button" class="btn btn-outline btn-sm" id="clearSlotBtn" hidden>Clear card</button>
+            </div>
+
+            <div class="poker-room" aria-label="Poker table">
+                <div class="poker-table">
+                    <div class="poker-table-felt">
+                        <div class="poker-seats" id="pokerSeats" aria-label="Player seats"></div>
+                        <div class="poker-board">
+                            <div class="poker-board-cards" id="boardRow" aria-label="Community cards"></div>
+                            <p class="poker-board-label" id="boardLabel">Community cards</p>
+                        </div>
+                    </div>
+                </div>
+                <p class="poker-table-log" id="tableLog" aria-live="polite">Click a card on the table to assign it.</p>
+
+                <div class="poker-quiz-dock" id="quizDock" role="tabpanel" aria-labelledby="tabQuiz" hidden>
+                    <div class="poker-quiz-dock-head">
+                        <p class="poker-quiz-dock-prompt" id="quizPrompt">Do you have the highest equity at the table?</p>
+                        <p class="poker-meta poker-quiz-dock-meta" id="quizMeta"></p>
+                    </div>
+                    <div class="poker-quiz-dock-actions">
+                        <form id="quizForm" class="poker-quiz-form">
+                            <div class="poker-quiz-choice-row">
+                                <button type="button" class="btn btn-primary poker-quiz-choice" data-guess="yes">Yes</button>
+                                <button type="button" class="btn btn-outline poker-quiz-choice" data-guess="no">No</button>
+                            </div>
+                        </form>
+                        <button type="button" class="btn btn-outline" id="nextQuizBtn" hidden>Next</button>
+                    </div>
+                    <div class="poker-quiz-dock-result" id="quizFeedback" aria-live="polite">
+                        <p class="poker-results-empty">Pick Yes or No based on whether you think you're leading.</p>
+                    </div>
+                    <div class="poker-quiz-scoreboard poker-quiz-dock-score" id="quizScoreboard" hidden>
+                        <ul class="poker-score-list" id="quizScoreList"></ul>
+                    </div>
+                    <p class="tool-status poker-quiz-dock-status" id="quizStatus" aria-live="polite"></p>
+                </div>
+            </div>
+
+            <div class="poker-picker-overlay" id="cardPickerOverlay" hidden>
+                <div class="poker-picker-backdrop" id="cardPickerBackdrop" aria-hidden="true"></div>
+                <div class="poker-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+                    <div class="poker-picker-head">
+                        <div>
+                            <h2 id="pickerTitle">Choose a card</h2>
+                            <p class="poker-picker-target" id="pickerTarget">Select a card slot on the table.</p>
+                        </div>
+                        <div class="poker-picker-head-actions">
+                            <button type="button" class="btn btn-outline btn-sm" id="clearSlotPickerBtn"
+                                hidden>Clear slot</button>
+                            <button type="button" class="btn btn-outline btn-sm" id="closePickerBtn">Close</button>
+                        </div>
+                    </div>
+                    <div class="poker-picker-filters" id="pickerSuitFilters" role="tablist"
+                        aria-label="Filter by suit"></div>
+                    <div class="poker-picker-deck-wrap">
+                        <div class="poker-picker-deck" id="cardPicker"></div>
+                    </div>
+                </div>
+            </div>
+
+            <section id="calculatorPanel" class="poker-panel" role="tabpanel" aria-labelledby="tabCalculator">
+                <section class="info-card poker-results-card" aria-label="Simulation results">
+                    <h2>Equity breakdown</h2>
+                    <p class="poker-results-empty" id="resultsEmpty">
+                        Run a simulation to see detailed win / tie / equity percentages.
+                    </p>
+                    <div class="poker-results-table-wrap" id="resultsWrap" hidden>
+                        <table class="info-table poker-results-table">
+                            <thead>
+                                <tr>
+                                    <th>Player</th>
+                                    <th>Cards</th>
+                                    <th>Win %</th>
+                                    <th>Tie %</th>
+                                    <th>Equity %</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsBody"></tbody>
+                        </table>
+                        <p class="poker-meta" id="resultsMeta"></p>
+                    </div>
+                    <p class="tool-status" id="calcStatus" aria-live="polite"></p>
+                </section>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; <span id="year"></span> Kam Hei Au. Games.</p>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="../../shared/top-nav.js"></script>
+    <script src="../../script.js"></script>
+    <script src="poker-engine.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
