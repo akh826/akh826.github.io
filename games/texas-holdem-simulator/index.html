@@ -49,8 +49,7 @@
                     </button>
                     <p class="poker-play-toolbar-summary" id="playToolbarSummary" aria-live="polite"></p>
                     <div class="poker-play-toolbar-actions">
-                        <button type="button" class="btn btn-outline" id="newPlayGameBtn">New game</button>
-                        <button type="button" class="btn btn-primary" id="dealHandBtn">Deal hand</button>
+                        <button type="button" class="btn btn-primary" id="newPlayGameBtn">Start game</button>
                     </div>
                 </div>
                 <div class="poker-play-toolbar-settings" id="playToolbarSettings">
@@ -84,12 +83,15 @@
                             step="1" value="10">
                     </label>
                     <label class="poker-toolbar-field poker-toolbar-field-checkbox">
+                        <span>Cheater mode</span>
+                        <label class="poker-check-inline">
+                            <input id="playCheaterMode" type="checkbox">
+                            <span>Show bot style &amp; cards</span>
+                        </label>
+                    </label>
+                    <label class="poker-toolbar-field">
                         <span>Auto next hand</span>
                         <span class="poker-inline-controls">
-                            <label class="poker-check-inline">
-                                <input id="playAutoNext" type="checkbox">
-                                <span>Enable</span>
-                            </label>
                             <input id="playAutoNextSeconds" class="poker-input poker-input-narrow" type="number" min="1"
                                 max="30" step="1" value="2">
                             <span class="poker-inline-unit">sec</span>
@@ -160,11 +162,13 @@
                 <div class="poker-play-dock" id="playDock" role="tabpanel" aria-labelledby="tabPlay">
                     <div class="poker-play-dock-head">
                         <p class="poker-play-pot" id="playPotLabel">Pot: 0</p>
+                        <p class="poker-play-hero-equity" id="playHeroEquity" hidden></p>
                         <p class="poker-meta poker-play-street" id="playStreetLabel">Waiting to deal</p>
+                        <span class="poker-play-cheater-badge" id="playCheaterBadge" hidden>Cheater</span>
                     </div>
-                    <p class="poker-play-message" id="playMessage" aria-live="polite">Start a new game, then deal a hand.</p>
                     <div class="poker-play-actions" id="playActions"></div>
-                    <button type="button" class="btn btn-outline" id="nextHandBtn" hidden>Next hand</button>
+                    <p class="poker-play-message" id="playMessage" aria-live="polite">Adjust settings, then press Start game.</p>
+                    <div id="playBotIntel" hidden></div>
                 </div>
             </div>
 

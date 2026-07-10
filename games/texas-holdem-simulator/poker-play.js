@@ -12,6 +12,33 @@
         station: "Station",
         trapper: "Trapper"
     };
+    const BOT_STYLE_DETAILS = {
+        nit: {
+            summary: "Very tight — folds weak hands, only bets premium cards",
+            detail: "Folds marginal spots early. Rarely bluffs; raises mostly with strong equity."
+        },
+        tag: {
+            summary: "Balanced tight-aggressive — solid ranges, value bets",
+            detail: "Plays selective starting hands but bets and raises for value when ahead."
+        },
+        lag: {
+            summary: "Loose-aggressive — enters many pots, raises often",
+            detail: "Wider preflop range and frequent continuation bets; puts pressure on tight players."
+        },
+        maniac: {
+            summary: "Hyper-aggressive — bluffs often, rarely folds",
+            detail: "Raises and re-raises with weak holdings; hard to read but spews chips when called."
+        },
+        station: {
+            summary: "Calling station — calls wide, almost never raises",
+            detail: "Stays in pots with weak pairs and draws; folds only to large pressure."
+        },
+        trapper: {
+            summary: "Slow-plays strength — checks and calls, then raises",
+            detail: "Under-bets monsters to induce bluffs; check-raises strong made hands."
+        }
+    };
+    const TILT_DETAIL = "Tilt: lost a big pot — looser folds, more raises for 2 hands";
 
     function shuffleDeck(random = Math.random) {
         const engine = window.POKER_ENGINE;
@@ -69,7 +96,7 @@
             actionIndex: -1,
             actedThisStreet: new Set(),
             handNumber: 0,
-            message: "Press Deal hand to start.",
+            message: "Adjust settings, then press Start game.",
             revealAll: false,
             winners: [],
             smallBlindIndex: -1,
@@ -456,6 +483,68 @@
         return actions;
     }
 
+    function getRaiseBounds(state) {
+        if (state.phase !== "betting" || state.actionIndex < 0) {
+            return null;
+        }
+        const index = state.actionIndex;
+        const player = state.players[index];
+        if (!canPlayerAct(state, index)) {
+            return null;
+        }
+        const toCall = state.currentBet - player.betThisStreet;
+        if (player.chips <= toCall) {
+            return null;
+        }
+        const minTotal = state.currentBet + state.minRaise;
+        const maxTotal = player.betThisStreet + player.chips;
+        return {
+            minTotal,
+            maxTotal,
+            minAmount: minTotal - player.betThisStreet,
+            maxAmount: player.chips,
+            currentBet: state.currentBet,
+            playerBet: player.betThisStreet
+        };
+    }
+
+    function buildRaiseAction(state, totalInput) {
+        const bounds = getRaiseBounds(state);
+        if (!bounds) {
+            return { ok: false, reason: "unavailable" };
+        }
+        const total = Math.floor(Number(totalInput));
+        if (!Number.isFinite(total)) {
+            return { ok: false, reason: "invalid", bounds };
+        }
+        if (total > bounds.maxTotal) {
+            return { ok: false, reason: "too_high", bounds, total };
+        }
+        const shortAllIn = bounds.maxTotal < bounds.minTotal;
+        if (total < bounds.minTotal) {
+            if (shortAllIn && total >= bounds.maxTotal) {
+                return {
+                    ok: true,
+                    action: {
+                        type: "all-in",
+                        amount: bounds.maxAmount,
+                        total: bounds.maxTotal
+                    }
+                };
+            }
+            return { ok: false, reason: "too_low", bounds, total };
+        }
+        const targetTotal = Math.min(total, bounds.maxTotal);
+        return {
+            ok: true,
+            action: {
+                type: targetTotal >= bounds.maxTotal ? "all-in" : "raise",
+                amount: targetTotal - bounds.playerBet,
+                total: targetTotal
+            }
+        };
+    }
+
     function applyAction(state, action) {
         if (state.phase !== "betting" || state.actionIndex < 0) {
             return false;
@@ -488,6 +577,11 @@
             const maxTotal = player.betThisStreet + player.chips;
             const targetTotal = Math.min(action.total, maxTotal);
             if (targetTotal <= state.currentBet) {
+                return false;
+            }
+            const minRaiseTotal = state.currentBet + state.minRaise;
+            const isAllIn = targetTotal >= maxTotal;
+            if (!isAllIn && targetTotal < minRaiseTotal) {
                 return false;
             }
             const previousBet = state.currentBet;
@@ -702,6 +796,8 @@
         createGame,
         startHand,
         getLegalActions,
+        getRaiseBounds,
+        buildRaiseAction,
         applyAction,
         botChooseAction,
         isHumanTurn,
@@ -709,6 +805,8 @@
         canPlayerAct,
         blindPositions,
         BOT_STYLE_LABELS,
+        BOT_STYLE_DETAILS,
+        TILT_DETAIL,
         syncActionIndex
     };
 }());

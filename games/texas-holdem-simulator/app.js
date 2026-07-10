@@ -3,6 +3,7 @@ const play = window.POKER_PLAY;
 
 const YOU_PLAYER_NAME = "You";
 const QUIZ_ITERATIONS = 10000;
+const PLAY_CHEATER_EQUITY_ITERATIONS = 4000;
 const PICKER_DISPLAY_RANKS = ["A", "K", "Q", "J", "10", "9", "8", "7", "6", "5", "4", "3", "2"];
 const DISPLAY_RANK_TO_CODE = { 10: "T" };
 
@@ -17,6 +18,83 @@ const SUIT_FILTER_OPTIONS = [
     { id: "c", label: "\u2663", red: false }
 ];
 
+function buildOvalSeatLayout(playerCount) {
+    const radiusX = 46;
+    const radiusY = 46;
+    const centerX = 50;
+    const centerY = 50;
+    const seats = [];
+    for (let index = 0; index < playerCount; index += 1) {
+        const angle = Math.PI / 2 + index * ((2 * Math.PI) / playerCount);
+        seats.push([
+            centerX + radiusX * Math.cos(angle),
+            centerY + radiusY * Math.sin(angle)
+        ]);
+    }
+    return relaxSeatLayout(seats, playerCount >= 9 ? 17 : 15);
+}
+
+function relaxSeatLayout(seats, minDistance = 15) {
+    const points = seats.map(([x, y]) => [x, y]);
+    const count = points.length;
+    const iterations = count >= 9 ? 10 : 6;
+
+    for (let step = 0; step < iterations; step += 1) {
+        for (let i = 0; i < count; i += 1) {
+            for (let j = i + 1; j < count; j += 1) {
+                const dx = points[j][0] - points[i][0];
+                const dy = points[j][1] - points[i][1];
+                const dist = Math.hypot(dx, dy) || 0.01;
+                if (dist >= minDistance) {
+                    continue;
+                }
+                const push = (minDistance - dist) / 2;
+                const ux = dx / dist;
+                const uy = dy / dist;
+                points[i][0] -= ux * push;
+                points[i][1] -= uy * push;
+                points[j][0] += ux * push;
+                points[j][1] += uy * push;
+            }
+        }
+
+        points.forEach((point, index) => {
+            const angle = Math.PI / 2 + index * ((2 * Math.PI) / count);
+            const targetX = 50 + 46 * Math.cos(angle);
+            const targetY = 50 + 46 * Math.sin(angle);
+            point[0] += (targetX - point[0]) * 0.12;
+            point[1] += (targetY - point[1]) * 0.12;
+        });
+    }
+
+    return points.map(([x, y]) => [
+        Math.round(Math.min(96, Math.max(4, x))),
+        Math.round(Math.min(96, Math.max(4, y)))
+    ]);
+}
+
+function nudgeSeatOutward(x, y, amount = 4) {
+    const dx = x - 50;
+    const dy = y - 50;
+    const dist = Math.hypot(dx, dy) || 1;
+    return [
+        Math.round(Math.min(97, Math.max(3, x + (dx / dist) * amount))),
+        Math.round(Math.min(97, Math.max(3, y + (dy / dist) * amount)))
+    ];
+}
+
+function tableBetPosition(x, y, crowded = false) {
+    const dx = 50 - x;
+    const dy = 50 - y;
+    const dist = Math.hypot(dx, dy) || 1;
+    const minShift = crowded ? 18 : 16;
+    const shift = Math.max(minShift, dist * (crowded ? 0.24 : 0.2));
+    return {
+        x: Math.min(88, Math.max(12, x + (dx / dist) * shift)),
+        y: Math.min(84, Math.max(16, y + (dy / dist) * shift))
+    };
+}
+
 const SEAT_LAYOUTS = {
     2: [[50, 90], [50, 8]],
     3: [[50, 90], [14, 38], [86, 38]],
@@ -24,9 +102,9 @@ const SEAT_LAYOUTS = {
     5: [[50, 90], [10, 68], [6, 34], [50, 5], [94, 34]],
     6: [[50, 90], [12, 74], [5, 48], [26, 8], [74, 8], [95, 48]],
     7: [[50, 90], [10, 76], [4, 54], [14, 20], [50, 4], [86, 20], [96, 54]],
-    8: [[50, 90], [8, 78], [4, 58], [10, 28], [34, 6], [66, 6], [90, 28], [96, 58]],
-    9: [[50, 90], [8, 80], [4, 64], [6, 40], [22, 10], [50, 4], [78, 10], [94, 40], [96, 64]],
-    10: [[50, 90], [8, 82], [4, 66], [6, 44], [20, 14], [50, 3], [80, 14], [94, 44], [96, 66], [92, 82]]
+    8: buildOvalSeatLayout(8),
+    9: buildOvalSeatLayout(9),
+    10: buildOvalSeatLayout(10)
 };
 
 let playerCount = 2;
@@ -44,6 +122,9 @@ let quizStats = { rounds: 0, correct: 0 };
 let cheaterQuizStats = { rounds: 0, correct: 0 };
 let playState = null;
 let playBotTimer = null;
+let heroRaiseInputDraft = "";
+let heroActionPreset = "none";
+let botIntelOpen = false;
 let playAutoNextTimer = null;
 let playAutoNextKey = "";
 let playToolbarCollapsed = false;
@@ -53,6 +134,8 @@ let playVisualCue = {
     bets: [],
     pot: 0
 };
+let playCheaterHeroEquity = null;
+let playCheaterEquityCacheKey = "";
 
 const CHIP_DENOMS = [
     { value: 100, color: "black", label: "100" },
@@ -61,6 +144,42 @@ const CHIP_DENOMS = [
     { value: 5, color: "red", label: "5" },
     { value: 1, color: "white", label: "1" }
 ];
+
+function isPlayCheaterMode() {
+    return isPlayMode() && Boolean($("playCheaterMode")?.checked);
+}
+
+function syncPlayCheaterModeClass() {
+    document.body.classList.toggle("poker-mode-play-cheater", isPlayCheaterMode());
+}
+
+function formatBotStyleLabel(playPlayer) {
+    if (!playPlayer || playPlayer.isHuman) {
+        return "";
+    }
+    const style = play.BOT_STYLE_LABELS[playPlayer.botStyle] ?? playPlayer.botStyle;
+    return playPlayer.tiltHands > 0 ? `${style} · Tilt` : style;
+}
+
+function getBotStyleSummary(playPlayer) {
+    if (!playPlayer || playPlayer.isHuman) {
+        return "";
+    }
+    const details = play.BOT_STYLE_DETAILS[playPlayer.botStyle];
+    return details?.summary ?? "";
+}
+
+function getBotStyleDetailText(playPlayer) {
+    if (!playPlayer || playPlayer.isHuman) {
+        return "";
+    }
+    const details = play.BOT_STYLE_DETAILS[playPlayer.botStyle];
+    const parts = [details?.detail ?? ""];
+    if (playPlayer.tiltHands > 0) {
+        parts.push(`${play.TILT_DETAIL} (${playPlayer.tiltHands} hand${playPlayer.tiltHands === 1 ? "" : "s"} left)`);
+    }
+    return parts.filter(Boolean).join(" ");
+}
 
 function isPlayMode(mode = activeMode) {
     return mode === "play";
@@ -149,7 +268,8 @@ function getTableState() {
             revealedBoardCount: revealed,
             revealedPeeks: [],
             interactive: false,
-            play: playState
+            play: playState,
+            playCheaterMode: isPlayCheaterMode()
         };
     }
     if (isQuizLikeMode() && quizScenario) {
@@ -212,6 +332,109 @@ function buildQuizSimulationSetup() {
     return { players, board: maskedBoard };
 }
 
+function buildPlayCheaterSimulationSetup() {
+    if (!playState || !isPlayCheaterMode()) {
+        return null;
+    }
+
+    const hero = playState.players[0];
+    if (!hero || hero.folded || hero.busted || hero.hole?.filter(Boolean).length < 2) {
+        return null;
+    }
+
+    const liveEntries = playState.players
+        .map((player, index) => ({ player, index }))
+        .filter(({ player }) => !player.folded && !player.busted && player.hole?.filter(Boolean).length === 2);
+
+    if (liveEntries.length <= 1) {
+        return { solo: true };
+    }
+
+    const heroEntry = liveEntries.find((entry) => entry.index === 0);
+    if (!heroEntry) {
+        return null;
+    }
+
+    const players = [
+        heroEntry,
+        ...liveEntries.filter((entry) => entry.index !== 0)
+    ].map(({ player }) => ({
+        name: player.name,
+        hole: [...player.hole]
+    }));
+
+    const board = [...playState.board];
+    while (board.length < 5) {
+        board.push(null);
+    }
+    const revealedCount = playState.revealAll
+        ? 5
+        : board.filter(Boolean).length;
+    const maskedBoard = board.map((code, index) => (
+        index < revealedCount ? code : null
+    ));
+
+    return { players, board: maskedBoard };
+}
+
+function playCheaterEquityStateKey() {
+    if (!playState) {
+        return "";
+    }
+    return [
+        playState.handNumber,
+        playState.street,
+        playState.phase,
+        playState.board.join(","),
+        playState.players.map((player) => (
+            `${player.folded}:${player.busted}:${player.hole?.join(",") ?? ""}`
+        )).join("|")
+    ].join(";");
+}
+
+function updatePlayCheaterEquity() {
+    if (!isPlayCheaterMode() || !playState || playState.phase === "idle") {
+        playCheaterHeroEquity = null;
+        playCheaterEquityCacheKey = "";
+        return;
+    }
+
+    const cacheKey = playCheaterEquityStateKey();
+    if (cacheKey === playCheaterEquityCacheKey) {
+        return;
+    }
+
+    playCheaterHeroEquity = null;
+    const setup = buildPlayCheaterSimulationSetup();
+    if (!setup) {
+        playCheaterEquityCacheKey = cacheKey;
+        return;
+    }
+
+    if (setup.solo) {
+        playCheaterHeroEquity = 100;
+        playCheaterEquityCacheKey = cacheKey;
+        return;
+    }
+
+    try {
+        const result = engine.simulateEquity(setup.players, setup.board, {
+            iterations: PLAY_CHEATER_EQUITY_ITERATIONS
+        });
+        playCheaterHeroEquity = result.heroEquity;
+    } catch {
+        playCheaterHeroEquity = null;
+    }
+    playCheaterEquityCacheKey = cacheKey;
+}
+
+function formatPlayHeroEquity(equity) {
+    if (equity == null) {
+        return "";
+    }
+    return `${equity.toFixed(1)}%`;
+}
+
 function getUsedCodes() {
     const state = getTableState();
     return new Set(engine.collectUsedCodes(state.players, state.board));
@@ -223,22 +446,28 @@ function seatRegion(x, y) {
     const adx = Math.abs(dx);
     const ady = Math.abs(dy);
 
-    if (y >= 70 && adx < 24) {
-        return "bottom";
+    if (y >= 68) {
+        if (adx < 26) {
+            return "bottom";
+        }
+        return dx > 0 ? "left" : "right";
     }
-    if (y <= 18 && adx < 24) {
-        return "top";
+    if (y <= 20) {
+        if (adx < 26) {
+            return "top";
+        }
+        return dx > 0 ? "left" : "right";
     }
-    if (x <= 20) {
+    if (x <= 22) {
         return "left";
     }
-    if (x >= 80) {
+    if (x >= 78) {
         return "right";
     }
     if (adx > ady * 1.05) {
         return dx > 0 ? "left" : "right";
     }
-    return dy > 0 ? "bottom" : "top";
+    return y > 50 ? "bottom" : "top";
 }
 
 function mountSeatContent(seat, pod) {
@@ -558,10 +787,13 @@ function renderSeats(state) {
     }
 
     const layout = SEAT_LAYOUTS[state.players.length] ?? SEAT_LAYOUTS[2];
+    mount.classList.toggle("poker-seats--crowded", state.players.length >= 8);
     mount.replaceChildren();
 
     state.players.forEach((player, playerIndex) => {
-        const [x, y] = layout[playerIndex] ?? [50, 50];
+        const [layoutX, layoutY] = layout[playerIndex] ?? [50, 50];
+        const outwardAmount = state.players.length >= 9 ? 3 : 4;
+        const [x, y] = nudgeSeatOutward(layoutX, layoutY, outwardAmount);
         const region = seatRegion(x, y);
         const isHero = playerIndex === 0;
         const equity = lastEquities?.[playerIndex] ?? null;
@@ -625,15 +857,23 @@ function renderSeats(state) {
             && !playPlayer?.folded;
 
         const showAllPlay = state.play?.revealAll;
-        const showHole = state.interactive || isHero || showAllPlay;
+        const showBotHole = state.playCheaterMode && !isHero && state.play && playPlayer;
+        const showHole = state.interactive || isHero || showAllPlay || showBotHole;
         hole.forEach((code, cardIndex) => {
             const key = slotKey("player", playerIndex, cardIndex);
             const label = `${player.name} hole card ${cardIndex + 1}`;
-            const peeked = !isHero && isOpponentCardRevealed(state, playerIndex, cardIndex);
+            const peeked = !isHero && (isOpponentCardRevealed(state, playerIndex, cardIndex) || state.playCheaterMode);
             const cardVisible = showHole || peeked;
+            const showFace = !playPlayer?.folded || state.playCheaterMode;
             if (state.interactive) {
                 cards.appendChild(createCardSlot(key, code, label, true));
-            } else if (cardVisible && !playPlayer?.folded) {
+            } else if (cardVisible && showFace) {
+                const cardEl = renderStaticCard(code, !code, peeked, animateHole);
+                if (animateHole) {
+                    cardEl.style.animationDelay = `${cardIndex * 70}ms`;
+                }
+                cards.appendChild(cardEl);
+            } else if (state.play && !playPlayer?.folded) {
                 const cardEl = renderStaticCard(code, !code, peeked, animateHole);
                 if (animateHole) {
                     cardEl.style.animationDelay = `${cardIndex * 70}ms`;
@@ -657,7 +897,15 @@ function renderSeats(state) {
         const footer = document.createElement("div");
         if (state.play) {
             footer.className = "poker-seat-chips";
-            if (playPlayer?.folded) {
+            if (isHero && state.playCheaterMode && playCheaterHeroEquity != null && !playPlayer?.folded) {
+                footer.classList.add("poker-hero-equity-footer");
+                footer.textContent = formatPlayHeroEquity(playCheaterHeroEquity);
+                footer.title = "Your win equity (all live hands known in cheater mode)";
+            } else if (state.playCheaterMode && !isHero && playPlayer) {
+                footer.classList.add("poker-bot-style-footer");
+                footer.textContent = formatBotStyleLabel(playPlayer);
+                footer.title = `${formatBotStyleLabel(playPlayer)} — ${getBotStyleSummary(playPlayer)}. ${getBotStyleDetailText(playPlayer)}`;
+            } else if (playPlayer?.folded) {
                 footer.textContent = "Folded";
             } else if (playPlayer?.allIn) {
                 footer.textContent = "All-in";
@@ -676,13 +924,16 @@ function renderSeats(state) {
 
         if (state.play && playPlayer?.betThisStreet > 0) {
             const betMount = document.createElement("div");
-            betMount.className = "poker-seat-bet";
+            const betPos = tableBetPosition(x, y, state.players.length >= 8);
+            betMount.className = "poker-table-bet";
+            betMount.style.left = `${betPos.x}%`;
+            betMount.style.top = `${betPos.y}%`;
             betMount.appendChild(createChipStack(playPlayer.betThisStreet, {
                 animate: shouldAnimateBet(playerIndex, playPlayer.betThisStreet),
                 showLabel: true,
                 size: "sm"
             }));
-            seat.appendChild(betMount);
+            mount.appendChild(betMount);
         }
 
         if (state.play && state.play.buttonIndex === playerIndex && !playPlayer?.busted) {
@@ -788,12 +1039,19 @@ function renderPotDisplay() {
 
 function renderTable() {
     const state = getTableState();
+    if (isPlayMode()) {
+        updatePlayCheaterEquity();
+    } else {
+        playCheaterHeroEquity = null;
+        playCheaterEquityCacheKey = "";
+    }
     renderBoard(state);
     renderSeats(state);
     if (isPlayMode()) {
         renderPotDisplay();
         renderPlayDock();
         syncPlayVisualCue();
+        syncPlayCheaterModeClass();
     } else {
         const potDisplay = $("potDisplay");
         if (potDisplay) {
@@ -982,6 +1240,7 @@ function switchMode(mode) {
     document.body.classList.toggle("poker-mode-quiz", quizLike);
     document.body.classList.toggle("poker-mode-cheater-quiz", mode === "cheater-quiz");
     document.body.classList.toggle("poker-mode-play", playMode);
+    syncPlayCheaterModeClass();
     $("calculatorPanel").hidden = mode !== "calculator";
     $("quizDock").hidden = !quizLike;
     $("playDock").hidden = !playMode;
@@ -1001,7 +1260,7 @@ function switchMode(mode) {
     if (playMode) {
         stopPlayBots();
         if (!playState || !isPlayMode(previousMode)) {
-            startNewPlayGame();
+            createPlaySession({ dealHand: false });
         } else {
             renderPlayDock();
             renderTable();
@@ -1172,10 +1431,12 @@ function stopAutoNextTimer() {
 }
 
 function getPlayConfigFromUi() {
-    const playerCount = Number.parseInt($("playPlayerCount")?.value ?? "4", 10);
-    const startingChips = Number.parseInt($("playStartingChips")?.value ?? "1000", 10);
+    let playerCount = Number.parseInt($("playPlayerCount")?.value ?? "4", 10);
+    let startingChips = Number.parseInt($("playStartingChips")?.value ?? "1000", 10);
     let smallBlind = Number.parseInt($("playSmallBlind")?.value ?? "5", 10);
     let bigBlind = Number.parseInt($("playBigBlind")?.value ?? "10", 10);
+    playerCount = Math.max(2, Math.min(10, Number.isFinite(playerCount) ? playerCount : 4));
+    startingChips = Math.max(100, Number.isFinite(startingChips) ? startingChips : 1000);
     smallBlind = Math.max(1, Number.isFinite(smallBlind) ? smallBlind : 5);
     bigBlind = Math.max(smallBlind, Number.isFinite(bigBlind) ? bigBlind : 10);
     return {
@@ -1186,12 +1447,52 @@ function getPlayConfigFromUi() {
     };
 }
 
+function playStructureConfigChanged(ui = getPlayConfigFromUi()) {
+    if (!playState) {
+        return false;
+    }
+    return playState.config.playerCount !== ui.playerCount
+        || playState.config.startingChips !== ui.startingChips;
+}
+
+function normalizePlayConfigInputs() {
+    const config = getPlayConfigFromUi();
+    const playerCountInput = $("playPlayerCount");
+    const startingChipsInput = $("playStartingChips");
+    const sbInput = $("playSmallBlind");
+    const bbInput = $("playBigBlind");
+    if (playerCountInput) {
+        playerCountInput.value = String(config.playerCount);
+    }
+    if (startingChipsInput && document.activeElement !== startingChipsInput) {
+        startingChipsInput.value = String(config.startingChips);
+    }
+    if (sbInput && document.activeElement !== sbInput) {
+        sbInput.value = String(config.smallBlind);
+    }
+    if (bbInput && document.activeElement !== bbInput) {
+        bbInput.value = String(config.bigBlind);
+    }
+    return config;
+}
+
+function onPlaySettingChange() {
+    const config = normalizePlayConfigInputs();
+    updatePlayToolbarSummary();
+    if (!playState || playState.phase === "betting") {
+        return;
+    }
+    if (!playStructureConfigChanged(config)) {
+        syncPlayConfigFromUi();
+        renderPlayDock();
+    }
+}
+
 function getPlayAutoNextConfigFromUi() {
-    const enabled = Boolean($("playAutoNext")?.checked);
     let seconds = Number.parseInt($("playAutoNextSeconds")?.value ?? "2", 10);
     seconds = Math.max(1, Math.min(30, Number.isFinite(seconds) ? seconds : 2));
     return {
-        enabled,
+        enabled: true,
         seconds,
         delayMs: seconds * 1000
     };
@@ -1203,9 +1504,6 @@ function syncPlayAutoNextControls() {
     if (secondsInput && Number.parseInt(secondsInput.value, 10) !== config.seconds) {
         secondsInput.value = String(config.seconds);
     }
-    if (secondsInput) {
-        secondsInput.disabled = !config.enabled;
-    }
 }
 
 function updatePlayToolbarSummary() {
@@ -1215,8 +1513,9 @@ function updatePlayToolbarSummary() {
     }
     const config = getPlayConfigFromUi();
     const autoNext = getPlayAutoNextConfigFromUi();
-    const autoText = autoNext.enabled ? `Auto ${autoNext.seconds}s` : "Auto off";
-    summary.textContent = `${config.playerCount} players · ${play.formatChips(config.startingChips)} chips · SB ${config.smallBlind} / BB ${config.bigBlind} · ${autoText}`;
+    const autoText = `Auto ${autoNext.seconds}s`;
+    const cheaterText = isPlayCheaterMode() ? "Cheater on" : "Cheater off";
+    summary.textContent = `${config.playerCount} players · ${play.formatChips(config.startingChips)} chips · SB ${config.smallBlind} / BB ${config.bigBlind} · ${autoText} · ${cheaterText}`;
 }
 
 function setPlayToolbarCollapsed(collapsed) {
@@ -1257,16 +1556,12 @@ function scheduleAutoNextHand() {
         stopAutoNextTimer();
         return;
     }
-    const isTerminal = playState.phase === "hand-complete" || playState.phase === "game-over";
+    const isTerminal = playState.phase === "hand-complete";
     if (!isTerminal) {
         stopAutoNextTimer();
         return;
     }
     const config = getPlayAutoNextConfigFromUi();
-    if (!config.enabled) {
-        stopAutoNextTimer();
-        return;
-    }
     const key = `${playState.handNumber}:${playState.phase}:${config.seconds}`;
     if (playAutoNextTimer && playAutoNextKey === key) {
         return;
@@ -1283,32 +1578,91 @@ function scheduleAutoNextHand() {
     }, config.delayMs);
 }
 
-function startNewPlayGame() {
-    stopPlayBots();
-    stopAutoNextTimer();
+function isPlaySetupIdle() {
+    return !playState || playState.phase === "idle";
+}
+
+function syncPlayToolbarActions() {
+    const newGameBtn = $("newPlayGameBtn");
+    if (!newGameBtn) {
+        return;
+    }
+    const idle = isPlaySetupIdle();
+    newGameBtn.textContent = idle ? "Start game" : "New game";
+    newGameBtn.classList.toggle("btn-primary", idle);
+    newGameBtn.classList.toggle("btn-outline", !idle);
+}
+
+function resetPlayToSetup() {
+    createPlaySession({ dealHand: false });
     setPlayToolbarCollapsed(false);
-    playState = play.createGame(getPlayConfigFromUi());
-    playVisualCue = { handNumber: -1, boardCount: 0, bets: [], pot: 0 };
-    lastEquities = null;
+}
+
+function beginPlayHand() {
+    if (!playState) {
+        return false;
+    }
+    const ui = getPlayConfigFromUi();
+    if (playStructureConfigChanged(ui)) {
+        createPlaySession({ dealHand: true });
+        return true;
+    }
+    syncPlayConfigFromUi();
+    heroActionPreset = "none";
+    const started = play.startHand(playState);
+    if (!started) {
+        renderTable();
+        setTableLog(playState.message);
+        renderPlayDock();
+        return false;
+    }
+    setPlayToolbarCollapsed(true);
     renderTable();
     setTableLog(playState.message);
     renderPlayDock();
+    schedulePlayBots();
+    return true;
+}
+
+function createPlaySession({ dealHand = false } = {}) {
+    stopPlayBots();
+    stopAutoNextTimer();
+    playState = play.createGame(getPlayConfigFromUi());
+    playVisualCue = { handNumber: -1, boardCount: 0, bets: [], pot: 0 };
+    lastEquities = null;
+    playCheaterHeroEquity = null;
+    playCheaterEquityCacheKey = "";
+    heroActionPreset = "none";
+    if (dealHand) {
+        setPlayToolbarCollapsed(true);
+        beginPlayHand();
+    } else {
+        setPlayToolbarCollapsed(false);
+        renderTable();
+        setTableLog(playState.message);
+        renderPlayDock();
+    }
+    syncPlayToolbarActions();
+}
+
+function startNewPlayGame() {
+    if (playState && playState.phase !== "idle") {
+        resetPlayToSetup();
+        return;
+    }
+    createPlaySession({ dealHand: true });
 }
 
 function dealPlayHand() {
     if (!playState) {
-        startNewPlayGame();
+        resetPlayToSetup();
         return;
     }
     stopPlayBots();
     stopAutoNextTimer();
-    const nextHandBtn = $("nextHandBtn");
-    if (nextHandBtn) {
-        nextHandBtn.hidden = true;
-    }
 
     if (playState.phase === "game-over") {
-        startNewPlayGame();
+        resetPlayToSetup();
         return;
     }
 
@@ -1326,17 +1680,79 @@ function dealPlayHand() {
         }
     }
 
-    syncPlayConfigFromUi();
-    const started = play.startHand(playState);
-    if (!started) {
-        startNewPlayGame();
-        return;
+    beginPlayHand();
+}
+
+const HERO_ACTION_PRESETS = [
+    { id: "none", label: "None" },
+    { id: "check", label: "Check if free" },
+    { id: "check-fold", label: "Check / Fold" },
+    { id: "call", label: "Call any" },
+    { id: "fold", label: "Fold" }
+];
+
+function resolveHeroPreset(preset, legal) {
+    if (!preset || preset === "none" || legal.length === 0) {
+        return null;
     }
-    setPlayToolbarCollapsed(true);
-    renderTable();
-    setTableLog(playState.message);
-    renderPlayDock();
-    schedulePlayBots();
+    const find = (type) => legal.find((action) => action.type === type);
+    if (preset === "check") {
+        return find("check") ?? null;
+    }
+    if (preset === "check-fold") {
+        return find("check") ?? find("fold") ?? null;
+    }
+    if (preset === "call") {
+        return find("check") ?? find("call") ?? null;
+    }
+    if (preset === "fold") {
+        return find("fold") ?? null;
+    }
+    return null;
+}
+
+function getPresetHint(preset) {
+    switch (preset) {
+        case "check":
+            return "Will check when action reaches you if no bet is pending.";
+        case "check-fold":
+            return "Will check if free, otherwise fold.";
+        case "call":
+            return "Will check if free, otherwise call.";
+        case "fold":
+            return "Will fold when action reaches you.";
+        default:
+            return "";
+    }
+}
+
+function renderPlayPresets(mount) {
+    const wrap = document.createElement("div");
+    wrap.className = "poker-play-presets";
+
+    const label = document.createElement("p");
+    label.className = "poker-play-presets-label";
+    label.textContent = "Pre-action";
+
+    const row = document.createElement("div");
+    row.className = "poker-play-preset-buttons";
+    HERO_ACTION_PRESETS.forEach((preset) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `btn btn-sm ${heroActionPreset === preset.id ? "btn-primary" : "btn-outline"}`;
+        button.textContent = preset.label;
+        if (preset.id !== "none") {
+            button.title = getPresetHint(preset.id);
+        }
+        button.addEventListener("click", () => {
+            heroActionPreset = preset.id;
+            renderPlayDock();
+        });
+        row.appendChild(button);
+    });
+
+    wrap.append(label, row);
+    mount.appendChild(wrap);
 }
 
 function actionLabel(action) {
@@ -1355,67 +1771,234 @@ function actionLabel(action) {
     return `Raise to ${play.formatChips(action.total)}`;
 }
 
+function customRaiseErrorMessage(result) {
+    if (result.reason === "too_low") {
+        const min = play.formatChips(result.bounds.minTotal);
+        if (result.bounds.maxTotal < result.bounds.minTotal) {
+            return `Not enough chips for a full raise — all-in is ${play.formatChips(result.bounds.maxTotal)}.`;
+        }
+        return `Minimum raise to ${min}.`;
+    }
+    if (result.reason === "too_high") {
+        return `Maximum raise to ${play.formatChips(result.bounds.maxTotal)}.`;
+    }
+    if (result.reason === "invalid") {
+        return "Enter a valid chip amount.";
+    }
+    return "Raise is not available right now.";
+}
+
+function renderHeroRaiseInput(actionsMount, raiseBounds) {
+    const row = document.createElement("div");
+    row.className = "poker-play-raise-custom";
+
+    const label = document.createElement("label");
+    label.className = "poker-play-raise-label";
+    label.htmlFor = "playRaiseInput";
+    label.textContent = "Raise to";
+
+    const input = document.createElement("input");
+    input.id = "playRaiseInput";
+    input.type = "number";
+    input.className = "poker-play-raise-input";
+    input.min = String(raiseBounds.minTotal);
+    input.max = String(raiseBounds.maxTotal);
+    input.step = "1";
+    input.inputMode = "numeric";
+    input.value = heroRaiseInputDraft || String(raiseBounds.minTotal);
+    input.addEventListener("input", () => {
+        heroRaiseInputDraft = input.value;
+        error.hidden = true;
+    });
+    input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            raiseBtn.click();
+        }
+    });
+
+    const hint = document.createElement("span");
+    hint.className = "poker-play-raise-hint";
+    hint.textContent = `Min ${play.formatChips(raiseBounds.minTotal)} · Max ${play.formatChips(raiseBounds.maxTotal)}`;
+
+    const error = document.createElement("span");
+    error.className = "poker-play-raise-error";
+    error.hidden = true;
+    error.setAttribute("role", "alert");
+
+    const raiseBtn = document.createElement("button");
+    raiseBtn.type = "button";
+    raiseBtn.className = "btn btn-sm btn-primary poker-play-raise-submit";
+    raiseBtn.textContent = "Raise";
+    raiseBtn.addEventListener("click", () => {
+        const result = play.buildRaiseAction(playState, input.value);
+        if (!result.ok) {
+            error.hidden = false;
+            error.textContent = customRaiseErrorMessage(result);
+            input.focus();
+            return;
+        }
+        heroRaiseInputDraft = "";
+        applyHeroPlayAction(result.action);
+    });
+
+    label.appendChild(input);
+    row.append(label, hint, raiseBtn, error);
+    actionsMount.appendChild(row);
+}
+
+function shortPlayerName(name) {
+    return name.replace(/^Player\s+/, "P");
+}
+
+function renderPlayBotIntel(mount) {
+    mount.replaceChildren();
+    if (!isPlayCheaterMode() || !playState) {
+        mount.hidden = true;
+        return;
+    }
+
+    const bots = playState.players.filter((player) => !player.isHuman && !player.busted);
+    if (bots.length === 0) {
+        mount.hidden = true;
+        return;
+    }
+
+    mount.hidden = false;
+    const details = document.createElement("details");
+    details.className = "poker-play-bot-intel";
+    details.open = botIntelOpen;
+    details.addEventListener("toggle", () => {
+        botIntelOpen = details.open;
+    });
+
+    const summary = document.createElement("summary");
+    summary.className = "poker-play-bot-intel-summary";
+    const summaryLabel = document.createElement("span");
+    summaryLabel.className = "poker-play-bot-intel-summary-label";
+    summaryLabel.textContent = `Bot styles (${bots.length})`;
+    const summaryChips = document.createElement("span");
+    summaryChips.className = "poker-play-bot-intel-chips";
+    summaryChips.textContent = bots
+        .map((player) => `${shortPlayerName(player.name)} ${formatBotStyleLabel(player)}`)
+        .join(" · ");
+    summary.append(summaryLabel, summaryChips);
+
+    const panel = document.createElement("div");
+    panel.className = "poker-play-bot-intel-panel";
+    bots.forEach((player) => {
+        const row = document.createElement("p");
+        row.className = "poker-play-bot-intel-row";
+        row.textContent = `${player.name} — ${formatBotStyleLabel(player)} — ${getBotStyleDetailText(player)}`;
+        panel.appendChild(row);
+    });
+
+    details.append(summary, panel);
+    mount.appendChild(details);
+}
+
 function renderPlayDock() {
     if (!playState) {
         return;
+    }
+
+    const playDock = $("playDock");
+    if (playDock) {
+        const activeHand = playState.phase === "betting" || playState.phase === "hand-complete";
+        playDock.classList.toggle("poker-play-dock--active", activeHand);
+        playDock.classList.toggle("poker-play-dock--idle", playState.phase === "idle");
+        playDock.classList.toggle("poker-play-dock--hand-complete", playState.phase === "hand-complete");
     }
 
     const potLabel = $("playPotLabel");
     const streetLabel = $("playStreetLabel");
     const message = $("playMessage");
     const actionsMount = $("playActions");
-    const nextHandBtn = $("nextHandBtn");
-    const dealBtn = $("dealHandBtn");
-    const autoNextConfig = getPlayAutoNextConfigFromUi();
 
     if (potLabel) {
         potLabel.textContent = `Pot: ${play.formatChips(playState.pot)}`;
+    }
+    const heroEquityLabel = $("playHeroEquity");
+    if (heroEquityLabel) {
+        if (isPlayCheaterMode() && playCheaterHeroEquity != null && !playState.players[0]?.folded) {
+            heroEquityLabel.hidden = false;
+            heroEquityLabel.textContent = `Your equity: ${formatPlayHeroEquity(playCheaterHeroEquity)}`;
+        } else {
+            heroEquityLabel.hidden = true;
+        }
     }
     if (streetLabel) {
         const street = playState.street ? playState.street.toUpperCase() : "IDLE";
         let blindText = `Blinds ${playState.config.smallBlind}/${playState.config.bigBlind}`;
         if (playState.smallBlindIndex >= 0 && playState.bigBlindIndex >= 0) {
-            const sbName = playState.players[playState.smallBlindIndex]?.name ?? "?";
-            const bbName = playState.players[playState.bigBlindIndex]?.name ?? "?";
-            blindText = `SB: ${sbName} (${playState.config.smallBlind}) · BB: ${bbName} (${playState.config.bigBlind})`;
+            const sbName = shortPlayerName(playState.players[playState.smallBlindIndex]?.name ?? "?");
+            const bbName = shortPlayerName(playState.players[playState.bigBlindIndex]?.name ?? "?");
+            blindText = `SB ${sbName} (${playState.config.smallBlind}) · BB ${bbName} (${playState.config.bigBlind})`;
         }
         streetLabel.textContent = `${street} · ${blindText}`;
     }
+    const cheaterBadge = $("playCheaterBadge");
+    if (cheaterBadge) {
+        cheaterBadge.hidden = !isPlayCheaterMode();
+    }
     if (message) {
-        message.textContent = playState.message;
+        if (playState.phase === "hand-complete") {
+            const autoNext = getPlayAutoNextConfigFromUi();
+            message.hidden = false;
+            message.textContent = `${playState.message} · Next hand in ${autoNext.seconds}s`;
+        } else {
+            message.textContent = playState.message;
+            message.hidden = playState.phase === "betting";
+        }
     }
 
     if (actionsMount) {
         actionsMount.replaceChildren();
-        if (playState.phase === "betting" && play.isHumanTurn(playState)) {
-            const legal = play.getLegalActions(playState);
-            legal.forEach((action) => {
-                const button = document.createElement("button");
-                button.type = "button";
-                button.className = `btn ${action.type === "fold" ? "btn-outline" : "btn-primary"}`;
-                button.textContent = actionLabel(action);
-                button.addEventListener("click", () => {
-                    applyHeroPlayAction(action);
+        if (playState.phase === "betting") {
+            renderPlayPresets(actionsMount);
+            if (play.isHumanTurn(playState)) {
+                const legal = play.getLegalActions(playState);
+                const raiseBounds = play.getRaiseBounds(playState);
+                const buttonRow = document.createElement("div");
+                buttonRow.className = "poker-play-action-buttons";
+                legal.forEach((action) => {
+                    const button = document.createElement("button");
+                    button.type = "button";
+                    button.className = `btn btn-sm ${action.type === "fold" ? "btn-outline" : "btn-primary"}`;
+                    button.textContent = actionLabel(action);
+                    button.addEventListener("click", () => {
+                        applyHeroPlayAction(action);
+                    });
+                    buttonRow.appendChild(button);
                 });
-                actionsMount.appendChild(button);
-            });
+                actionsMount.appendChild(buttonRow);
+                if (raiseBounds) {
+                    renderHeroRaiseInput(actionsMount, raiseBounds);
+                } else {
+                    heroRaiseInputDraft = "";
+                }
+            } else {
+                heroRaiseInputDraft = "";
+            }
+        } else {
+            heroRaiseInputDraft = "";
         }
     }
 
-    if (nextHandBtn) {
-        const showNext = playState.phase === "hand-complete" || playState.phase === "game-over";
-        nextHandBtn.hidden = !showNext;
-        nextHandBtn.textContent = playState.phase === "game-over" ? "New game" : "Next hand";
-        if (showNext && autoNextConfig.enabled) {
-            nextHandBtn.textContent = `${nextHandBtn.textContent} (${autoNextConfig.seconds}s)`;
+    const botIntelMount = $("playBotIntel");
+    if (botIntelMount) {
+        if (isPlayCheaterMode() && playState.phase !== "betting") {
+            renderPlayBotIntel(botIntelMount);
+        } else {
+            botIntelMount.hidden = true;
+            botIntelMount.replaceChildren();
         }
     }
-    if (dealBtn) {
-        dealBtn.disabled = playState.phase === "betting";
-    }
+
     syncPlaySettingsDisabled();
     syncPlayAutoNextControls();
     updatePlayToolbarSummary();
+    syncPlayToolbarActions();
     scheduleAutoNextHand();
 }
 
@@ -1443,6 +2026,12 @@ function schedulePlayBots() {
     }
 
     if (play.isHumanTurn(playState)) {
+        const legal = play.getLegalActions(playState);
+        const autoAction = resolveHeroPreset(heroActionPreset, legal);
+        if (autoAction) {
+            applyHeroPlayAction(autoAction);
+            return;
+        }
         renderPlayDock();
         return;
     }
@@ -1509,35 +2098,28 @@ function bindEvents() {
     });
 
     $("newPlayGameBtn")?.addEventListener("click", startNewPlayGame);
-    $("dealHandBtn")?.addEventListener("click", dealPlayHand);
-    $("nextHandBtn")?.addEventListener("click", dealPlayHand);
     $("playToolbarToggle")?.addEventListener("click", () => {
         setPlayToolbarCollapsed(!playToolbarCollapsed);
     });
     ["playPlayerCount", "playStartingChips", "playSmallBlind", "playBigBlind"].forEach((id) => {
-        $(id)?.addEventListener("input", () => {
-            const config = getPlayConfigFromUi();
-            const sbInput = $("playSmallBlind");
-            const bbInput = $("playBigBlind");
-            if (sbInput && Number.parseInt(sbInput.value, 10) !== config.smallBlind) {
-                sbInput.value = String(config.smallBlind);
-            }
-            if (bbInput && Number.parseInt(bbInput.value, 10) !== config.bigBlind) {
-                bbInput.value = String(config.bigBlind);
-            }
-            updatePlayToolbarSummary();
-        });
-    });
-    $("playAutoNext")?.addEventListener("change", () => {
-        syncPlayAutoNextControls();
-        updatePlayToolbarSummary();
-        scheduleAutoNextHand();
-        renderPlayDock();
+        const input = $(id);
+        input?.addEventListener("change", onPlaySettingChange);
+        if (input && input.tagName !== "SELECT") {
+            input.addEventListener("input", () => {
+                updatePlayToolbarSummary();
+            });
+        }
     });
     $("playAutoNextSeconds")?.addEventListener("input", () => {
         syncPlayAutoNextControls();
         updatePlayToolbarSummary();
         scheduleAutoNextHand();
+        renderPlayDock();
+    });
+    $("playCheaterMode")?.addEventListener("change", () => {
+        syncPlayCheaterModeClass();
+        updatePlayToolbarSummary();
+        renderTable();
         renderPlayDock();
     });
 }
@@ -1546,7 +2128,9 @@ function init() {
     bindEvents();
     syncPlayerCount(playerCount);
     syncPlayAutoNextControls();
+    syncPlayCheaterModeClass();
     updatePlayToolbarSummary();
+    syncPlayToolbarActions();
     switchMode("play");
 }
 
