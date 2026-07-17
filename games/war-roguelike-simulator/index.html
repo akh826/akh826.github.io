@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="戰爭 Roguelike — 佈陣自動戰鬥、隨機路線、神器與能力成長。">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>戰爭 Roguelike | Games</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../games.css">
+    <link rel="stylesheet" href="war.css">
+</head>
+
+<body class="war-page">
+    <top-nav page="games" root="../.." class="war-top-nav"></top-nav>
+
+    <main class="war-shell" id="warShell">
+        <header class="war-hud" id="warHud" hidden>
+            <div class="war-hud-row">
+                <span class="war-hud-item" id="hudWorld">世界 1</span>
+                <span class="war-hud-item war-hud-gold">金 <span id="hudGold">50</span></span>
+            </div>
+            <div class="war-hud-actions">
+                <button type="button" class="war-btn war-btn-sm" id="unitRosterBtn">部隊</button>
+                <button type="button" class="war-btn war-btn-sm" id="fullscreenBtn" aria-label="全螢幕">⛶</button>
+                <button type="button" class="war-btn war-btn-sm" id="saveBtn">儲存</button>
+            </div>
+        </header>
+
+        <!-- Title -->
+        <section class="war-screen war-screen--title" id="screenTitle">
+            <div class="war-title-card">
+                <h1 class="war-title">戰爭 Roguelike</h1>
+                <p class="war-subtitle">出戰混戰 · 隨機路線 · 神器成長</p>
+                <div class="war-title-actions">
+                    <button type="button" class="war-btn war-btn-primary" id="newRunBtn">新遊戲</button>
+                    <button type="button" class="war-btn war-btn-outline" id="continueBtn" hidden>繼續遊戲</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Map -->
+        <section class="war-screen" id="screenMap" hidden>
+            <h2 class="war-screen-title" id="mapWorldTitle">翠綠平原</h2>
+            <div class="war-map-wrap">
+                <svg class="war-map-svg" id="mapSvg" aria-hidden="true"></svg>
+                <div class="war-map-nodes" id="mapNodes" role="group" aria-label="路線地圖"></div>
+            </div>
+            <p class="war-hint" id="mapHint">規劃路線：點選可達房間前進</p>
+            <div class="war-artifact-bar" id="artifactBar" aria-label="已獲得神器"></div>
+            <button type="button" class="war-btn war-btn-outline war-btn-sm war-codex-toggle" id="itemCodexToggle">
+                查看神器/能力效果
+            </button>
+            <section class="war-codex" id="itemCodex" hidden aria-label="神器與能力效果">
+                <h3 class="war-codex-title">已獲得效果</h3>
+                <div class="war-codex-list" id="itemCodexList"></div>
+            </section>
+        </section>
+
+        <!-- Army prep -->
+        <section class="war-screen" id="screenFormation" hidden>
+            <h2 class="war-screen-title">出戰準備</h2>
+            <p class="war-hint" id="formationHint">先選出戰單位，再拖曳左側站位</p>
+            <div class="war-formation-meta" id="formationMeta" aria-live="polite"></div>
+            <div class="war-enemy-intel" id="enemyIntel" aria-label="敵軍情報"></div>
+            <p class="war-hint war-army-count" id="armyCountLabel">擁有 0 · 出戰 0</p>
+            <p class="war-hint war-perf-warn" id="armyPerfWarn" hidden>單位較多，可能影響流暢度（仍可開戰）</p>
+            <div class="war-army-list" id="ownedUnitList" aria-label="擁有單位"></div>
+            <div class="war-canvas-wrap">
+                <canvas id="prepCanvas" width="800" height="450" aria-label="站位規劃"></canvas>
+            </div>
+            <p class="war-hint">左側為我方部署區 · 拖曳單位調整位置 · 出戰勝場累積經驗升星（合星僅限事件）</p>
+            <div class="war-action-bar">
+                <button type="button" class="war-btn war-btn-outline" id="prepUnitInfoBtn">查看單位</button>
+                <button type="button" class="war-btn war-btn-outline" id="deployAllBtn">全出戰</button>
+                <button type="button" class="war-btn war-btn-outline" id="clearFormationBtn">全撤下</button>
+                <button type="button" class="war-btn war-btn-primary" id="startBattleBtn">開始戰鬥</button>
+            </div>
+        </section>
+
+        <!-- Battle -->
+        <section class="war-screen" id="screenBattle" hidden>
+            <h2 class="war-screen-title" id="battleTitle">戰鬥中</h2>
+            <div class="war-battle-toolbar" id="battleToolbar">
+                <div class="war-speed-group" role="group" aria-label="戰鬥速度">
+                    <button type="button" class="war-btn war-btn-sm war-speed-btn is-active" data-speed="1">1x</button>
+                    <button type="button" class="war-btn war-btn-sm war-speed-btn" data-speed="2">2x</button>
+                    <button type="button" class="war-btn war-btn-sm war-speed-btn" data-speed="3">3x</button>
+                </div>
+                <div class="war-tactic-group" id="tacticButtons" role="group" aria-label="戰術指令"></div>
+                <p class="war-hint war-tactic-hint" id="tacticHint">戰術剩餘 2</p>
+            </div>
+            <div class="war-battle-layout">
+                <div class="war-canvas-wrap">
+                    <canvas id="battleCanvas" width="800" height="450" aria-label="2D 戰場"></canvas>
+                </div>
+                <div class="war-battle-side">
+                    <div class="war-battle-log" id="battleLog" aria-live="polite"></div>
+                    <div class="war-battle-stats" id="battleStats" hidden aria-label="戰後統計"></div>
+                </div>
+            </div>
+            <div class="war-action-bar" id="battleActions" hidden>
+                <button type="button" class="war-btn war-btn-primary" id="battleContinueBtn">繼續</button>
+            </div>
+        </section>
+
+        <!-- Reward pick -->
+        <section class="war-screen" id="screenReward" hidden>
+            <h2 class="war-screen-title">選擇獎勵</h2>
+            <p class="war-hint">三選一 · 稀有度越高效果越強</p>
+            <div class="war-reward-grid" id="rewardGrid"></div>
+            <div class="war-reward-actions">
+                <button type="button" class="war-btn war-btn-outline war-reward-refresh" id="rewardRefreshBtn" hidden>刷新選項</button>
+                <button type="button" class="war-btn war-btn-outline war-reward-skip" id="rewardSkipBtn" hidden>跳過</button>
+            </div>
+        </section>
+
+        <!-- Event / Room modal -->
+        <div class="war-modal" id="roomModal" hidden>
+            <div class="war-modal-backdrop" id="roomModalBackdrop"></div>
+            <div class="war-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="roomModalTitle">
+                <h2 class="war-modal-title" id="roomModalTitle">事件</h2>
+                <p class="war-modal-text" id="roomModalText"></p>
+                <div class="war-modal-choices" id="roomModalChoices"></div>
+                <div class="war-modal-shop" id="roomModalShop" hidden></div>
+                <button type="button" class="war-btn war-btn-primary war-modal-close" id="roomModalClose" hidden>繼續</button>
+            </div>
+        </div>
+
+        <!-- Owned units roster -->
+        <div class="war-modal" id="unitModal" hidden>
+            <div class="war-modal-backdrop" id="unitModalBackdrop"></div>
+            <div class="war-modal-dialog war-modal-dialog--roster" role="dialog" aria-modal="true" aria-labelledby="unitModalTitle">
+                <h2 class="war-modal-title" id="unitModalTitle">擁有部隊</h2>
+                <div class="war-roster-summary" id="unitModalSummary"></div>
+                <div class="war-unit-roster" id="unitModalList"></div>
+                <button type="button" class="war-btn war-btn-primary war-modal-close" id="unitModalClose">關閉</button>
+            </div>
+        </div>
+
+        <!-- End screens -->
+        <section class="war-screen war-screen--end" id="screenVictory" hidden>
+            <h2 class="war-title">勝利！</h2>
+            <p class="war-subtitle">你征服了所有世界！</p>
+            <p class="war-hint" id="victoryEndlessHint">可挑戰無盡模式：僅有史詩戰與 Boss，無獎勵，看你能突破多少關。</p>
+            <div class="war-title-actions">
+                <button type="button" class="war-btn war-btn-primary" id="endlessModeBtn">進入無盡模式</button>
+                <button type="button" class="war-btn war-btn-outline" id="victoryRestartBtn">再玩一次</button>
+            </div>
+        </section>
+
+        <section class="war-screen war-screen--end" id="screenDefeat" hidden>
+            <h2 class="war-title">戰敗</h2>
+            <p class="war-subtitle" id="defeatText">戰鬥失敗，遠征結束。</p>
+            <button type="button" class="war-btn war-btn-primary" id="defeatRestartBtn">重新開始</button>
+        </section>
+    </main>
+
+    <footer class="site-footer war-footer">
+        <div class="container footer-content">
+            <a class="game-back" href="../index.html">&larr; Games catalog</a>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="../../shared/top-nav.js"></script>
+    <script src="../../script.js"></script>
+    <script src="data.js"></script>
+    <script src="map-generator.js"></script>
+    <script src="battle-engine.js"></script>
+    <script src="game-state.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

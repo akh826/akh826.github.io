@@ -22,5 +22,12 @@ window.GAME_CATALOG = [
         description:
             "Set up a poker table, run Monte Carlo equity, quiz modes, or play a full chip-based game against bots.",
         tags: ["Poker", "Card", "Quiz", "Chips"]
+    },
+    {
+        slug: "war-roguelike-simulator",
+        title: "戰爭 Roguelike",
+        description:
+            "戰場混戰 Roguelike — 固定初始單位、透過招募壯大部隊，在 2D 戰場追擊群毆並擊敗 Boss。",
+        tags: ["Roguelike", "Strategy", "Mobile", "Auto-battle"]
     }
 ];

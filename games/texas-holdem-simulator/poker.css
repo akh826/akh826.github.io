@@ -1806,6 +1806,49 @@ button.poker-picker-card {
 }
 
 @media (max-width: 640px) {
+  .poker-mode-tabs .poker-mode-tab {
+    flex: 1 1 calc(50% - 0.5rem);
+    text-align: center;
+    padding-inline: 0.75rem;
+  }
+
+  .poker-toolbar {
+    padding: 0.65rem 0.7rem;
+  }
+
+  .poker-play-toolbar-compact {
+    gap: 0.45rem;
+  }
+
+  .poker-play-toolbar-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .poker-play-toolbar-actions .btn {
+    flex: 1 1 auto;
+  }
+
+  .poker-play-toolbar-settings .poker-toolbar-field {
+    flex: 1 1 calc(50% - 0.85rem);
+    min-width: 8.2rem;
+  }
+
+  .poker-play-toolbar-settings .poker-toolbar-field-checkbox {
+    flex-basis: 100%;
+    min-width: 0;
+  }
+
+  .poker-play-toolbar-settings .poker-input-narrow,
+  .poker-play-toolbar-settings .poker-select-compact {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .poker-mode-play .poker-play-toolbar {
+    top: 0.4rem;
+  }
+
   .poker-mode-quiz .poker-table {
     min-height: 185px;
   }
@@ -1850,5 +1893,85 @@ button.poker-picker-card {
   .poker-seat {
     max-width: 8.5rem;
     gap: 0.28rem;
+  }
+
+  .poker-play-dock {
+    padding-inline: 0.6rem;
+  }
+
+  .poker-play-message {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    line-height: 1.35;
+  }
+}
+
+@media (max-width: 480px) {
+  .poker-room {
+    padding: 0.95rem 0.45rem 0.45rem;
+    border-radius: 14px;
+  }
+
+  .poker-mode-tabs {
+    gap: 0.4rem;
+  }
+
+  .poker-mode-tabs .poker-mode-tab {
+    flex-basis: 100%;
+  }
+
+  .poker-play-toolbar-settings .poker-toolbar-field {
+    flex-basis: 100%;
+    min-width: 0;
+  }
+
+  .poker-table {
+    min-height: 210px;
+  }
+
+  .poker-mode-play .poker-table {
+    min-height: 165px;
+  }
+
+  .poker-seat-info {
+    min-width: 3.85rem;
+  }
+
+  .poker-seat-name,
+  .poker-seat-chips,
+  .poker-seat-equity {
+    font-size: 0.62rem;
+  }
+
+  .poker-seat-avatar {
+    padding: 0.24rem 0.2rem;
+  }
+
+  .poker-seat-avatar .poker-card-slot {
+    width: 1.65rem;
+    height: 2.25rem;
+    flex-basis: 1.65rem;
+  }
+
+  .poker-board-cards .poker-card-slot {
+    width: 2.2rem;
+    height: 3.02rem;
+  }
+
+  .poker-card-rank {
+    font-size: 0.82rem;
+  }
+
+  .poker-card-suit {
+    font-size: 0.88rem;
+  }
+
+  .poker-board-cards .poker-card-rank {
+    font-size: 0.92rem;
+  }
+
+  .poker-board-cards .poker-card-suit {
+    font-size: 0.98rem;
   }
 }

@@ -1,0 +1,1693 @@
+/* War Roguelike — mobile-first fullscreen layout */
+
+.war-page {
+    --war-accent: #3b82f6;
+    --war-accent-dim: color-mix(in srgb, #3b82f6 18%, var(--surface));
+    --war-danger: #ef4444;
+    --war-gold: #eab308;
+    --war-player: #22c55e;
+    --war-enemy: #f87171;
+    --war-slot-size: clamp(3.2rem, 14vw, 4.5rem);
+    touch-action: manipulation;
+}
+
+.war-page .war-top-nav {
+    flex-shrink: 0;
+}
+
+.war-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100dvh - 4rem);
+    width: 100%;
+    max-width: none;
+    margin: 0 auto;
+    padding: 0.5rem clamp(0.75rem, 2vw, 1.5rem) 1rem;
+    gap: 0.5rem;
+    box-sizing: border-box;
+}
+
+.war-shell:fullscreen,
+.war-shell:-webkit-full-screen {
+    max-width: none;
+    min-height: 100dvh;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    background: var(--bg);
+}
+
+.war-shell:fullscreen .war-footer,
+.war-shell:-webkit-full-screen .war-footer,
+.war-shell:fullscreen .war-top-nav,
+.war-shell:-webkit-full-screen .war-top-nav {
+    display: none;
+}
+
+.war-hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.65rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+.war-hud-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.war-hud-hp { color: var(--war-danger); }
+.war-hud-gold { color: var(--war-gold); }
+
+.war-hud-actions {
+    display: flex;
+    gap: 0.35rem;
+}
+
+.war-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    min-height: 0;
+    position: relative;
+}
+
+.war-screen[hidden] {
+    display: none !important;
+}
+
+.war-screen-title {
+    margin: 0;
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.war-title-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 1rem;
+    padding: 2rem 1rem;
+}
+
+.war-title {
+    margin: 0;
+    font-size: clamp(1.6rem, 6vw, 2.2rem);
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.war-subtitle {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+    max-width: 28ch;
+}
+
+.war-title-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    width: min(100%, 240px);
+}
+
+.war-btn {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 0.65rem 1rem;
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+    min-height: 44px;
+}
+
+.war-btn:active {
+    transform: scale(0.97);
+}
+
+.war-btn-primary {
+    background: var(--war-accent);
+    border-color: var(--war-accent);
+    color: #fff;
+}
+
+.war-btn-outline {
+    background: transparent;
+}
+
+.war-btn-sm {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+    min-height: 36px;
+}
+
+.war-hint {
+    margin: 0;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--muted);
+}
+
+/* Map */
+.war-map-wrap {
+    position: relative;
+    flex: 1 1 auto;
+    flex-shrink: 1;
+    min-height: 360px;
+    background: color-mix(in srgb, var(--war-accent) 6%, var(--surface));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: auto;
+}
+
+/* Keep map height stable — artifact / codex chrome must not steal flex space */
+#screenMap > .war-hint,
+#screenMap > .war-artifact-bar,
+#screenMap > .war-codex-toggle {
+    flex-shrink: 0;
+}
+
+.war-map-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 420px;
+    pointer-events: none;
+}
+
+.war-map-nodes {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 420px;
+}
+
+.war-map-node {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 2.8rem;
+    height: 2.8rem;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    cursor: default;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    z-index: 1;
+}
+
+.war-map-node,
+.war-slot-icon {
+    color: var(--text);
+    text-shadow: 0 1px 2px rgba(15, 23, 42, 0.25);
+}
+
+.war-map-node--current {
+    box-shadow: 0 0 0 3px var(--war-accent);
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.war-map-node--reachable {
+    cursor: pointer;
+    border-color: var(--war-accent);
+    animation: war-pulse 1.5s ease infinite;
+}
+
+.war-map-node--reachable:active {
+    transform: translate(-50%, -50%) scale(0.95);
+}
+
+.war-map-node--cleared {
+    opacity: 0.45;
+}
+
+.war-map-node--fog {
+    opacity: 0.55;
+    filter: grayscale(0.4);
+    border-style: dashed;
+}
+
+.war-map-node--boss {
+    width: 3.2rem;
+    height: 3.2rem;
+    font-size: 1.3rem;
+}
+
+body.dark .war-map-wrap {
+    background: color-mix(in srgb, #1d4ed8 20%, #0f172a);
+}
+
+body.dark .war-map-node {
+    background: #1f2937;
+    border-color: #60a5fa;
+    color: #e5e7eb;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+body.dark .war-map-node--reachable {
+    border-color: #93c5fd;
+}
+
+body.dark .war-map-node--current {
+    box-shadow: 0 0 0 3px #3b82f6, 0 2px 10px rgba(59, 130, 246, 0.5);
+}
+
+body.dark .war-slot {
+    background: #111827;
+    border-color: #475569;
+    color: #e5e7eb;
+}
+
+body.dark .war-slot--filled {
+    background: color-mix(in srgb, #22c55e 18%, #111827);
+    border-color: #4ade80;
+}
+
+body.dark .war-slot--enemy {
+    background: color-mix(in srgb, #f87171 18%, #111827);
+    border-color: #fca5a5;
+}
+
+@keyframes war-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--war-accent) 40%, transparent); }
+    50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--war-accent) 0%, transparent); }
+}
+
+.war-artifact-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    justify-content: center;
+    min-height: 1.5rem;
+}
+
+.war-artifact-chip {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.45rem;
+    border-radius: 999px;
+    background: var(--war-accent-dim);
+    border: 1px solid color-mix(in srgb, var(--war-accent) 30%, var(--border));
+    color: var(--text);
+}
+
+.war-artifact-chip--cursed {
+    background: color-mix(in srgb, #7f1d1d 35%, transparent);
+    border-color: color-mix(in srgb, #ef4444 45%, var(--border));
+    color: #fecaca;
+}
+
+.war-codex-toggle {
+    align-self: center;
+}
+
+.war-codex {
+    position: absolute;
+    left: 0.65rem;
+    right: 0.65rem;
+    /* Overlay the map area; stay above hint / chips / toggle */
+    bottom: 6.25rem;
+    z-index: 30;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.65rem 0.75rem;
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    backdrop-filter: blur(8px);
+    max-height: min(38dvh, 260px);
+    overflow-y: auto;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.22);
+}
+
+.war-codex[hidden] {
+    display: none !important;
+}
+
+body.dark .war-codex {
+    background: color-mix(in srgb, #111827 94%, transparent);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+}
+
+.war-codex-title {
+    margin: 0 0 0.45rem;
+    font-size: 0.9rem;
+}
+
+.war-codex-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.war-codex-item {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.45rem 0.55rem;
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+}
+
+.war-codex-item strong {
+    display: block;
+    font-size: 0.8rem;
+    margin-bottom: 0.15rem;
+}
+
+.war-codex-item span {
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+
+/* Battlefield */
+.war-battlefield {
+    display: grid;
+    grid-template-rows: 1fr auto 1fr;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: color-mix(in srgb, #0f172a 8%, var(--surface));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    flex: 1;
+    min-height: 220px;
+}
+
+.war-battlefield--prep {
+    min-height: 200px;
+}
+
+.war-bf-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.4rem;
+    justify-items: center;
+    align-items: center;
+}
+
+.war-bf-row--enemy { align-self: start; }
+.war-bf-row--player { align-self: end; }
+
+.war-bf-divider {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+}
+
+.war-slot {
+    width: var(--war-slot-size);
+    height: var(--war-slot-size);
+    border: 2px dashed color-mix(in srgb, var(--muted) 40%, var(--border));
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.1rem;
+    font-size: 0.65rem;
+    cursor: pointer;
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    position: relative;
+    user-select: none;
+}
+
+.war-slot--filled {
+    border-style: solid;
+    border-color: var(--war-player);
+    background: color-mix(in srgb, var(--war-player) 10%, var(--surface));
+}
+
+.war-slot--enemy {
+    border-color: var(--war-enemy);
+    background: color-mix(in srgb, var(--war-enemy) 10%, var(--surface));
+    cursor: default;
+}
+
+.war-slot--selected {
+    box-shadow: 0 0 0 2px var(--war-accent);
+}
+
+.war-slot-icon {
+    font-size: 1.4rem;
+    line-height: 1;
+}
+
+.war-slot-name {
+    font-weight: 600;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 2px;
+}
+
+.war-slot-hp {
+    position: absolute;
+    bottom: 2px;
+    left: 4px;
+    right: 4px;
+    height: 4px;
+    background: color-mix(in srgb, var(--muted) 20%, transparent);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.war-slot-hp-fill {
+    height: 100%;
+    background: var(--war-player);
+    transition: width 0.15s linear;
+}
+
+.war-slot--enemy .war-slot-hp-fill {
+    background: var(--war-enemy);
+}
+
+.war-slot--dead {
+    opacity: 0.35;
+    filter: grayscale(1);
+}
+
+/* Roster */
+.war-roster {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    justify-content: center;
+    padding: 0.25rem;
+}
+
+.war-army-count {
+    font-weight: 700;
+    color: var(--text);
+}
+
+.war-perf-warn {
+    color: #f59e0b !important;
+    font-weight: 600;
+}
+
+.war-army-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    justify-content: center;
+    max-height: 28dvh;
+    overflow-y: auto;
+    padding: 0.35rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+}
+
+.war-army-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.3rem 0.55rem;
+    background: color-mix(in srgb, var(--war-player) 12%, var(--surface));
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 36px;
+}
+
+.war-army-chip:active {
+    transform: scale(0.97);
+}
+
+.war-army-chip-count {
+    opacity: 0.75;
+    font-size: 0.7rem;
+}
+
+.war-canvas-wrap {
+    flex: 0 0 auto;
+    width: 100%;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+}
+
+.war-battle-layout {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0.55rem;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.war-battle-layout .war-canvas-wrap {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    min-height: min(62vh, 640px);
+}
+
+.war-battle-layout .war-battle-side {
+    flex: 0 0 clamp(180px, 22%, 320px);
+    width: clamp(180px, 22%, 320px);
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    min-height: 0;
+    align-self: stretch;
+}
+
+.war-battle-layout .war-battle-log {
+    flex: 1 1 auto;
+    width: 100%;
+    max-height: none;
+    min-height: 0;
+}
+
+.war-canvas-wrap canvas {
+    display: block;
+    max-width: 100%;
+    touch-action: none;
+}
+
+body.dark .war-army-list {
+    background: #111827;
+}
+
+.war-army-chip--deployed {
+    border-color: var(--war-player);
+    background: color-mix(in srgb, var(--war-player) 22%, var(--surface));
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--war-player) 35%, transparent);
+}
+
+.war-army-chip--benched {
+    opacity: 0.55;
+    filter: grayscale(0.35);
+}
+
+.war-army-chip--banned {
+    opacity: 0.4;
+    filter: grayscale(0.85);
+    cursor: not-allowed;
+    border-color: color-mix(in srgb, #ef4444 40%, var(--border));
+    text-decoration: line-through;
+}
+
+body.dark .war-army-chip--deployed {
+    background: color-mix(in srgb, #22c55e 28%, #111827);
+}
+
+.war-roster-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 0.4rem 0.55rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    cursor: pointer;
+    min-width: 3.5rem;
+    min-height: 44px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.war-roster-unit--selected {
+    border-color: var(--war-accent);
+    background: var(--war-accent-dim);
+}
+
+.war-roster-icon {
+    font-size: 1.25rem;
+}
+
+.war-action-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    padding-top: 0.25rem;
+}
+
+.war-action-bar[hidden] {
+    display: none !important;
+}
+
+.war-action-bar .war-btn {
+    flex: 1 1 auto;
+    min-width: 5.5rem;
+    max-width: 160px;
+}
+
+.war-formation-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    justify-content: center;
+    margin: 0.35rem 0 0.5rem;
+}
+
+.war-meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.55rem;
+    font-size: 0.72rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--muted);
+}
+
+.war-meta-chip--terrain {
+    border-color: #64748b;
+    color: #cbd5e1;
+}
+
+.war-meta-chip--synergy {
+    border-color: #ca8a04;
+    color: #fde68a;
+}
+
+.war-meta-chip--contract {
+    border-color: #db2777;
+    color: #f9a8d4;
+}
+
+.war-meta-chip--formation {
+    border-color: #ea580c;
+    color: #fdba74;
+}
+
+.war-enemy-intel {
+    margin: 0 0 0.55rem;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.war-enemy-intel[hidden] {
+    display: none !important;
+}
+
+.war-enemy-intel-title {
+    margin: 0 0 0.35rem;
+    font-size: 0.82rem;
+    color: var(--text);
+    font-weight: 600;
+}
+
+.war-enemy-intel-row {
+    margin: 0.2rem 0;
+    line-height: 1.4;
+}
+
+.war-enemy-intel-tip {
+    color: #fbbf24;
+    font-size: 0.72rem;
+}
+
+.war-battle-stats {
+    flex: 0 0 auto;
+    max-height: 11rem;
+    overflow-y: auto;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+
+.war-battle-stats[hidden] {
+    display: none !important;
+}
+
+.war-battle-stats-title {
+    margin: 0 0 0.3rem;
+    font-size: 0.8rem;
+    color: var(--text);
+    font-weight: 600;
+}
+
+.war-battle-stats-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) repeat(3, minmax(0, 0.7fr));
+    gap: 0.2rem 0.35rem;
+    padding: 0.18rem 0;
+    border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    line-height: 1.3;
+}
+
+.war-battle-stats-row--head {
+    border-top: none;
+    color: var(--text);
+    font-weight: 600;
+    opacity: 0.85;
+}
+
+.war-battle-stats-dead {
+    opacity: 0.65;
+}
+
+.war-battle-stats-killed {
+    grid-column: 1 / -1;
+    font-size: 0.68rem;
+    color: #f87171;
+}
+
+.war-battle-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem 0.85rem;
+    margin-bottom: 0.45rem;
+}
+
+.war-speed-group,
+.war-tactic-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.war-speed-btn.is-active,
+.war-tactic-btn.is-active {
+    background: #334155;
+    border-color: #94a3b8;
+    color: #f8fafc;
+}
+
+.war-tactic-btn:disabled {
+    opacity: 0.45;
+}
+
+.war-tactic-hint {
+    margin: 0;
+    font-size: 0.72rem;
+}
+
+.war-army-chip-star {
+    color: #fbbf24;
+    font-weight: 600;
+}
+
+/* Battle log */
+.war-battle-log {
+    max-height: 9rem;
+    overflow-y: auto;
+    font-size: 0.72rem;
+    color: var(--muted);
+    padding: 0.4rem 0.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 640px) {
+    .war-battle-layout {
+        flex-direction: column;
+    }
+
+    .war-battle-layout .war-battle-side {
+        flex: 0 0 auto;
+        width: 100%;
+    }
+
+    .war-battle-layout .war-battle-log {
+        flex: 0 0 auto;
+        width: 100%;
+        max-height: 7rem;
+    }
+
+    .war-battle-stats {
+        max-height: 8rem;
+    }
+}
+
+.war-battle-log p {
+    margin: 0.12rem 0;
+    line-height: 1.35;
+}
+
+.war-log-attack {
+    color: var(--text);
+}
+
+.war-log-skill {
+    color: color-mix(in srgb, #a78bfa 70%, var(--text));
+}
+
+.war-log-cast {
+    color: color-mix(in srgb, #c4b5fd 75%, var(--text));
+}
+
+.war-log-heal {
+    color: color-mix(in srgb, #4ade80 75%, var(--text));
+}
+
+.war-log-death {
+    color: color-mix(in srgb, #f87171 80%, var(--text));
+    font-weight: 600;
+}
+
+.war-log-revive {
+    color: color-mix(in srgb, #fbbf24 80%, var(--text));
+    font-weight: 600;
+}
+
+.war-log-status {
+    color: color-mix(in srgb, #67e8f9 70%, var(--text));
+}
+
+.war-log-dot {
+    color: color-mix(in srgb, #fb923c 75%, var(--text));
+}
+
+.war-log-summon {
+    color: color-mix(in srgb, #67e8f9 75%, var(--text));
+}
+
+/* Rewards */
+#screenReward {
+    justify-content: flex-start;
+    gap: 0.85rem;
+}
+
+#screenReward .war-hint {
+    margin: 0;
+}
+
+.war-reward-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.war-reward-card {
+    text-align: left;
+    padding: 1.15rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--surface) 88%, #1e293b);
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.1s, background 0.15s;
+    min-height: 7.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.35rem;
+    flex: 1 1 0;
+}
+
+.war-reward-card:hover {
+    background: color-mix(in srgb, var(--surface) 72%, #334155);
+}
+
+.war-reward-card:active {
+    transform: scale(0.98);
+}
+
+.war-reward-card h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #f8fafc;
+    line-height: 1.3;
+}
+
+.war-reward-rarity {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    opacity: 0.95;
+}
+
+.war-reward-card--common .war-reward-rarity { color: #cbd5e1; }
+.war-reward-card--uncommon .war-reward-rarity { color: #4ade80; }
+.war-reward-card--rare .war-reward-rarity { color: #60a5fa; }
+.war-reward-card--epic .war-reward-rarity { color: #c084fc; }
+.war-reward-card--legendary .war-reward-rarity { color: #facc15; }
+.war-reward-card--unique .war-reward-rarity { color: #f472b6; }
+
+.war-reward-card--cursed {
+    border-color: color-mix(in srgb, #ef4444 55%, var(--border));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, #7f1d1d 40%, transparent);
+}
+
+.war-reward-card p {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    color: #cbd5e1;
+}
+
+.war-reward-card--unit {
+    justify-content: flex-start;
+    gap: 0.45rem;
+    min-height: 11rem;
+    text-align: left;
+}
+
+.war-reward-card--unit .war-unit-tags {
+    margin-bottom: 0.15rem;
+}
+
+.war-reward-card--unit .war-unit-tag {
+    color: #e2e8f0;
+    background: color-mix(in srgb, #64748b 28%, transparent);
+    border-color: color-mix(in srgb, #94a3b8 45%, transparent);
+}
+
+.war-reward-unit-stats,
+.war-reward-card--unit .war-unit-card-stats {
+    margin: 0;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: #e2e8f0;
+}
+
+.war-reward-card--unit .war-unit-card-skill {
+    margin: 0;
+    font-size: 0.84rem;
+    line-height: 1.45;
+    color: #cbd5e1;
+}
+
+.war-reward-card--unit .war-unit-card-skill strong {
+    color: #f8fafc;
+}
+
+.war-reward-card--unit .war-unit-card-onhit,
+.war-unit-card-onhit {
+    margin: 0;
+    font-size: 0.78rem;
+    color: #86efac;
+}
+
+.war-reward-card--common { border-left: 4px solid #94a3b8; }
+.war-reward-card--uncommon { border-left: 4px solid #22c55e; }
+.war-reward-card--rare { border-left: 4px solid #3b82f6; }
+.war-reward-card--epic { border-left: 4px solid #a855f7; }
+.war-reward-card--legendary { border-left: 4px solid #eab308; }
+.war-reward-card--unique { border-left: 4px solid #ec4899; }
+
+.war-reward-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.55rem;
+    margin-top: 0.35rem;
+}
+
+.war-reward-skip,
+.war-reward-refresh {
+    align-self: center;
+    min-width: 8rem;
+}
+
+.war-map-node--epic {
+    box-shadow: 0 0 0 2px color-mix(in srgb, #a855f7 55%, transparent);
+}
+
+.war-map-node--epic-combat {
+    box-shadow: 0 0 0 2px color-mix(in srgb, #f97316 60%, transparent);
+}
+
+/* Modal */
+.war-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.war-modal[hidden] {
+    display: none !important;
+}
+
+.war-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+}
+
+.war-modal-dialog {
+    position: relative;
+    width: min(100%, 420px);
+    max-height: 85dvh;
+    overflow-y: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px 16px 12px 12px;
+    padding: 1.25rem;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.war-modal-title {
+    margin: 0 0 0.5rem;
+    font-size: 1.15rem;
+}
+
+.war-modal-text {
+    margin: 0 0 1rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.war-modal-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.war-modal-shop {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.war-modal-shop[hidden] {
+    display: none !important;
+}
+
+.war-shop-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.war-shop-item--soldout {
+    opacity: 0.55;
+}
+
+.war-shop-item--soldout .war-shop-markup {
+    color: var(--muted);
+}
+
+.war-shop-item--soldout button:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.war-shop-item-info h4 {
+    margin: 0 0 0.15rem;
+    font-size: 0.9rem;
+}
+
+.war-shop-markup {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--war-gold);
+    margin-left: 0.35rem;
+}
+
+.war-shop-item-info p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+
+.war-modal-dialog--roster {
+    width: min(100%, 560px);
+    max-height: 92dvh;
+    display: flex;
+    flex-direction: column;
+}
+
+.war-modal-dialog--roster .war-modal-close {
+    flex-shrink: 0;
+}
+
+.war-roster-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin: 0 0 0.55rem;
+}
+
+.war-roster-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.28rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text);
+    background: color-mix(in srgb, var(--war-accent) 12%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--war-accent) 28%, var(--border));
+}
+
+.war-roster-chip strong {
+    font-weight: 800;
+    color: var(--war-accent);
+}
+
+.war-roster-chip--gold {
+    border-color: color-mix(in srgb, var(--war-gold) 40%, var(--border));
+    background: color-mix(in srgb, var(--war-gold) 12%, var(--surface));
+}
+
+.war-roster-chip--gold strong {
+    color: var(--war-gold);
+}
+
+.war-roster-chip--fallen {
+    border-color: color-mix(in srgb, #f87171 45%, var(--border));
+    background: color-mix(in srgb, #7f1d1d 16%, var(--surface));
+}
+
+.war-roster-chip--fallen strong {
+    color: #fca5a5;
+}
+
+.war-roster-chip--muted {
+    color: var(--muted);
+    font-weight: 500;
+    border-color: var(--border);
+    background: color-mix(in srgb, var(--muted) 8%, var(--surface));
+}
+
+.war-unit-roster {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    max-height: none;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    margin-bottom: 0.55rem;
+    padding-right: 0.15rem;
+}
+
+.war-unit-roster > .war-unit-card,
+.war-unit-roster > .war-fallen-title {
+    flex: 0 0 auto;
+}
+
+.war-fallen-title {
+    margin: 0.65rem 0 0.15rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: color-mix(in srgb, #f87171 80%, var(--text));
+}
+
+.war-unit-card {
+    padding: 0.75rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--surface) 92%, var(--war-accent));
+}
+
+.war-unit-card--roster {
+    border-left-width: 3px;
+    border-left-style: solid;
+    border-left-color: color-mix(in srgb, var(--muted) 55%, var(--border));
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--war-accent) 6%, transparent), transparent 42%),
+        color-mix(in srgb, var(--surface) 94%, #0f172a);
+}
+
+.war-unit-card--compact {
+    padding: 0;
+    overflow: visible;
+}
+
+.war-unit-card-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    min-height: 3.25rem;
+}
+
+.war-unit-card-summary {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    padding: 0.5rem 0.55rem;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+}
+
+.war-unit-card-actions {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    align-self: center;
+    padding: 0.45rem 0.55rem 0.45rem 0.15rem;
+}
+
+.war-unit-card-summary:hover {
+    background: color-mix(in srgb, var(--war-accent) 8%, transparent);
+}
+
+.war-unit-card-summary .war-unit-card-identity {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.war-unit-card-summary .war-unit-card-icon {
+    width: 2.2rem;
+    height: 2.2rem;
+    font-size: 1.15rem;
+    border-radius: 8px;
+}
+
+.war-unit-card-summary .war-unit-card-title {
+    font-size: 0.9rem;
+}
+
+.war-unit-card-summary .war-unit-card-sub {
+    margin-bottom: 0.2rem;
+}
+
+.war-unit-card-summary .war-unit-exp {
+    margin-bottom: 0.15rem;
+}
+
+.war-unit-card-compact-stats {
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 650;
+    color: color-mix(in srgb, var(--text) 88%, var(--muted));
+    font-variant-numeric: tabular-nums;
+}
+
+.war-unit-card-chevron {
+    flex: 0 0 auto;
+    align-self: center;
+    font-size: 0.75rem;
+    color: var(--muted);
+    transition: transform 0.15s ease;
+}
+
+.war-unit-card--compact.is-open .war-unit-card-chevron {
+    transform: rotate(180deg);
+}
+
+.war-unit-card-detail {
+    padding: 0 0.55rem 0.55rem;
+    border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+}
+
+.war-unit-card-detail[hidden] {
+    display: none !important;
+}
+
+.war-unit-card-detail .war-unit-tags {
+    margin-top: 0.45rem;
+}
+
+.war-revive-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+    min-height: 2.25rem;
+    padding: 0.35rem 0.7rem;
+}
+
+.war-unit-card--roster.war-unit-card--common { border-left-color: #94a3b8; }
+.war-unit-card--roster.war-unit-card--uncommon { border-left-color: #22c55e; }
+.war-unit-card--roster.war-unit-card--rare { border-left-color: #3b82f6; }
+.war-unit-card--roster.war-unit-card--epic { border-left-color: #a855f7; }
+.war-unit-card--roster.war-unit-card--legendary { border-left-color: #eab308; }
+.war-unit-card--roster.war-unit-card--unique { border-left-color: #ec4899; }
+
+.war-unit-card--fallen {
+    border-color: color-mix(in srgb, #f87171 45%, var(--border));
+    background: color-mix(in srgb, #7f1d1d 18%, var(--surface));
+}
+
+.war-unit-card--fallen .war-unit-card-title {
+    color: #fecaca;
+}
+
+.war-shop-item--revive {
+    border-color: color-mix(in srgb, #f87171 40%, var(--border));
+}
+
+.war-unit-card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    margin-bottom: 0.55rem;
+}
+
+.war-unit-card-icon {
+    flex: 0 0 auto;
+    width: 2.75rem;
+    height: 2.75rem;
+    display: grid;
+    place-items: center;
+    font-size: 1.45rem;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--war-accent) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--war-accent) 28%, var(--border));
+}
+
+.war-unit-card-identity {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.war-unit-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.15rem;
+}
+
+.war-unit-card-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 750;
+    letter-spacing: 0.01em;
+}
+
+.war-unit-star {
+    color: var(--war-gold);
+    font-weight: 800;
+}
+
+.war-unit-card-sub {
+    margin: 0 0 0.35rem;
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+
+.war-rarity-badge {
+    flex: 0 0 auto;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.12rem 0.4rem;
+    border-radius: 4px;
+    letter-spacing: 0.02em;
+    color: #e2e8f0;
+    background: #475569;
+}
+
+.war-rarity-badge--common { background: #64748b; }
+.war-rarity-badge--uncommon { background: #15803d; }
+.war-rarity-badge--rare { background: #1d4ed8; }
+.war-rarity-badge--epic { background: #7e22ce; }
+.war-rarity-badge--legendary { background: #a16207; color: #fef9c3; }
+.war-rarity-badge--unique { background: #be185d; color: #fce7f3; }
+
+.war-unit-exp {
+    display: grid;
+    gap: 0.2rem;
+}
+
+.war-unit-exp-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--war-accent);
+}
+
+.war-unit-exp-track {
+    height: 0.35rem;
+    border-radius: 999px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--muted) 22%, transparent);
+}
+
+.war-unit-exp-track > i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #38bdf8, var(--war-accent));
+}
+
+.war-unit-card-count {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--war-accent);
+}
+
+.war-unit-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-bottom: 0.5rem;
+}
+
+.war-unit-tag {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 0.12rem 0.4rem;
+    border-radius: 4px;
+    color: color-mix(in srgb, var(--war-accent) 85%, var(--text));
+    background: color-mix(in srgb, var(--war-accent) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--war-accent) 35%, transparent);
+}
+
+.war-unit-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.35rem;
+    margin-bottom: 0.55rem;
+}
+
+.war-unit-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.35rem 0.4rem;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--muted) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+    min-width: 0;
+}
+
+.war-unit-stat-label {
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+}
+
+.war-unit-stat-value {
+    font-size: 0.88rem;
+    font-weight: 750;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.15;
+}
+
+.war-unit-card-stats {
+    margin: 0 0 0.35rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+    line-height: 1.4;
+}
+
+.war-unit-skill-block {
+    padding: 0.45rem 0.55rem;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--war-accent) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--war-accent) 20%, var(--border));
+    margin-bottom: 0.4rem;
+}
+
+.war-unit-skill-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.2rem;
+}
+
+.war-unit-skill-name {
+    font-size: 0.82rem;
+    font-weight: 750;
+    color: var(--text);
+}
+
+.war-unit-skill-cd {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.war-unit-skill-desc {
+    margin: 0;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    color: color-mix(in srgb, var(--muted) 85%, var(--text));
+}
+
+.war-unit-card-skill {
+    margin: 0;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+.war-unit-card-skill strong {
+    color: var(--text);
+}
+
+.war-unit-card-bonus {
+    margin-top: 0.25rem;
+    color: #ca8a04;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.war-unit-card-onhit--chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin: 0;
+}
+
+.war-unit-card-onhit--chips span {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.15rem 0.45rem;
+    border-radius: 999px;
+    color: #bbf7d0;
+    background: color-mix(in srgb, #166534 35%, transparent);
+    border: 1px solid color-mix(in srgb, #4ade80 35%, transparent);
+}
+
+.war-unit-card-warn {
+    margin: 0.35rem 0 0;
+    font-size: 0.72rem;
+    color: #dc2626;
+}
+
+.war-unit-card--banned {
+    opacity: 0.75;
+    border-color: color-mix(in srgb, #dc2626 45%, var(--border));
+}
+
+body.dark .war-unit-card {
+    background: #111827;
+}
+
+body.dark .war-unit-card--roster {
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--war-accent) 8%, transparent), transparent 42%),
+        #111827;
+}
+
+@media (max-width: 420px) {
+    .war-unit-stat-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 560px) {
+    .war-modal-dialog--roster {
+        border-radius: 16px;
+    }
+}
+
+/* End screens */
+.war-screen--end {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 1rem;
+}
+
+.war-footer {
+    padding: 1rem 0;
+    margin-top: auto;
+}
+
+.war-footer .footer-content {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 0.85rem;
+}
+
+@media (min-width: 520px) {
+    .war-shell {
+        padding-top: 1rem;
+    }
+
+    .war-reward-grid {
+        flex-direction: row;
+        align-items: stretch;
+    }
+
+    .war-reward-card {
+        flex: 1 1 0;
+        min-height: min(42vh, 280px);
+        padding: 1.5rem 1.35rem;
+    }
+
+    .war-reward-card--unit {
+        min-height: min(52vh, 360px);
+    }
+
+    .war-reward-card h3 {
+        font-size: 1.35rem;
+    }
+
+    .war-reward-card p,
+    .war-reward-card--unit .war-unit-card-skill {
+        font-size: 0.98rem;
+    }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+    .war-battlefield {
+        min-height: 160px;
+    }
+
+    .war-map-wrap {
+        min-height: 200px;
+    }
+}
