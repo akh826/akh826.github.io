@@ -52,6 +52,7 @@
                 <div class="war-map-nodes" id="mapNodes" role="group" aria-label="路線地圖"></div>
             </div>
             <p class="war-hint" id="mapHint">規劃路線：點選可達房間前進</p>
+            <button type="button" class="war-btn war-btn-sm war-btn-outline war-endless-auto" id="endlessAutoBtn" hidden aria-pressed="false">自動連戰：關</button>
             <div class="war-artifact-bar" id="artifactBar" aria-label="已獲得神器"></div>
             <button type="button" class="war-btn war-btn-outline war-btn-sm war-codex-toggle" id="itemCodexToggle">
                 查看神器/能力效果
@@ -79,6 +80,7 @@
                 <button type="button" class="war-btn war-btn-outline" id="prepUnitInfoBtn">查看單位</button>
                 <button type="button" class="war-btn war-btn-outline" id="deployAllBtn">全出戰</button>
                 <button type="button" class="war-btn war-btn-outline" id="clearFormationBtn">全撤下</button>
+                <button type="button" class="war-btn war-btn-outline war-endless-auto" id="formationAutoBtn" hidden aria-pressed="false">自動連戰：關</button>
                 <button type="button" class="war-btn war-btn-primary" id="startBattleBtn">開始戰鬥</button>
             </div>
         </section>
@@ -93,6 +95,7 @@
                     <button type="button" class="war-btn war-btn-sm war-speed-btn" data-speed="3">3x</button>
                 </div>
                 <div class="war-tactic-group" id="tacticButtons" role="group" aria-label="戰術指令"></div>
+                <button type="button" class="war-btn war-btn-sm war-btn-outline war-endless-auto" id="battleAutoBtn" hidden aria-pressed="false">自動連戰：關</button>
                 <p class="war-hint war-tactic-hint" id="tacticHint">戰術剩餘 2</p>
             </div>
             <div class="war-battle-layout">
@@ -170,10 +173,21 @@
 
     <script src="../../shared/top-nav.js"></script>
     <script src="../../script.js"></script>
+    <script src="war-context.js"></script>
+    <script src="war-build-hints.js"></script>
+    <script src="content/core.js"></script>
+    <script src="content/worlds.js"></script>
+    <script src="content/units.js"></script>
+    <script src="content/items.js"></script>
+    <script src="content/events.js"></script>
     <script src="data.js"></script>
     <script src="map-generator.js"></script>
+    <script src="battle-ai.js"></script>
     <script src="battle-engine.js"></script>
     <script src="game-state.js"></script>
+    <script src="ui-map.js"></script>
+    <script src="ui-battle.js"></script>
+    <script src="ui-reward.js"></script>
     <script src="app.js"></script>
 </body>
 

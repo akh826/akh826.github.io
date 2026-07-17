@@ -5,39 +5,28 @@
     "use strict";
 
     const { UNITS, ARENA, STATUS_EFFECTS, STAR_STATS, MAX_STAR, ELITE_AFFIXES, TACTICS } = global.WarData;
+    const AI = global.WarBattleAI;
+    const {
+        dist,
+        living,
+        nearestEnemy,
+        nearestEnemies,
+        farthestEnemy,
+        lowestHpAlly,
+        pickExecuteTarget,
+        shouldUseSkillNow,
+        tryRangedKite,
+        clampToArena
+    } = AI;
+    const HEAL_HP_THRESHOLD = AI.HEAL_HP_THRESHOLD;
+    const EXECUTE_HP_THRESHOLD = AI.EXECUTE_HP_THRESHOLD;
     const STAR_CAP = MAX_STAR || 10;
     let uidSeq = 0;
-
-    function dist(a, b) {
-        const dx = a.x - b.x;
-        const dy = a.y - b.y;
-        return Math.sqrt(dx * dx + dy * dy);
-    }
 
     function hasUnitTag(def, tag) {
         if (!def || !tag) return false;
         if (def.role === tag || def.range === tag) return true;
         return Array.isArray(def.tags) && def.tags.includes(tag);
-    }
-
-    /** Aggro / attraction weight — higher = more likely to be targeted. */
-    function unitThreat(u) {
-        if (!u) return 1;
-        let threat = 1;
-        const tags = u.tags || [];
-        const isTank = u.role === "tank" || tags.includes("tank") || tags.includes("guard");
-        const isSummon = !!u.temporary || u.role === "summon" || tags.includes("summon");
-        const isAssassin = u.role === "assassin" || tags.includes("assassin");
-        if (isTank) threat = Math.max(threat, 3.4);
-        if (isSummon) threat = Math.max(threat, 2.9);
-        if (isAssassin) threat = Math.min(threat, 0.28);
-        if (u.buffs && u.buffs.taunt) threat *= 4.5;
-        return Math.max(0.12, threat);
-    }
-
-    /** Lower score = preferred target (distance diluted by threat). */
-    function targetScore(from, to) {
-        return dist(from, to) / unitThreat(to);
     }
 
     function applyBonusToBag(te, bag) {
@@ -135,16 +124,6 @@
         const only = m.onlyFightTags || (m.onlyFightTag ? [m.onlyFightTag] : null);
         if (!only || !only.length) return true;
         return only.some((t) => hasUnitTag(def, t));
-    }
-
-    function nearestEnemies(unit, allUnits, count, battleState) {
-        let pool = living(allUnits).filter((u) => u.side !== unit.side);
-        if (battleState && battleState.activeTactic === "focus_fire" && unit.side === "player") {
-            pool = [...pool].sort((a, b) => (a.hp / Math.max(1, a.maxHp)) - (b.hp / Math.max(1, b.maxHp)));
-        } else {
-            pool = [...pool].sort((a, b) => targetScore(unit, a) - targetScore(unit, b));
-        }
-        return pool.slice(0, Math.max(1, count || 1));
     }
 
     function resolveSpawnEntry(entry) {
@@ -820,42 +799,6 @@
         return units;
     }
 
-    function living(units, side) {
-        return units.filter((u) => u.alive && (!side || u.side === side));
-    }
-
-    function lowestHpEnemy(unit, units) {
-        let best = null;
-        let bestRatio = Infinity;
-        living(units).filter((e) => e.side !== unit.side).forEach((e) => {
-            const ratio = e.hp / Math.max(1, e.maxHp);
-            if (ratio < bestRatio) {
-                bestRatio = ratio;
-                best = e;
-            }
-        });
-        return best;
-    }
-
-    function nearestEnemy(unit, units, battleState) {
-        if (battleState && battleState.activeTactic === "focus_fire" && unit.side === "player") {
-            const focus = lowestHpEnemy(unit, units);
-            if (focus) return focus;
-        }
-        let best = null;
-        let bestScore = Infinity;
-        const preferTaunt = living(units).filter((e) => e.side !== unit.side && e.buffs.taunt);
-        const pool = preferTaunt.length ? preferTaunt : living(units).filter((e) => e.side !== unit.side);
-        for (const e of pool) {
-            const score = targetScore(unit, e);
-            if (score < bestScore) {
-                bestScore = score;
-                best = e;
-            }
-        }
-        return best;
-    }
-
     /**
      * Assassin blink — teleport beside the target when out of melee reach.
      * @returns {boolean}
@@ -901,19 +844,6 @@
             });
         }
         return true;
-    }
-
-    function farthestEnemy(unit, units) {
-        let best = null;
-        let bestD = -1;
-        living(units).filter((e) => e.side !== unit.side).forEach((e) => {
-            const d = dist(unit, e);
-            if (d > bestD) {
-                bestD = d;
-                best = e;
-            }
-        });
-        return best;
     }
 
     function calcDamage(attacker, target, modifiers, opts, battleState) {
@@ -1334,34 +1264,33 @@
                 break;
             }
             case "heal": {
-                const lowest = allies.reduce((a, b) => (a.hp / a.maxHp < b.hp / b.maxHp ? a : b), allies[0]);
-                if (lowest) {
-                    const healMult = (unit.healBoost || 1) * (modifiers.healBoost || 1);
-                    const amt = Math.floor(30 * healMult * skillPower);
-                    lowest.hp = Math.min(lowest.maxHp, lowest.hp + amt);
-                    if (!unit.stats) unit.stats = { dealt: 0, taken: 0, healed: 0, statuses: 0, summons: 0, killedBy: null };
-                    unit.stats.healed = (unit.stats.healed || 0) + amt;
-                    log.push({
-                        type: "heal",
-                        source: unit.name,
-                        skill: skillName,
-                        target: lowest.name,
-                        amount: amt,
-                        ...hpSnap(lowest)
-                    });
-                    if (fx) {
-                        fx.push({ type: "ring", x: lowest.x, y: lowest.y, color: "#4ade80", t: 0.3 });
-                        pushDmgFx(fx, lowest.x, lowest.y, amt, { heal: true, lite });
-                    }
+                const lowest = lowestHpAlly(allies);
+                if (!lowest || lowest.hp / Math.max(1, lowest.maxHp) >= HEAL_HP_THRESHOLD) {
+                    return;
+                }
+                const healMult = (unit.healBoost || 1) * (modifiers.healBoost || 1);
+                const amt = Math.floor(30 * healMult * skillPower);
+                lowest.hp = Math.min(lowest.maxHp, lowest.hp + amt);
+                if (!unit.stats) unit.stats = { dealt: 0, taken: 0, healed: 0, statuses: 0, summons: 0, killedBy: null };
+                unit.stats.healed = (unit.stats.healed || 0) + amt;
+                log.push({
+                    type: "heal",
+                    source: unit.name,
+                    skill: skillName,
+                    target: lowest.name,
+                    amount: amt,
+                    ...hpSnap(lowest)
+                });
+                if (fx) {
+                    fx.push({ type: "ring", x: lowest.x, y: lowest.y, color: "#4ade80", t: 0.3 });
+                    pushDmgFx(fx, lowest.x, lowest.y, amt, { heal: true, lite });
                 }
                 break;
             }
             case "execute": {
-                const t = nearestEnemy(unit, allUnits, battleState);
-                if (t) {
-                    const bonus = t.hp / t.maxHp < 0.3 ? spBonus(40) : spBonus(15);
-                    hit(t, bonus);
-                }
+                const t = pickExecuteTarget(unit, allUnits, battleState);
+                if (!t) return;
+                hit(t, spBonus(40));
                 break;
             }
             case "buff":
@@ -1414,12 +1343,6 @@
                 }
             }
         }
-    }
-
-    function clampToArena(u, w, h) {
-        const pad = u.radius + 2;
-        u.x = Math.max(pad, Math.min(w - pad, u.x));
-        u.y = Math.max(pad, Math.min(h - pad, u.y));
     }
 
     function skillNeedsTarget(unit) {
@@ -1523,7 +1446,7 @@
                 }
                 if (u.casting.timer >= u.casting.duration) {
                     u.casting = null;
-                    if (canSkill) {
+                    if (canSkill && shouldUseSkillNow(u, units, state)) {
                         useSkill(u, units, modifiers, log, fx, state);
                     }
                 }
@@ -1536,7 +1459,7 @@
                 const cd = (u.skill.cd || 6) * cdMult * (u.skillCdMult || 1);
                 if (u.skill.timer >= cd) {
                     const needsEnemy = skillNeedsTarget(u);
-                    if (!needsEnemy || target) {
+                    if ((!needsEnemy || target) && shouldUseSkillNow(u, units, state)) {
                         if (skillNeedsCast(u)) {
                             beginCast(u, log, fx);
                             clampToArena(u, arenaW, arenaH);
@@ -1554,7 +1477,13 @@
             }
 
             const d = dist(u, target);
-            if (d > u.attackRange && !(u.rangeType === "melee" && d <= u.radius + target.radius + 4)) {
+            const meleeReach = (u.radius || 14) + (target.radius || 14) + 4;
+
+            if (tryRangedKite(u, target, dt, moveMult, arenaW, arenaH)) {
+                return;
+            }
+
+            if (d > u.attackRange && !(u.rangeType === "melee" && d <= meleeReach)) {
                 if (u.canDash && tryAssassinDash(u, target, arenaW, arenaH, fx, log)) {
                     u.state = "attack";
                     clampToArena(u, arenaW, arenaH);

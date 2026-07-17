@@ -7,6 +7,47 @@
     const { WORLDS, UNITS, ARTIFACTS, ROOM_TYPES, ARENA, TAGS, TACTICS, ELITE_AFFIXES, TACTIC_UPGRADES } = WarData;
     const { getNode, getReachableNext, moveToNode } = WarMap;
     const { createBattle } = WarBattle;
+    const C = WarCtx;
+
+    function syncCtx() {
+        C.state = state;
+        C.battle = battle;
+        C.battleRaf = battleRaf;
+        C.lastFrame = lastFrame;
+        C.logAccum = logAccum;
+        C.battleSpeed = battleSpeed;
+        C.pendingEncounter = pendingEncounter;
+        C.pendingRewardType = pendingRewardType;
+        C.pendingRewardSource = pendingRewardSource;
+        C.rewardRefreshLeft = rewardRefreshLeft;
+        C.currentRewardOffers = currentRewardOffers;
+        C.currentEvent = currentEvent;
+        C.battleEnded = battleEnded;
+        C.prepDragIndex = prepDragIndex;
+        C.prepPointerId = prepPointerId;
+        C.contractTickedForNode = contractTickedForNode;
+        C.combatContractPending = combatContractPending;
+    }
+
+    function pullCtx() {
+        state = C.state;
+        battle = C.battle;
+        battleRaf = C.battleRaf;
+        lastFrame = C.lastFrame;
+        logAccum = C.logAccum;
+        battleSpeed = C.battleSpeed;
+        pendingEncounter = C.pendingEncounter;
+        pendingRewardType = C.pendingRewardType;
+        pendingRewardSource = C.pendingRewardSource;
+        rewardRefreshLeft = C.rewardRefreshLeft;
+        currentRewardOffers = C.currentRewardOffers;
+        currentEvent = C.currentEvent;
+        battleEnded = C.battleEnded;
+        prepDragIndex = C.prepDragIndex;
+        prepPointerId = C.prepPointerId;
+        contractTickedForNode = C.contractTickedForNode;
+        combatContractPending = C.combatContractPending;
+    }
 
     let state = null;
     let battle = null;
@@ -25,8 +66,167 @@
     let prepPointerId = null;
     let contractTickedForNode = null;
     let combatContractPending = false;
+    let endlessAutoTimer = null;
 
     const $ = (id) => document.getElementById(id);
+
+    function clearEndlessAutoTimer() {
+        if (endlessAutoTimer != null) {
+            clearTimeout(endlessAutoTimer);
+            endlessAutoTimer = null;
+        }
+    }
+
+    function scheduleEndlessAuto(fn, delay) {
+        clearEndlessAutoTimer();
+        endlessAutoTimer = setTimeout(() => {
+            endlessAutoTimer = null;
+            fn();
+        }, delay);
+    }
+
+    function updateEndlessAutoUi() {
+        const show = !!(state && state.endless);
+        const on = !!(state && state.endless && state.endlessAutoRun);
+        ["endlessAutoBtn", "formationAutoBtn", "battleAutoBtn"].forEach((id) => {
+            const el = $(id);
+            if (!el) return;
+            el.hidden = !show;
+            el.classList.toggle("is-active", on);
+            el.textContent = on ? "自動連戰：開" : "自動連戰：關";
+            el.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+    }
+
+    function setEndlessAutoRun(on) {
+        if (!state || !state.endless) return;
+        state.endlessAutoRun = !!on;
+        updateEndlessAutoUi();
+        WarState.saveGame(state);
+        if (state.endlessAutoRun) {
+            if (state.phase === "map" && screens.map.hidden === false) {
+                scheduleEndlessAuto(() => tryEndlessAutoRun(), 150);
+            } else if (state.phase === "formation" && screens.formation.hidden === false) {
+                scheduleEndlessAuto(() => startBattle(), 150);
+            }
+        } else {
+            clearEndlessAutoTimer();
+        }
+    }
+
+    function toggleEndlessAutoRun() {
+        if (!state || !state.endless) return;
+        setEndlessAutoRun(!state.endlessAutoRun);
+    }
+
+    function deployAllEligible(opts) {
+        ensureArmyNormalized();
+        const mods = WarState.aggregateModifiers(state);
+        if (!Array.isArray(state.army)) state.army = [];
+
+        const deployed = new Set(
+            (state.army || []).map((e) => WarState.armyUnitUid(e)).filter(Boolean)
+        );
+        const toAdd = [];
+        WarState.normalizeOwnedList(state.ownedUnits || [], state).forEach((entry) => {
+            if (!WarState.unitMayFight(entry.id, mods)) return;
+            if (deployed.has(entry.uid)) return;
+            toAdd.push(entry);
+        });
+
+        if (toAdd.length) {
+            toAdd.forEach((e) => {
+                WarState.appendArmyUnit(state.army, e.id, e.star, e.uid);
+            });
+        }
+
+        if (opts?.silent) return;
+
+        const restrictLabel = WarState.fightRestrictionLabel(mods);
+        if (restrictLabel) {
+            $("formationHint").textContent = `已補上符合 [${restrictLabel}] 的未出戰單位`;
+        } else if (toAdd.length) {
+            $("formationHint").textContent = `已派出 ${toAdd.length} 隻未出戰單位`;
+        } else {
+            $("formationHint").textContent = "所有可出戰單位已在場上";
+        }
+    }
+
+    function prepareEndlessFormation() {
+        ensureArmyNormalized({ restoreIfEmpty: true });
+        if (!state.army || !state.army.length) deployAllEligible({ silent: true });
+    }
+
+    function setEndlessFormationHints(node) {
+        if (!node) return;
+        if (node.type === "boss") {
+            $("formationHint").textContent = state.endless
+                ? `無盡 Boss（第 ${(state.endlessStages || 0) + 1} 關）· 無獎勵`
+                : `準備迎戰 ${WarState.getActiveWorld(state).bossName}！Boss 有二階段（首條命歸零會回血覺醒）`;
+        } else if (node.type === "epic_combat") {
+            $("formationHint").textContent = state.endless
+                ? `無盡史詩戰（第 ${(state.endlessStages || 0) + 1} 關）· 無獎勵`
+                : "史詩戰鬥：敵軍更強更多 · 勝利可獲高稀有獎勵";
+        } else {
+            $("formationHint").textContent = "先選出戰單位，再拖曳左側站位";
+        }
+    }
+
+    function endlessAutoAdvanceToFight() {
+        if (!state || !state.endless || !state.endlessAutoRun) return;
+        if (state.phase !== "map") return;
+
+        const reachable = getReachableNext(state.map);
+        if (!reachable.length) return;
+
+        const next = reachable.find((n) => n.type === "epic_combat" || n.type === "boss") || reachable[0];
+        if (!next || (next.type !== "epic_combat" && next.type !== "boss")) return;
+
+        if (!moveToNode(state.map, next.id)) return;
+        WarState.saveGame(state);
+        contractTickedForNode = null;
+        pendingEncounter = WarState.getCombatEncounter(state, next);
+        state.phase = "formation";
+        setEndlessFormationHints(next);
+        showScreen("formation");
+        prepareEndlessFormation();
+        renderArmyPrep();
+        updateEndlessAutoUi();
+        scheduleEndlessAuto(() => startBattle(), 150);
+    }
+
+    function tryEndlessAutoRun() {
+        if (!state || !state.endless || !state.endlessAutoRun) return;
+        if (state.phase !== "map" || screens.map.hidden !== false) return;
+        endlessAutoAdvanceToFight();
+    }
+
+    function resumeEndlessAfterBossRing() {
+        state.phase = "map";
+        showScreen("map");
+        renderMap();
+        updateHud();
+        WarState.saveGame(state);
+        if (state.endlessAutoRun) scheduleEndlessAuto(() => endlessAutoAdvanceToFight(), 200);
+    }
+
+    function proceedEndlessAfterBattle(isBoss) {
+        if (!battleEnded || !battle || !battle.finished) return;
+        if (isBoss) {
+            notifyContractTick(true);
+            finishRoom();
+            return;
+        }
+        const n = getNode(state.map, state.map.currentNodeId);
+        if (n) n.cleared = true;
+        notifyContractTick(true);
+        state.phase = "map";
+        showScreen("map");
+        renderMap();
+        updateHud();
+        WarState.saveGame(state);
+        if (state.endlessAutoRun) scheduleEndlessAuto(() => endlessAutoAdvanceToFight(), 200);
+    }
 
     function notifyContractTick(isCombat) {
         if (!isCombat || !state || !combatContractPending) return;
@@ -121,6 +321,12 @@
         const list = $("itemCodexList");
         if (!list) return;
         list.innerHTML = "";
+        const profile = WarBuildHints.getBuildProfile(state, WarData, WarState);
+        const buildBlock = document.createElement("section");
+        buildBlock.className = "war-codex-build";
+        buildBlock.innerHTML = `<h3 class="war-codex-subtitle">Build 標籤</h3>${WarBuildHints.buildTagsHtml(profile, TAGS)}`;
+        list.appendChild(buildBlock);
+
         const artifacts = state.artifacts
             .map((id) => ARTIFACTS.find((a) => a.id === id))
             .filter(Boolean)
@@ -596,6 +802,7 @@
                 : "正在此房間";
         renderArtifactBar();
         updateHud();
+        updateEndlessAutoUi();
     }
 
     /** Known rooms: path history, reachable choices, boss; scout reveals whole next layer. */
@@ -641,6 +848,8 @@
                 }
                 ensureArmyNormalized({ restoreIfEmpty: true });
                 renderArmyPrep();
+                updateEndlessAutoUi();
+                if (state.endlessAutoRun) scheduleEndlessAuto(() => startBattle(), 150);
                 break;
             case "treasure": {
                 pendingRewardType = "artifact";
@@ -712,16 +921,14 @@
         if (node?.type === "boss" && state.phase !== "defeat") {
             if (state.endless) {
                 const adv = WarState.advanceWorld(state);
+                if (state.endlessAutoRun) {
+                    resumeEndlessAfterBossRing();
+                    return;
+                }
                 showRoomMessage(
                     `通過第 ${state.endlessStages || 0} 關`,
                     `進入第 ${adv.loop} 環（僅史詩戰與 Boss，無獎勵）。目前最佳：${WarState.getEndlessBest()} 關`,
-                    () => {
-                        state.phase = "map";
-                        showScreen("map");
-                        renderMap();
-                        updateHud();
-                        WarState.saveGame(state);
-                    }
+                    resumeEndlessAfterBossRing
                 );
                 return;
             }
@@ -774,8 +981,10 @@
         event.choices.forEach((choice, i) => {
             const btn = document.createElement("button");
             btn.type = "button";
-            btn.className = "war-btn war-btn-outline";
-            btn.textContent = choice.label;
+            btn.className = "war-btn war-btn-outline war-event-choice";
+            const preview = WarBuildHints.choiceContractPreview(choice, WarData);
+            const previewHtml = preview ? WarBuildHints.contractPreviewHtml(preview) : "";
+            btn.innerHTML = `<span class="war-event-choice-label">${choice.label}</span>${previewHtml}`;
             btn.addEventListener("click", () => {
                 const result = WarState.applyEventChoice(state, event, i);
                 $("roomModalText").textContent = result.messages.length ? result.messages.join("；") : "你離開了。";
@@ -811,10 +1020,12 @@
                 ? `<span class="war-shop-markup">已售完</span>`
                 : `<span class="war-shop-markup">剩 ${item.remaining}/${item.maxBuys}</span>`;
             const btnLabel = item.soldOut ? "售完" : `${item.price} 金`;
+            const shopHints = WarBuildHints.shopItemHints(item, state, WarData, WarState);
             row.innerHTML = `
                 <div class="war-shop-item-info">
                     <h4>${item.name} ${stock}</h4>
                     <p>${item.desc}</p>
+                    ${WarBuildHints.hintsHtml(shopHints)}
                 </div>
                 <button type="button" class="war-btn war-btn-sm war-btn-primary" ${item.soldOut ? "disabled" : ""}>${btnLabel}</button>
             `;
@@ -1885,25 +2096,15 @@
             WarState.recordEndlessBest(state.endlessStages);
             updateHud();
             $("battleLog").innerHTML += `<p><strong>第 ${state.endlessStages} 關通過！</strong>（無獎勵 · 最佳 ${WarState.getEndlessBest()}）</p>`;
-            $("battleContinueBtn").textContent = "下一關";
-            $("battleActions").hidden = false;
-            $("battleContinueBtn").disabled = false;
-            $("battleContinueBtn").onclick = () => {
-                if (!battleEnded || !battle || !battle.finished) return;
-                if (isBoss) {
-                    notifyContractTick(true);
-                    finishRoom();
-                } else {
-                    const n = getNode(state.map, state.map.currentNodeId);
-                    if (n) n.cleared = true;
-                    notifyContractTick(true);
-                    state.phase = "map";
-                    showScreen("map");
-                    renderMap();
-                    updateHud();
-                    WarState.saveGame(state);
-                }
-            };
+            if (state.endlessAutoRun) {
+                $("battleActions").hidden = true;
+                scheduleEndlessAuto(() => proceedEndlessAfterBattle(isBoss), 500);
+            } else {
+                $("battleContinueBtn").textContent = "下一關";
+                $("battleActions").hidden = false;
+                $("battleContinueBtn").disabled = false;
+                $("battleContinueBtn").onclick = () => proceedEndlessAfterBattle(isBoss);
+            }
             WarState.saveGame(state);
             return;
         }
@@ -1941,176 +2142,27 @@
     }
 
     function showUnitRecruitScreen() {
-        pendingRewardType = "unit";
-        pendingRewardSource = "unit";
-        showRewardScreen();
+        syncCtx();
+        WarUIReward.showUnitRecruitScreen();
+        pullCtx();
     }
 
     function resolveRewardPick(source) {
-        if (source === "treasure") {
-            const bonus = WarState.treasureBonusGold(state);
-            if (bonus > 0) WarState.addGold(state, bonus);
-            finishRoom();
-            return;
-        }
-        if (source === "boss" || getNode(state.map, state.map.currentNodeId)?.type === "boss") {
-            const adv = WarState.advanceWorld(state);
-            if (adv && adv.endless) {
-                showRoomMessage(
-                    `通過第 ${state.endlessStages || 0} 關`,
-                    `進入第 ${adv.loop} 環（僅史詩戰與 Boss，無獎勵）。目前最佳：${WarState.getEndlessBest()} 關`,
-                    () => {
-                        state.phase = "map";
-                        showScreen("map");
-                        renderMap();
-                        WarState.saveGame(state);
-                    }
-                );
-                return;
-            }
-            if (adv && adv.victory) {
-                WarState.saveGame(state);
-                showScreen("victory");
-                return;
-            }
-            showRoomMessage("世界完成！", `進入 ${WarState.getActiveWorld(state).name}！獲得 40 金幣補給。`, () => {
-                state.phase = "map";
-                showScreen("map");
-                renderMap();
-                WarState.saveGame(state);
-            });
-            return;
-        }
-        if (source === "combat") {
-            showUnitRecruitScreen();
-            return;
-        }
-        if (source === "epic_combat") {
-            showUnitRecruitScreen();
-            return;
-        }
-        finishRoom();
+        syncCtx();
+        WarUIReward.resolveRewardPick(source);
+        pullCtx();
     }
 
     function showRewardScreen(opts) {
-        const isFresh = !(opts && opts.refresh);
-        if (isFresh) {
-            rewardRefreshLeft = 1;
-            currentRewardOffers = [];
-        }
-
-        const excludeIds = (opts && opts.excludeIds) || [];
-        let offers = WarState.offerRewards(state, pendingRewardType, excludeIds);
-        // If refresh excluded everything useful, fall back without exclude
-        if (!offers.length && excludeIds.length) {
-            offers = WarState.offerRewards(state, pendingRewardType, []);
-        }
-        const skipBtn = $("rewardSkipBtn");
-        const refreshBtn = $("rewardRefreshBtn");
-        const allowSkip = pendingRewardSource === "unit";
-
-        if (!offers.length) {
-            if (pendingRewardSource === "treasure") {
-                pendingRewardSource = null;
-                const result = WarState.resolveTreasure(state);
-                showRoomMessage("寶藏房", result.text, () => finishRoom());
-                return;
-            }
-            if (allowSkip || pendingRewardSource === "unit") {
-                pendingRewardSource = null;
-                skipBtn.hidden = true;
-                refreshBtn.hidden = true;
-                finishRoom();
-                return;
-            }
-            pendingRewardSource = null;
-            skipBtn.hidden = true;
-            refreshBtn.hidden = true;
-            finishRoom();
-            return;
-        }
-
-        currentRewardOffers = offers;
-
-        const titleEl = $("screenReward").querySelector(".war-screen-title");
-        const hintEl = $("screenReward").querySelector(".war-hint");
-        if (pendingRewardSource === "treasure") {
-            titleEl.textContent = "寶藏房";
-            hintEl.textContent = "三選一神器 · 另附少量金幣 · 可刷新一次";
-        } else if (pendingRewardSource === "unit") {
-            titleEl.textContent = "招募單位";
-            hintEl.textContent = "三選一加入部隊 · 可刷新一次 · 也可跳過";
-        } else if (pendingRewardSource === "epic") {
-            titleEl.textContent = "史詩秘庫";
-            hintEl.textContent = "高稀有獎勵 · 可刷新一次";
-        } else if (pendingRewardSource === "epic_combat") {
-            titleEl.textContent = "史詩戰利品";
-            hintEl.textContent = "高稀有戰利品 · 可刷新一次";
-        } else {
-            titleEl.textContent = "選擇獎勵";
-            hintEl.textContent = "三選一 · 可刷新一次 · 稀有度越高效果越強";
-        }
-
-        skipBtn.hidden = !allowSkip;
-        skipBtn.onclick = () => {
-            pendingRewardSource = null;
-            skipBtn.hidden = true;
-            refreshBtn.hidden = true;
-            finishRoom();
-        };
-
-        refreshBtn.hidden = rewardRefreshLeft <= 0;
-        refreshBtn.textContent = rewardRefreshLeft > 0 ? `刷新選項（剩 ${rewardRefreshLeft}）` : "刷新選項";
-        refreshBtn.onclick = () => {
-            if (rewardRefreshLeft <= 0) return;
-            rewardRefreshLeft -= 1;
-            const exclude = currentRewardOffers.map((o) => o.id).filter(Boolean);
-            showRewardScreen({ refresh: true, excludeIds: exclude });
-        };
-
-        const grid = $("rewardGrid");
-        grid.innerHTML = "";
-        offers.forEach((offer) => {
-            const card = document.createElement("button");
-            card.type = "button";
-            card.className = `war-reward-card war-reward-card--${offer.rarity || "common"}${offer.cursed ? " war-reward-card--cursed" : ""}`;
-            if (offer.kind === "unit") card.classList.add("war-reward-card--unit");
-            const kindLabel = offer.kind === "artifact" ? (offer.cursed ? "詛咒神器" : "神器")
-                : offer.kind === "ability" ? "能力"
-                    : offer.kind === "unit" ? "單位"
-                        : offer.kind === "tactic" ? "戰術升級" : "獎勵";
-            const unitDef = offer.kind === "unit" ? UNITS[offer.id] : null;
-            const body = unitDef
-                ? unitRewardBodyHtml(unitDef)
-                : `<p>${offer.desc || ""}</p>`;
-            const title = unitDef
-                ? `${unitDef.icon || ""} ${unitDef.name}`.trim()
-                : offer.name;
-            card.innerHTML = `
-                <span class="war-reward-rarity">${offer.rarityLabel || offer.rarity || "普通"} · ${kindLabel}</span>
-                <h3>${title}</h3>
-                ${body}
-            `;
-            card.addEventListener("click", () => {
-                const applied = WarState.applyReward(state, offer);
-                const source = pendingRewardSource;
-                pendingRewardSource = null;
-                skipBtn.hidden = true;
-                refreshBtn.hidden = true;
-                const grants = (applied && applied.grantMessages) || [];
-                if (grants.length) {
-                    showRoomMessage("神器賜福", grants.join("；"), () => resolveRewardPick(source));
-                } else {
-                    resolveRewardPick(source);
-                }
-            });
-            grid.appendChild(card);
-        });
-        showScreen("reward");
+        syncCtx();
+        WarUIReward.showRewardScreen(opts);
+        pullCtx();
     }
 
     function gameOver() {
         stopBattleLoop();
+        clearEndlessAutoTimer();
+        if (state && state.endless) state.endlessAutoRun = false;
         if (state.endless) WarState.recordEndlessBest(state.endlessStages || 0);
         state.runLost = true;
         state.phase = "defeat";
@@ -2125,6 +2177,7 @@
         if (!state) return;
         WarState.enterEndlessMode(state);
         updateHud();
+        updateEndlessAutoUi();
         showScreen("map");
         renderMap();
         WarState.saveGame(state);
@@ -2138,6 +2191,7 @@
 
     function newRun() {
         stopBattleLoop();
+        clearEndlessAutoTimer();
         state = WarState.createNewRun();
         WarState.aggregateModifiers(state);
         pendingEncounter = null;
@@ -2161,13 +2215,17 @@
             ensureArmyNormalized({ restoreIfEmpty: true });
             showScreen("formation");
             renderArmyPrep();
+            updateEndlessAutoUi();
+            if (state.endless && state.endlessAutoRun) scheduleEndlessAuto(() => startBattle(), 200);
         } else if (state.phase === "battle") {
             state.phase = "map";
             showScreen("map");
             renderMap();
+            if (state.endless && state.endlessAutoRun) scheduleEndlessAuto(() => tryEndlessAutoRun(), 300);
         } else {
             showScreen("map");
             renderMap();
+            if (state.endless && state.endlessAutoRun) scheduleEndlessAuto(() => tryEndlessAutoRun(), 300);
         }
     }
 
@@ -2183,6 +2241,19 @@
     }
 
     function init() {
+        window.WarAppBridge = {
+            WarState,
+            WarData,
+            WarBuildHints,
+            UNITS,
+            getNode,
+            showScreen,
+            renderMap,
+            finishRoom,
+            showRoomMessage,
+            unitRewardBodyHtml
+        };
+
         const saved = WarState.loadGame();
         $("continueBtn").hidden = !saved;
 
@@ -2193,35 +2264,12 @@
             renderArmyPrep();
         });
         $("deployAllBtn").addEventListener("click", () => {
-            ensureArmyNormalized();
-            const mods = WarState.aggregateModifiers(state);
-            if (!Array.isArray(state.army)) state.army = [];
-
-            const deployed = new Set(
-                (state.army || []).map((e) => WarState.armyUnitUid(e)).filter(Boolean)
-            );
-            const toAdd = [];
-            WarState.normalizeOwnedList(state.ownedUnits || [], state).forEach((entry) => {
-                if (!WarState.unitMayFight(entry.id, mods)) return;
-                if (deployed.has(entry.uid)) return;
-                toAdd.push(entry);
-            });
-
-            if (toAdd.length) {
-                toAdd.forEach((e) => {
-                    WarState.appendArmyUnit(state.army, e.id, e.star, e.uid);
-                });
-            }
-
-            const restrictLabel = WarState.fightRestrictionLabel(mods);
-            if (restrictLabel) {
-                $("formationHint").textContent = `已補上符合 [${restrictLabel}] 的未出戰單位`;
-            } else if (toAdd.length) {
-                $("formationHint").textContent = `已派出 ${toAdd.length} 隻未出戰單位`;
-            } else {
-                $("formationHint").textContent = "所有可出戰單位已在場上";
-            }
+            deployAllEligible();
             renderArmyPrep();
+        });
+        ["endlessAutoBtn", "formationAutoBtn", "battleAutoBtn"].forEach((id) => {
+            const el = $(id);
+            if (el) el.addEventListener("click", toggleEndlessAutoRun);
         });
         $("startBattleBtn").addEventListener("click", startBattle);
         document.querySelectorAll(".war-speed-btn").forEach((btn) => {

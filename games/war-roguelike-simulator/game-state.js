@@ -463,6 +463,7 @@
         if (raw.endless == null) raw.endless = false;
         if (raw.endlessLoop == null) raw.endlessLoop = 0;
         if (raw.endlessStages == null) raw.endlessStages = 0;
+        if (raw.endlessAutoRun == null) raw.endlessAutoRun = false;
         if (!Array.isArray(raw.activeContracts)) raw.activeContracts = [];
         if (!Array.isArray(raw.tacticUpgrades)) raw.tacticUpgrades = [];
         return raw;
@@ -493,7 +494,8 @@
             runLost: false,
             endless: false,
             endlessLoop: 0,
-            endlessStages: 0
+            endlessStages: 0,
+            endlessAutoRun: false
         };
         run.ownedUnits = defaultOwnedUnits(run);
         run.army = run.ownedUnits.map((e, i) => makeArmySlot(e.id, i, run.ownedUnits.length, e.star, e.uid));
@@ -997,6 +999,21 @@
         return { id, uid: unit.uid, merged: [] };
     }
 
+    function unitHasTagId(unitId, tag) {
+        const def = UNITS[unitId];
+        if (!def || !tag) return false;
+        if (def.role === tag || def.range === tag) return true;
+        return Array.isArray(def.tags) && def.tags.includes(tag);
+    }
+
+    function recruitUnitByTag(state, tag) {
+        const rng = getRng(state);
+        const pool = playerUnitPool().filter((id) => unitHasTagId(id, tag));
+        if (!pool.length) return { id: null, merged: [] };
+        const id = pickWeightedUnitId(pool, rng, state) || pool[Math.floor(rng() * pool.length)];
+        return recruitUnit(state, id);
+    }
+
     /** Event-only: fuse two same-id same-star units into one higher star. */
     function mergeUnits(state) {
         state.ownedUnits = normalizeOwnedList(state.ownedUnits, state);
@@ -1301,6 +1318,14 @@
             const res = recruitUnit(state);
             const id = res && res.id;
             result.messages.push(id ? `招募 ${UNITS[id].name}` : "沒有可招募單位");
+        }
+        if (r.recruitTag) {
+            const res = recruitUnitByTag(state, r.recruitTag);
+            const id = res && res.id;
+            const tagLabel = (TAGS[r.recruitTag] && TAGS[r.recruitTag].label) || r.recruitTag;
+            result.messages.push(id
+                ? `招募 [${tagLabel}] 單位：${UNITS[id].name}`
+                : `沒有可招募的 [${tagLabel}] 單位`);
         }
         if (r.mergeUnits) {
             const res = mergeUnits(state);

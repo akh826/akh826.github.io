@@ -798,10 +798,17 @@ body.dark .war-army-chip--deployed {
 }
 
 .war-speed-btn.is-active,
-.war-tactic-btn.is-active {
+.war-tactic-btn.is-active,
+.war-endless-auto.is-active {
     background: #334155;
     border-color: #94a3b8;
     color: #f8fafc;
+}
+
+.war-endless-auto.is-active {
+    background: #14532d;
+    border-color: #4ade80;
+    color: #f0fdf4;
 }
 
 .war-tactic-btn:disabled {
@@ -1690,4 +1697,121 @@ body.dark .war-unit-card--roster {
     .war-map-wrap {
         min-height: 200px;
     }
+}
+
+/* Build tags & offer hints */
+.war-codex-build {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.war-codex-subtitle {
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin: 0 0 0.4rem;
+    color: var(--text-muted, #94a3b8);
+}
+
+.war-build-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.war-build-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+.war-build-tag--active {
+    border-color: var(--war-accent);
+    background: var(--war-accent-dim);
+    color: var(--war-accent);
+}
+
+.war-build-near,
+.war-build-synergy {
+    margin: 0.35rem 0 0;
+    font-size: 0.78rem;
+}
+
+.war-offer-hints {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-top: 0.45rem;
+}
+
+.war-offer-hint {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.15rem 0.45rem;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--border) 40%, transparent);
+    color: var(--text-muted, #94a3b8);
+}
+
+.war-offer-hint--good {
+    background: color-mix(in srgb, var(--war-player) 18%, transparent);
+    color: var(--war-player);
+}
+
+.war-offer-hint--great {
+    background: color-mix(in srgb, var(--war-gold) 22%, transparent);
+    color: var(--war-gold);
+}
+
+.war-offer-hint--muted {
+    opacity: 0.85;
+}
+
+.war-reward-card .war-offer-hints {
+    justify-content: center;
+}
+
+.war-event-choice {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+    gap: 0.35rem;
+    width: 100%;
+}
+
+.war-event-choice-label {
+    font-weight: 600;
+}
+
+.war-contract-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.72rem;
+    font-weight: 500;
+    line-height: 1.35;
+}
+
+.war-contract-preview-line {
+    display: block;
+}
+
+.war-contract-preview--risk {
+    color: var(--war-danger);
+}
+
+.war-contract-preview--benefit {
+    color: var(--war-player);
+}
+
+.war-contract-preview--muted {
+    color: var(--text-muted, #94a3b8);
 }
