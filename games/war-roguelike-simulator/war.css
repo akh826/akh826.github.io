@@ -547,6 +547,16 @@ body.dark .war-codex {
     font-size: 0.7rem;
 }
 
+.war-army-chip--role-tank { border-left: 3px solid #60a5fa; }
+.war-army-chip--role-warrior { border-left: 3px solid #fb923c; }
+.war-army-chip--role-ranger { border-left: 3px solid #86efac; }
+.war-army-chip--role-caster { border-left: 3px solid #c4b5fd; }
+.war-army-chip--role-support { border-left: 3px solid #5eead4; }
+.war-army-chip--role-assassin { border-left: 3px solid #e879f9; }
+.war-army-chip--role-elite { border-left: 3px solid #fcd34d; }
+.war-army-chip--role-boss { border-left: 3px solid #fbbf24; }
+.war-army-chip--role-summon { border-left: 3px dashed #67e8f9; }
+
 .war-canvas-wrap {
     flex: 0 0 auto;
     width: 100%;

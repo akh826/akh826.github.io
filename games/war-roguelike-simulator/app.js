@@ -1356,22 +1356,20 @@
             if (!def) return;
             const isBoss = def.role === "boss";
             const r = isBoss ? (def.radius || 22) : (def.radius || 14);
-            ctx.globalAlpha = isBoss ? 0.9 : 0.55;
-            ctx.beginPath();
-            ctx.fillStyle = isBoss ? "#991b1b" : "#7f1d1d";
-            ctx.arc(slot.x, slot.y, r, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = slot.affix ? "#fbbf24" : (isBoss ? "#fbbf24" : "#fca5a5");
-            ctx.lineWidth = isBoss || slot.affix ? 3 : 2;
-            ctx.stroke();
-            ctx.font = `${Math.max(12, r)}px sans-serif`;
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillStyle = "#fff";
-            ctx.fillText(def.icon || "?", slot.x, slot.y);
+            WarUnitVisual.drawToken(ctx, {
+                x: slot.x,
+                y: slot.y,
+                r,
+                unitOrDef: def,
+                side: "enemy",
+                icon: def.icon,
+                ghost: !isBoss,
+                affix: slot.affix
+            });
             if (slot.affix) {
                 ctx.globalAlpha = 1;
                 ctx.font = "11px sans-serif";
+                ctx.textAlign = "center";
                 ctx.fillStyle = "#fde68a";
                 ctx.fillText(affixIcon(slot.affix) || "✦", slot.x, slot.y + r + 11);
             } else if (isBoss) {
@@ -1388,22 +1386,21 @@
             if (!def) return;
             const selected = i === prepDragIndex;
             const star = WarState.armyUnitStar(slot);
-            ctx.beginPath();
-            ctx.fillStyle = selected ? "#86efac" : "#166534";
-            ctx.arc(slot.x, slot.y, def.radius || 14, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = selected ? "#fbbf24" : "#4ade80";
-            ctx.lineWidth = selected ? 3 : 2;
-            ctx.stroke();
-            ctx.font = `${Math.max(12, (def.radius || 14))}px sans-serif`;
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillStyle = "#fff";
-            ctx.fillText(def.icon || "?", slot.x, slot.y);
+            const r = def.radius || 14;
+            WarUnitVisual.drawToken(ctx, {
+                x: slot.x,
+                y: slot.y,
+                r,
+                unitOrDef: def,
+                side: "player",
+                icon: def.icon,
+                selected
+            });
             if (star > 1) {
                 ctx.font = "10px sans-serif";
+                ctx.textAlign = "center";
                 ctx.fillStyle = "#fbbf24";
-                ctx.fillText(`★${star}`, slot.x, slot.y + (def.radius || 14) + 10);
+                ctx.fillText(`★${star}`, slot.x, slot.y + r + 10);
             }
         });
     }
@@ -1481,6 +1478,7 @@
             const chip = document.createElement("button");
             chip.type = "button";
             chip.className = "war-army-chip "
+                + WarUnitVisual.roleCssClass(def) + " "
                 + (allowed
                     ? (deployed ? "war-army-chip--deployed" : "war-army-chip--benched")
                     : "war-army-chip--banned");
@@ -1684,19 +1682,17 @@
             const y = u.y + bob;
             const r = u.radius * hurtSquash * deathScale;
 
-            ctx.beginPath();
-            ctx.fillStyle = u.side === "player" ? "#166534" : "#7f1d1d";
-            if (u.temporary) ctx.fillStyle = u.side === "player" ? "#0e7490" : "#6b21a8";
-            if (u.hurtFlash > 0) ctx.fillStyle = "#f8fafc";
-            ctx.arc(x, y, r, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = u.temporary
-                ? (u.side === "player" ? "#67e8f9" : "#e9d5ff")
-                : (u.side === "player" ? "#4ade80" : "#fca5a5");
-            ctx.lineWidth = u.temporary ? 2.5 : 2;
-            if (u.temporary) ctx.setLineDash([4, 3]);
-            ctx.stroke();
-            ctx.setLineDash([]);
+            WarUnitVisual.drawToken(ctx, {
+                x,
+                y,
+                r,
+                unitOrDef: u,
+                side: u.side,
+                icon: u.icon,
+                hurtFlash: u.hurtFlash || 0,
+                temporary: u.temporary,
+                affix: u.affixId
+            });
 
             // Casting aura (always visible while channeling)
             if (u.alive && u.casting) {
@@ -1711,8 +1707,6 @@
             ctx.font = `${Math.max(12, r)}px sans-serif`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.fillStyle = "#fff";
-            ctx.fillText(u.icon || "?", x, y);
 
             if (u.alive && u.star > 1) {
                 ctx.font = "9px sans-serif";

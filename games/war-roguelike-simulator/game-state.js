@@ -661,7 +661,10 @@
             "tag", "tags", "unit", "units", "findWeight",
             "onlyFightTag", "onlyFightTags", "multishot", "noSkills",
             "atkMult", "hpMult", "dmgTakenMult", "onHit",
-            "forceEnemyAffix", "rewardRarityBoost"
+            "forceEnemyAffix", "rewardRarityBoost",
+            "focusDuration", "focusDmgBonus", "holdCleanse",
+            "holdTakenMult", "allOutFirstCrit", "allOutDmgBonus",
+            "tacticsCharges"
         ]);
 
         function applyEffect(effect) {
@@ -674,6 +677,13 @@
             if (effect.rewardRarityBoost) {
                 m.rewardRarityBoost = (m.rewardRarityBoost || 1) * effect.rewardRarityBoost;
             }
+            if (effect.focusDuration) m.tacticMods.focusDuration += effect.focusDuration;
+            if (effect.focusDmgBonus) m.tacticMods.focusDmgBonus += effect.focusDmgBonus;
+            if (effect.holdCleanse) m.tacticMods.holdCleanse = true;
+            if (effect.holdTakenMult) m.tacticMods.holdTakenMult *= effect.holdTakenMult;
+            if (effect.allOutFirstCrit) m.tacticMods.allOutFirstCrit = true;
+            if (effect.allOutDmgBonus) m.tacticMods.allOutDmgBonus += effect.allOutDmgBonus;
+            if (effect.tacticsCharges) m.tacticMods.tacticsCharges += effect.tacticsCharges;
             if (effect.noSkills) m.noSkills = true;
             if (effect.atkMult) m.atkMult *= effect.atkMult;
             if (effect.hpMult) m.hpMult *= effect.hpMult;

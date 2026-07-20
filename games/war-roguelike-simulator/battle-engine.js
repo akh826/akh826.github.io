@@ -47,6 +47,14 @@
         if (te.attackRange) bag.attackRange += te.attackRange;
         if (te.rangeMult) bag.attackRange *= te.rangeMult;
         if (te.summonMax) bag.summonMaxBonus += te.summonMax;
+        if (te.radiusMult && te.radiusMult !== 1) bag.radiusMult = (bag.radiusMult || 1) * te.radiusMult;
+        if (te.radiusAdd) bag.radiusAdd = (bag.radiusAdd || 0) + te.radiusAdd;
+        if (te.skillAoEMult && te.skillAoEMult !== 1) bag.skillAoEMult = (bag.skillAoEMult || 1) * te.skillAoEMult;
+        if (te.chainShot) bag.chainShot = Math.max(bag.chainShot || 0, te.chainShot);
+        if (te.chainRange) bag.chainRange = Math.max(bag.chainRange || 0, te.chainRange);
+        if (te.chainDmgMult && te.chainDmgMult !== 1) bag.chainDmgMult = te.chainDmgMult;
+        if (te.damageImmuneWindow) bag.damageImmuneWindow = Math.max(bag.damageImmuneWindow || 0, te.damageImmuneWindow);
+        if (te.damageImmuneCd != null) bag.damageImmuneCd = Math.max(bag.damageImmuneCd || 0, te.damageImmuneCd);
         if (te.onHit) bag.onHit = mergeOnHits(bag.onHit, te.onHit);
     }
 
@@ -79,7 +87,9 @@
             pct: oh.pct,
             slow: oh.slow,
             atkMult: oh.atkMult,
-            takenMult: oh.takenMult
+            takenMult: oh.takenMult,
+            // Optional AoE radius for on-hit procs (e.g. burn nearby)
+            radius: oh.radius
         };
     }
 
@@ -113,7 +123,8 @@
                 pct: a.pct != null ? Math.max(e.pct || 0, a.pct) : e.pct,
                 slow: a.slow != null ? Math.max(e.slow || 0, a.slow) : e.slow,
                 atkMult: a.atkMult != null ? Math.min(e.atkMult != null ? e.atkMult : 1, a.atkMult) : e.atkMult,
-                takenMult: a.takenMult != null ? Math.max(e.takenMult || 1, a.takenMult) : e.takenMult
+                takenMult: a.takenMult != null ? Math.max(e.takenMult || 1, a.takenMult) : e.takenMult,
+                radius: a.radius != null ? Math.max(e.radius || 0, a.radius) : e.radius
             };
         });
         return list.length ? list : null;
@@ -180,6 +191,14 @@
             healBoost: 1,
             critChance: 0,
             multishot: 1,
+            radiusMult: 1,
+            radiusAdd: 0,
+            skillAoEMult: 1,
+            chainShot: 0,
+            chainRange: 0,
+            chainDmgMult: 0.85,
+            damageImmuneWindow: 0,
+            damageImmuneCd: 0,
             summonMaxBonus: 0,
             onHit: null
         };
@@ -195,6 +214,8 @@
         let spd = bag.spd;
         let moveSpeed = bag.moveSpeed;
         let attackRange = Math.max(12, Math.floor(bag.attackRange));
+        const baseRadius = (def.radius != null ? def.radius : (def.role === "boss" ? 22 : 14));
+        const radius = Math.max(4, Math.floor(baseRadius * (bag.radiusMult || 1) + (bag.radiusAdd || 0)));
 
         if (side === "player") {
             if (m.hpMult && m.hpMult !== 1) hp = Math.max(1, Math.floor(hp * m.hpMult));
@@ -285,6 +306,12 @@
 
         const baseShield = m.startShield && side === "player" && !def.temporary && def.role !== "summon" ? m.startShield : 0;
 
+        const finalSkill = def.skill
+            ? { ...def.skill, timer: def.skill.cd || 6 }
+            : null;
+        if (finalSkill && finalSkill.aoe != null && bag.skillAoEMult && bag.skillAoEMult !== 1) {
+            finalSkill.aoe = Math.max(12, Math.round(finalSkill.aoe * bag.skillAoEMult));
+        }
         return {
             uid: `${side}-${++uidSeq}-${unitId}`,
             ownedUid,
@@ -302,7 +329,7 @@
             y,
             vx: 0,
             vy: 0,
-            radius: def.radius,
+            radius,
             attackRange,
             moveSpeed,
             maxHp: hp,
@@ -310,12 +337,18 @@
             atk,
             def: defVal,
             spd,
-            skill: def.skill ? { ...def.skill, timer: def.skill.cd || 6 } : null,
+            skill: finalSkill,
             skillCdMult: bag.skillCdMult,
             skillPower: bag.skillPower,
             healBoost: bag.healBoost,
             critChance: bag.critChance,
             multishot: bag.multishot,
+            chainShot: bag.chainShot || 0,
+            chainRange: bag.chainRange || 0,
+            chainDmgMult: bag.chainDmgMult || 0.85,
+            damageImmuneWindow: bag.damageImmuneWindow || 0,
+            damageImmuneCd: bag.damageImmuneCd || 0,
+            damageImmuneCdTimer: 0,
             summonMaxBonus: bag.summonMaxBonus || 0,
             casting: null,
             canFight,
@@ -524,7 +557,7 @@
         }
     }
 
-    function tryApplyOnHit(attacker, target, log) {
+    function tryApplyOnHit(attacker, target, units, log) {
         if (!attacker || !target || !target.alive) return;
         const list = asOnHitList(attacker.onHit);
         list.forEach((oh) => {
@@ -532,6 +565,18 @@
             const chance = oh.chance != null ? oh.chance : 1;
             if (Math.random() > chance) return;
             applyStatus(target, oh, attacker, log);
+            // AoE on-hit proc (e.g. burn nearby)
+            if (oh.radius != null && oh.radius > 0) {
+                (units || []).forEach((u) => {
+                    if (!u || !u.alive) return;
+                    if (u.uid === target.uid) return;
+                    // Nearby should be enemies of the attacker (same side as the original target).
+                    if (u.side !== target.side) return;
+                    if (dist(target, u) <= oh.radius) {
+                        applyStatus(u, oh, attacker, log);
+                    }
+                });
+            }
         });
     }
 
@@ -911,7 +956,29 @@
     }
 
     function applyDamage(target, dmg, attacker, modifiers, log, fx, meta, battleState) {
+        // Artifact: short damage immunity (1s) with cooldown.
+        // Implemented using existing `phaseIframes` so it blocks both direct damage and DoT ticks.
         if (target.phaseIframes > 0) return 0;
+        if (target.damageImmuneWindow > 0) {
+            const cdTimer = target.damageImmuneCdTimer || 0;
+            if (cdTimer <= 0) {
+                target.phaseIframes = target.damageImmuneWindow;
+                target.damageImmuneCdTimer = target.damageImmuneCd || 10;
+                if (fx) {
+                    fx.push({ type: "ring", x: target.x, y: target.y, r: target.radius + 10, color: "#67e8f9", t: 0.25 });
+                }
+                if (log && attacker) {
+                    log.push({
+                        type: "immune",
+                        source: attacker.name,
+                        target: target.name,
+                        detail: `無敵 ${target.damageImmuneWindow.toFixed(1)}s（CD ${target.damageImmuneCdTimer.toFixed(1)}s）`,
+                        ...hpSnap(target)
+                    });
+                }
+                return 0;
+            }
+        }
         let remaining = dmg;
         if (target.side === "player" && modifiers.dmgTakenMult && modifiers.dmgTakenMult !== 1) {
             remaining = Math.max(1, Math.floor(remaining * modifiers.dmgTakenMult));
@@ -1399,6 +1466,7 @@
             if (u.hurtFlash > 0) u.hurtFlash -= dt;
             if (u.attackFlash > 0) u.attackFlash -= dt;
             if (u.phaseIframes > 0) u.phaseIframes -= dt;
+            if (u.damageImmuneCdTimer > 0) u.damageImmuneCdTimer = Math.max(0, u.damageImmuneCdTimer - dt);
             if (u.dashCd > 0) u.dashCd -= dt;
             if (u.kbX || u.kbY) {
                 u.x += (u.kbX || 0) * dt * 10;
@@ -1501,10 +1569,35 @@
                 if (u.attackTimer >= 1) {
                     u.attackTimer = 0;
                     u.attackFlash = 0.28;
-                    const shots = Math.max(1, u.multishot || 1);
-                    const targets = nearestEnemies(u, units, shots, state);
+                    const buildChainTargets = () => {
+                        const chainMaxHits = 1 + (u.chainShot || 0);
+                        const chainRange = u.chainRange || 0;
+                        if (chainMaxHits <= 1) return null;
+                        const first = nearestEnemy(u, units, state);
+                        if (!first) return null;
+                        const hit = new Set([first.uid]);
+                        const out = [first];
+                        let cur = first;
+                        for (let bi = 0; bi < chainMaxHits - 1; bi++) {
+                            const candidates = units
+                                .filter((x) => x && x.alive && x.side !== u.side && !hit.has(x.uid))
+                                .filter((x) => (chainRange > 0 ? dist(cur, x) <= chainRange : true));
+                            if (!candidates.length) break;
+                            let best = candidates[0];
+                            candidates.forEach((c) => { if (dist(cur, c) < dist(cur, best)) best = c; });
+                            hit.add(best.uid);
+                            out.push(best);
+                            cur = best;
+                        }
+                        return out;
+                    };
+
+                    const chainTargets = (u.chainShot || 0) > 0 ? buildChainTargets() : null;
+                    const targets = chainTargets || nearestEnemies(u, units, Math.max(1, u.multishot || 1), state);
                     targets.forEach((t, i) => {
-                        const scale = i === 0 ? 1 : 0.85;
+                        const scale = chainTargets
+                            ? (i === 0 ? 1 : Math.pow(u.chainDmgMult || 0.85, i))
+                            : (i === 0 ? 1 : 0.85);
                         const rolled = calcDamage(u, t, modifiers, null, state);
                         const dmg = Math.max(1, Math.floor(rolled.amount * scale));
                         if (fx) {
@@ -1553,7 +1646,7 @@
                             crit: rolled.crit && i === 0,
                             lite: many
                         }, state);
-                        tryApplyOnHit(u, t, log);
+                        tryApplyOnHit(u, t, units, log);
                     });
                 }
             }

@@ -5,17 +5,17 @@
     "use strict";
     global.WarDataParts = global.WarDataParts || {};
     const ARTIFACTS = [
-        { id: "iron_shield", name: "鐵盾", rarity: "common", desc: "全隊防禦 +6", effect: {"defAll":6} },
-        { id: "sharp_blade", name: "鋒利之刃", rarity: "common", desc: "全隊攻擊 +8", effect: {"atkAll":8} },
-        { id: "swift_boots", name: "疾風靴", rarity: "common", desc: "攻速 +19%", effect: {"spdMult":1.185} },
+        { id: "iron_shield", name: "鐵盾", rarity: "common", desc: "開場全隊獲得護盾 38；守陣期間受傷額外 -8%", effect: {"startShield":38,"holdTakenMult":0.92} },
+        { id: "sharp_blade", name: "鋒利之刃", rarity: "common", desc: "暴擊 +10%；集火期間傷害額外 +12%", effect: {"critChance":0.1,"focusDmgBonus":0.12} },
+        { id: "swift_boots", name: "疾風靴", rarity: "common", desc: "移速 +20%；總攻期間移速與傷害再提升", effect: {"moveSpeedMult":1.2,"allOutDmgBonus":0.1} },
         { id: "healing_herb", name: "療傷草", rarity: "common", desc: "戰後額外 +30 金幣", effect: {"healAfter":30} },
         { id: "lucky_coin", name: "幸運幣", rarity: "common", desc: "金幣獎勵 +37%", effect: {"goldMult":1.37} },
         { id: "thick_armor", name: "厚甲", rarity: "common", desc: "[坦克] HP +80", effect: {"tag":"tank","hp":80} },
         { id: "hunter_bow", name: "獵人弓", rarity: "common", desc: "[射手] 攻擊 +16", effect: {"tag":"ranger","atk":16} },
         { id: "mana_crystal", name: "魔力水晶", rarity: "common", desc: "[法師] 攻擊 +20", effect: {"tag":"caster","atk":20} },
         { id: "iron_glaive", name: "鐵刃戟", rarity: "common", desc: "[近戰] 攻擊 +12", effect: {"tag":"melee","atk":12} },
-        { id: "war_banner", name: "戰旗", rarity: "uncommon", desc: "全隊攻擊 +16", effect: {"atkAll":16} },
-        { id: "fortress_wall", name: "堡壘之牆", rarity: "uncommon", desc: "全隊 HP +70", effect: {"hpAll":70} },
+        { id: "war_banner", name: "戰旗", rarity: "uncommon", desc: "集火持續 +1.2 秒；集火期間傷害額外 +16%", effect: {"focusDuration":1.2,"focusDmgBonus":0.16} },
+        { id: "fortress_wall", name: "堡壘之牆", rarity: "uncommon", desc: "守陣期間受傷額外 -20%；發動守陣時淨化負面狀態", effect: {"holdTakenMult":0.8,"holdCleanse":true} },
         { id: "vampire_fang", name: "吸血獠牙", rarity: "uncommon", desc: "吸血 17%", effect: {"lifesteal":0.17} },
         { id: "thorns_mail", name: "荊棘甲", rarity: "uncommon", desc: "反傷 31%", effect: {"thorns":0.306} },
         { id: "scout_lens", name: "偵察鏡", rarity: "uncommon", desc: "地圖顯示下一層房間類型", effect: {"revealNext":true} },
@@ -27,7 +27,7 @@
         { id: "focusing_crystal", name: "聚能晶體", rarity: "common", desc: "[奧術] 射程 +30", effect: {"tag":"arcane","attackRange":30} },
         { id: "phoenix_feather", name: "鳳凰羽毛", rarity: "rare", desc: "戰鬥中首次陣亡時復活 60% HP", effect: {"revive":0.595} },
         { id: "revenant_lantern", name: "復生提燈", rarity: "epic", desc: "每場戰鬥結束後，自動復活 2 名本場陣亡單位", effect: {"postBattleRevive":2} },
-        { id: "dragon_scale", name: "龍鱗", rarity: "rare", desc: "全隊防禦 +24", effect: {"defAll":24} },
+        { id: "dragon_scale", name: "龍鱗", rarity: "rare", desc: "開場全隊獲得護盾 95；受護盾保護時防禦提升", effect: {"startShield":95,"defAll":10} },
         { id: "storm_hammer", name: "風暴之錘", rarity: "rare", desc: "[戰士] 攻擊 +44", effect: {"tag":"warrior","atk":44} },
         { id: "shadow_cloak", name: "暗影斗篷", rarity: "rare", desc: "[暗影] 攻速 +46%；技能冷卻 -28%", effect: {"tag":"shadow","spdMult":1.463,"skillCdMult":0.722} },
         { id: "holy_relic", name: "聖物", rarity: "rare", desc: "[神聖] 攻擊 +12；治療量 +111%", effect: {"tag":"holy","healBoost":2.11,"atk":12} },
@@ -37,12 +37,12 @@
         { id: "sacred_seal", name: "聖印", rarity: "rare", desc: "[神聖] 防禦 +12；技能威力 +55%", effect: {"tag":"holy","skillPower":1.555,"def":12} },
         { id: "hawk_plume", name: "鷹羽", rarity: "rare", desc: "[遠程] 射程 +70", effect: {"tag":"ranged","attackRange":70} },
         { id: "sniper_crest", name: "狙擊徽記", rarity: "rare", desc: "[射手] 攻擊 +16；射程 +60", effect: {"tag":"ranger","attackRange":60,"atk":16} },
-        { id: "crown_of_kings", name: "王者之冠", rarity: "epic", desc: "全隊攻擊 +28；全隊 HP +110", effect: {"atkAll":28,"hpAll":110} },
-        { id: "time_sand", name: "時之沙", rarity: "epic", desc: "技能冷卻 -46%", effect: {"skillCdMult":0.538} },
+        { id: "crown_of_kings", name: "王者之冠", rarity: "epic", desc: "每場戰鬥額外 +1 次戰術指令；總攻期間首次攻擊必暴擊", effect: {"tacticsCharges":1,"allOutFirstCrit":true} },
+        { id: "time_sand", name: "時之沙", rarity: "epic", desc: "技能冷卻 -22%；集火持續 +1.4 秒；總攻期間傷害額外 +15%", effect: {"skillCdMult":0.78,"focusDuration":1.4,"allOutDmgBonus":0.15} },
         { id: "berserker_axe", name: "狂戰斧", rarity: "epic", desc: "HP 低於 50% 時攻擊 +68%", effect: {"lowHpAtk":0.68} },
         { id: "arcane_tome", name: "奧術典籍", rarity: "epic", desc: "[奧術] 技能威力 +102%", effect: {"tag":"arcane","skillPower":2.018} },
         { id: "titans_belt", name: "泰坦腰帶", rarity: "epic", desc: "[坦克] HP +220", effect: {"tag":"tank","hp":220} },
-        { id: "war_horn", name: "戰爭號角", rarity: "epic", desc: "開場全隊獲得護盾 160", effect: {"startShield":160} },
+        { id: "war_horn", name: "戰爭號角", rarity: "epic", desc: "開場全隊獲得護盾 120；總攻期間傷害額外 +22%", effect: {"startShield":120,"allOutDmgBonus":0.22} },
         { id: "wild_totem", name: "野獸圖騰", rarity: "epic", desc: "[野獸] 攻擊 +28；HP +100；技能威力 +46%", effect: {"tag":"beast","hp":100,"atk":28,"skillPower":1.463} },
         { id: "flame_core", name: "焰心", rarity: "epic", desc: "[火焰] 攻擊 +20；技能威力 +74%", effect: {"tag":"fire","skillPower":1.74,"atk":20} },
         { id: "horizon_lens", name: "地平線鏡", rarity: "epic", desc: "[遠程] 攻擊 +12；射程 +100", effect: {"tag":"ranged","attackRange":100,"atk":12} },
@@ -51,7 +51,7 @@
         { id: "spirit_horn", name: "靈角", rarity: "rare", desc: "[召喚] 技能冷卻 -37%；召喚上限 +2", effect: {"tag":"summon","skillCdMult":0.63,"summonMax":2} },
         { id: "pack_totem", name: "群召圖騰", rarity: "rare", desc: "[召喚] 攻擊 +16；HP +70", effect: {"tag":"summon","hp":70,"atk":16} },
         { id: "legion_sigil", name: "軍團印記", rarity: "epic", desc: "[召喚] 技能冷卻 -46%；召喚上限 +4", effect: {"tag":"summon","summonMax":4,"skillCdMult":0.538} },
-        { id: "void_orb", name: "虛空寶珠", rarity: "legendary", desc: "全隊攻擊 +40；全隊防禦 +28", effect: {"atkAll":40,"defAll":28} },
+        { id: "void_orb", name: "虛空寶珠", rarity: "legendary", desc: "普攻 34% 附加易傷；技能威力 +55%；集火期間再提升傷害", effect: {"onHit":{"type":"vulnerable","chance":0.34,"duration":4,"takenMult":1.36},"skillPower":1.55,"focusDmgBonus":0.18} },
         { id: "seal_of_eternity", name: "永恆封印", rarity: "legendary", desc: "獲得唯一單位「永恆守衛」；全隊防禦 +12", effect: {"defAll":12}, grant: {"unit":"eternal_warden"} },
         { id: "void_whisper", name: "虛空低語", rarity: "legendary", desc: "獲得唯一單位「虛空潛行者」；[暗影] 攻速 +19%", effect: {"tag":"shadow","spdMult":1.185}, grant: {"unit":"void_stalker"} },
         { id: "chronos_eye", name: "時序之眼", rarity: "legendary", desc: "獲得唯一單位「時序法師」；技能冷卻 -19%", effect: {"skillCdMult":0.815}, grant: {"unit":"chronomancer"} },
@@ -106,6 +106,53 @@
         { id: "occultist_sigil", name: "秘術符印", rarity: "rare", desc: "【秘術師】專屬；技能威力 +37%；召喚上限 +2；招募／獎勵出現率大幅提升", effect: {"unit":"occultist","summonMax":2,"skillPower":1.37,"findWeight":3.7} },
         { id: "colossus_plate", name: "巨像鎧片", rarity: "epic", desc: "【鐵巨像】專屬；防禦 +24；HP +160；招募／獎勵出現率大幅提升", effect: {"unit":"iron_colossus","hp":160,"def":24,"findWeight":4} },
         { id: "storm_rider_reins", name: "風暴韁繩", rarity: "epic", desc: "【風暴騎士】專屬；攻擊 +32；攻速 +28%；招募／獎勵出現率大幅提升", effect: {"unit":"storm_rider","atk":32,"spdMult":1.277,"findWeight":4} }
+        ,
+        // --- New build-shaping artifacts (quantity vs. quality) ---
+        {
+            id: "multi_shot_bowstring",
+            name: "連射弦帶",
+            rarity: "uncommon",
+            desc: "[射手/遠程] 普攻改為多連射：連射 ×3",
+            effect: { tag: "ranged", multishot: 3 }
+        },
+        {
+            id: "chain_shot_chainmail",
+            name: "鎖鏈回彈",
+            rarity: "rare",
+            desc: "[遠程] 連鎖射擊：打到一名目標後，最多彈跳 ×3（傷害依跳數衰減）",
+            effect: { tag: "ranged", chainShot: 3, chainRange: 105, chainDmgMult: 0.82 }
+        },
+        {
+            id: "arcane_expander",
+            name: "奧術擴張",
+            rarity: "rare",
+            desc: "[法師/奧術] 技能範圍擴大：AOE ×1.35",
+            effect: { tag: "caster", skillAoEMult: 1.35 }
+        },
+        {
+            id: "melee_colossus_pauldron",
+            name: "近戰巨臂護肩",
+            rarity: "uncommon",
+            desc: "[近戰] 體型更巨大、揮擊更遠：體型 ×1.18；近戰射程 +26",
+            effect: { tag: "melee", radiusMult: 1.18, attackRange: 26 }
+        },
+        {
+            id: "iron_guardian_shard",
+            name: "鐵衛碎片",
+            rarity: "epic",
+            desc: "[坦克] 短暫無敵：受到傷害時無敵 1.0 秒；之後冷卻 10 秒",
+            effect: { tag: "tank", damageImmuneWindow: 1.0, damageImmuneCd: 10 }
+        },
+        {
+            id: "ember_aura_burn",
+            name: "燼焰熾環",
+            rarity: "epic",
+            desc: "普攻點燃：命中燃燒後，周圍敵人也會被引燃（半徑 55）",
+            effect: {
+                tag: "melee",
+                onHit: { type: "burn", chance: 0.28, duration: 3.8, pct: 0.034, radius: 55 }
+            }
+        }
     ];
 
     const ABILITIES = [
