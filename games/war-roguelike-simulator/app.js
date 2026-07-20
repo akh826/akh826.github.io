@@ -253,6 +253,7 @@
         map: $("screenMap"),
         formation: $("screenFormation"),
         battle: $("screenBattle"),
+        settlement: $("screenSettlement"),
         reward: $("screenReward"),
         victory: $("screenVictory"),
         defeat: $("screenDefeat")
@@ -1537,29 +1538,71 @@
             const life = f.life != null ? f.life : (f.t > 0 ? f.t : 0.3);
             const prog = life > 0 ? 1 - Math.max(0, f.t) / life : 1;
             if (f.type === "bolt") {
-                ctx.strokeStyle = `rgba(147,197,253,${Math.max(0, f.t * 4)})`;
-                ctx.lineWidth = 2;
+                const a = Math.max(0, Math.min(1, f.t * 5));
+                const col = f.color || "#93c5fd";
+                ctx.strokeStyle = col;
+                ctx.globalAlpha = a;
+                ctx.lineWidth = f.w != null ? f.w : 3;
+                ctx.lineCap = "round";
                 ctx.beginPath();
                 ctx.moveTo(f.x0, f.y0);
                 ctx.lineTo(f.x1, f.y1);
                 ctx.stroke();
+                ctx.globalAlpha = a * 0.45;
+                ctx.lineWidth = (f.w != null ? f.w : 3) + 3;
+                ctx.beginPath();
+                ctx.moveTo(f.x0, f.y0);
+                ctx.lineTo(f.x1, f.y1);
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+                ctx.lineCap = "butt";
+            } else if (f.type === "slash") {
+                const life = f.life != null ? f.life : 0.22;
+                const a = Math.max(0, f.t / life);
+                const ang = Math.atan2(f.y1 - f.y0, f.x1 - f.x0);
+                const reach = Math.min(42, Math.hypot(f.x1 - f.x0, f.y1 - f.y0) * 0.55 + 18);
+                const sweep = (f.crit ? 1.05 : 0.85) * (0.35 + a * 0.65);
+                ctx.save();
+                ctx.translate(f.x0, f.y0);
+                ctx.rotate(ang);
+                ctx.strokeStyle = f.color || "#f8fafc";
+                ctx.lineCap = "round";
+                ctx.globalAlpha = a * 0.95;
+                ctx.lineWidth = f.crit ? 5 : 3.5;
+                ctx.beginPath();
+                ctx.arc(0, 0, reach, -sweep, sweep * (1.1 - prog * 0.4));
+                ctx.stroke();
+                ctx.globalAlpha = a * 0.35;
+                ctx.lineWidth = f.crit ? 9 : 7;
+                ctx.beginPath();
+                ctx.arc(0, 0, reach * 0.92, -sweep * 0.85, sweep * 0.7);
+                ctx.stroke();
+                ctx.restore();
+                ctx.globalAlpha = 1;
             } else if (f.type === "proj") {
                 const x = f.x0 + (f.x1 - f.x0) * prog;
                 const y = f.y0 + (f.y1 - f.y0) * prog;
                 const col = f.color || "#93c5fd";
+                const pr = f.r != null ? f.r : (many ? 2.5 : 3.5);
                 ctx.fillStyle = col;
-                ctx.globalAlpha = Math.max(0.25, f.t / life);
+                ctx.globalAlpha = Math.max(0.35, f.t / life);
                 ctx.beginPath();
-                ctx.arc(x, y, many ? 2.5 : 3.5, 0, Math.PI * 2);
+                ctx.arc(x, y, many ? Math.max(3, pr * 0.7) : pr, 0, Math.PI * 2);
                 ctx.fill();
+                ctx.strokeStyle = "#fff";
+                ctx.lineWidth = 1.5;
+                ctx.globalAlpha = Math.max(0.2, f.t / life * 0.7);
+                ctx.stroke();
                 if (!many) {
                     ctx.strokeStyle = col;
-                    ctx.lineWidth = 2;
-                    ctx.globalAlpha = Math.max(0.15, f.t / life * 0.6);
+                    ctx.lineWidth = 3;
+                    ctx.lineCap = "round";
+                    ctx.globalAlpha = Math.max(0.2, f.t / life * 0.75);
                     ctx.beginPath();
-                    ctx.moveTo(f.x0 + (f.x1 - f.x0) * Math.max(0, prog - 0.18), f.y0 + (f.y1 - f.y0) * Math.max(0, prog - 0.18));
+                    ctx.moveTo(f.x0 + (f.x1 - f.x0) * Math.max(0, prog - 0.22), f.y0 + (f.y1 - f.y0) * Math.max(0, prog - 0.22));
                     ctx.lineTo(x, y);
                     ctx.stroke();
+                    ctx.lineCap = "butt";
                 }
                 ctx.globalAlpha = 1;
             } else if (f.type === "ring") {
@@ -1599,21 +1642,27 @@
                 ctx.arc(f.x, f.y, (f.r || 14) * pulse + 6, 0, Math.PI * 2);
                 ctx.stroke();
                 ctx.globalAlpha = 1;
-            } else if (f.type === "hit" && !many) {
-                ctx.fillStyle = `rgba(255,255,255,${Math.max(0, f.t * 3)})`;
+            } else if (f.type === "hit") {
+                const hr = f.r != null ? f.r : 6;
+                ctx.fillStyle = `rgba(255,255,255,${Math.max(0, f.t * 4)})`;
                 ctx.beginPath();
-                ctx.arc(f.x, f.y, 6, 0, Math.PI * 2);
+                ctx.arc(f.x, f.y, hr * (0.7 + (1 - Math.min(1, f.t * 4)) * 0.8), 0, Math.PI * 2);
                 ctx.fill();
+                ctx.strokeStyle = `rgba(254,240,138,${Math.max(0, f.t * 3)})`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(f.x, f.y, hr * 1.35, 0, Math.PI * 2);
+                ctx.stroke();
             } else if (f.type === "spark" && !many) {
                 const a = Math.max(0, f.t / life);
                 const seeds = f.seeds || [0.1, 0.3, 0.5, 0.7, 0.9];
                 seeds.forEach((s, i) => {
                     const ang = s * Math.PI * 2 + i;
-                    const dist = 4 + prog * (10 + i * 2);
-                    ctx.fillStyle = f.color || "#fef3c7";
-                    ctx.globalAlpha = a * (1 - prog * 0.7);
+                    const dist = 5 + prog * (14 + i * 2.5);
+                    ctx.fillStyle = f.color || "#fef08a";
+                    ctx.globalAlpha = a * (1 - prog * 0.65);
                     ctx.beginPath();
-                    ctx.arc(f.x + Math.cos(ang) * dist, f.y + Math.sin(ang) * dist, 2.2, 0, Math.PI * 2);
+                    ctx.arc(f.x + Math.cos(ang) * dist, f.y + Math.sin(ang) * dist, 2.6, 0, Math.PI * 2);
                     ctx.fill();
                 });
                 ctx.globalAlpha = 1;
@@ -1627,7 +1676,7 @@
             ctx.save();
             ctx.globalAlpha = u.alpha;
             const bob = u.state === "move" ? Math.sin(u.anim * 10) * 2 : 0;
-            const lunge = u.attackFlash > 0 ? u.facing * (4 + u.attackFlash * 12) : 0;
+            const lunge = u.attackFlash > 0 ? u.facing * (6 + u.attackFlash * 18) : 0;
             const hurtT = Math.max(0, Math.min(1, (u.hurtFlash || 0) / 0.22));
             const hurtSquash = 1 + hurtT * 0.18;
             const deathScale = !u.alive ? 1 + Math.min(0.55, (u.deathPulse || 1) - 1) * 0.35 : 1;
@@ -1773,7 +1822,10 @@
                 ctx.fillText(`${f.amount}!`, f.x, y);
             } else {
                 ctx.fillStyle = "#fecaca";
-                ctx.font = many ? "bold 11px sans-serif" : "bold 13px sans-serif";
+                ctx.font = many ? "bold 12px sans-serif" : "bold 14px sans-serif";
+                ctx.strokeStyle = "rgba(0,0,0,0.4)";
+                ctx.lineWidth = 2.5;
+                ctx.strokeText(String(f.amount), f.x, y);
                 ctx.fillText(String(f.amount), f.x, y);
             }
             ctx.restore();
@@ -1978,48 +2030,120 @@
         lastFrame = 0;
     }
 
-    function renderBattleStatsPanel() {
-        const panel = $("battleStats");
+    function renderBattleStatsPanel(targetId) {
+        const panel = $(targetId || "settlementStats") || $("battleStats");
         if (!panel || !battle) return;
         const rows = WarBattle.summarizeBattleStats
             ? WarBattle.summarizeBattleStats(battle.units)
             : [];
         if (!rows.length) {
-            panel.hidden = true;
-            panel.innerHTML = "";
+            panel.innerHTML = "<p class=\"war-hint\">無統計資料</p>";
             return;
         }
-        panel.hidden = false;
+
+        const maxDealt = Math.max(1, ...rows.map((r) => r.dealt || 0));
+        const maxTaken = Math.max(1, ...rows.map((r) => r.taken || 0));
+        const maxHealed = Math.max(1, ...rows.map((r) => r.healed || 0));
+
+        const bar = (value, max, kind) => {
+            const pct = Math.max(0, Math.min(100, Math.round((value / max) * 100)));
+            return `<div class="war-stat-bar" title="${value}">
+                <div class="war-stat-bar-track">
+                    <div class="war-stat-bar-fill war-stat-bar-fill--${kind}" style="width:${pct}%"></div>
+                </div>
+                <span class="war-stat-bar-val">${value}</span>
+            </div>`;
+        };
+
         const body = rows.map((r) => {
-            const deadClass = r.alive ? "" : " war-battle-stats-dead";
+            const deadClass = r.alive ? "" : " war-settlement-unit--dead";
             const kill = !r.alive && r.killedBy
                 ? `<div class="war-battle-stats-killed">陣亡於：${r.killedBy}</div>`
                 : "";
-            return `<div class="war-battle-stats-row${deadClass}">
-                <span>${r.icon || ""} ${r.name}${r.alive ? "" : "（陣亡）"}</span>
-                <span>傷 ${r.dealt}</span>
-                <span>承 ${r.taken}</span>
-                <span>療 ${r.healed}</span>
+            return `<div class="war-settlement-unit${deadClass}">
+                <div class="war-settlement-unit-head">
+                    <span class="war-settlement-unit-name">${r.icon || ""} ${r.name}${r.alive ? "" : "（陣亡）"}</span>
+                </div>
+                <div class="war-settlement-unit-metrics">
+                    <div class="war-settlement-metric">
+                        <span class="war-settlement-metric-label war-settlement-metric-label--dealt">輸出</span>
+                        ${bar(r.dealt || 0, maxDealt, "dealt")}
+                    </div>
+                    <div class="war-settlement-metric">
+                        <span class="war-settlement-metric-label war-settlement-metric-label--taken">承傷</span>
+                        ${bar(r.taken || 0, maxTaken, "taken")}
+                    </div>
+                    <div class="war-settlement-metric">
+                        <span class="war-settlement-metric-label war-settlement-metric-label--healed">治療</span>
+                        ${bar(r.healed || 0, maxHealed, "healed")}
+                    </div>
+                </div>
                 ${kill}
             </div>`;
         }).join("");
+
         panel.innerHTML = `
             <p class="war-battle-stats-title">戰後統計</p>
-            <div class="war-battle-stats-row war-battle-stats-row--head">
-                <span>單位</span><span>輸出</span><span>承傷</span><span>治療</span>
+            <div class="war-settlement-legend" aria-hidden="true">
+                <span><i class="war-settlement-swatch war-settlement-swatch--dealt"></i>輸出</span>
+                <span><i class="war-settlement-swatch war-settlement-swatch--taken"></i>承傷</span>
+                <span><i class="war-settlement-swatch war-settlement-swatch--healed"></i>治療</span>
             </div>
-            ${body}
+            <div class="war-settlement-chart">${body}</div>
         `;
+    }
+
+    function showSettlement(opts) {
+        const o = opts || {};
+        stopBattleLoop();
+        state.phase = "settlement";
+        showScreen("settlement");
+
+        const titleEl = $("settlementTitle");
+        const subEl = $("settlementSubtitle");
+        const notesEl = $("settlementNotes");
+        const actionsEl = $("settlementActions");
+        const btn = $("settlementContinueBtn");
+
+        if (titleEl) {
+            titleEl.textContent = o.title || "戰鬥結算";
+            titleEl.classList.toggle("war-settlement-title--win", o.outcome === "win");
+            titleEl.classList.toggle("war-settlement-title--lose", o.outcome === "lose");
+        }
+        if (subEl) subEl.textContent = o.subtitle || "";
+        if (notesEl) {
+            notesEl.innerHTML = (o.notes || []).join("");
+        }
+        renderBattleStatsPanel("settlementStats");
+
+        if (actionsEl) actionsEl.hidden = !!o.hideActions;
+        if (btn) {
+            btn.textContent = o.continueLabel || "繼續";
+            btn.disabled = !!o.hideActions;
+            btn.onclick = () => {
+                if (typeof o.onContinue === "function") o.onContinue();
+            };
+        }
+
+        if (o.autoContinueMs != null && typeof o.onContinue === "function") {
+            scheduleEndlessAuto(() => o.onContinue(), o.autoContinueMs);
+        }
+
+        WarState.saveGame(state);
+        updateHud();
     }
 
     function endBattle() {
         if (battleEnded) return;
         battleEnded = true;
         stopBattleLoop();
-        drawBattle();
-        refreshTacticButtons();
-        if ($("battleToolbar")) $("battleToolbar").hidden = false;
-        renderBattleStatsPanel();
+        if ($("battleActions")) $("battleActions").hidden = true;
+        if ($("battleToolbar")) $("battleToolbar").hidden = true;
+        const sideStats = $("battleStats");
+        if (sideStats) {
+            sideStats.hidden = true;
+            sideStats.innerHTML = "";
+        }
 
         const won = battle.winner === "player";
         const node = getNode(state.map, state.map.currentNodeId);
@@ -2039,18 +2163,41 @@
         if (won && isEpicCombat && !state.endless) WarState.addGold(state, 25);
         updateHud();
 
+        const notes = [];
         if (expMessages.length) {
-            $("battleLog").innerHTML += `<p class="war-log-heal">⬆ ${expMessages.join(" · ")}</p>`;
+            notes.push(`<p class="war-settlement-note--win">⬆ ${expMessages.join(" · ")}</p>`);
         } else if (won && !state.endless) {
-            $("battleLog").innerHTML += `<p class="war-log-heal">⬆ 存活單位獲得經驗</p>`;
+            notes.push(`<p class="war-settlement-note--win">⬆ 存活單位獲得經驗</p>`);
         }
         if (autoRevived.length) {
             const names = autoRevived.map((u) => u.name).join("、");
-            $("battleLog").innerHTML += `<p class="war-log-revive">🪔 復生提燈召回：${names}</p>`;
+            notes.push(`<p class="war-settlement-note--warn">🪔 復生提燈召回：${names}</p>`);
         }
         if (lost.length) {
             const names = lost.map((u) => u.name).join("、");
-            $("battleLog").innerHTML += `<p><strong>永久陣亡：</strong>${names}（可於「部隊」或商店付費復活）</p>`;
+            notes.push(`<p class="war-settlement-note--bad">永久陣亡：${names}（可於「部隊」或商店付費復活）</p>`);
+        }
+
+        // Final campaign boss → free revive all fallen before endless
+        const isFinalBossClear = won && isBoss && !state.endless
+            && state.worldIndex >= WORLDS.length - 1;
+        if (isFinalBossClear) {
+            const revivedAll = WarState.reviveAllFallenFree(state);
+            // Remove permanent-death note — everyone comes back for endless
+            for (let i = notes.length - 1; i >= 0; i--) {
+                if (notes[i].includes("永久陣亡")) notes.splice(i, 1);
+            }
+            if (revivedAll.count) {
+                notes.push(
+                    `<p class="war-settlement-note--win">✨ 通關復活：${revivedAll.names.join("、")}（進入無盡前全體歸隊）</p>`
+                );
+            } else {
+                notes.push(`<p class="war-settlement-note--win">✨ 通關！部隊全員待命，可挑戰無盡模式</p>`);
+            }
+            if (Array.isArray(state.lastBattleSetup) && state.lastBattleSetup.length) {
+                state.army = WarState.restoreLastBattleSetup(state);
+            }
+            updateHud();
         }
 
         if (!won) {
@@ -2060,34 +2207,47 @@
                 && (state.ownedUnits || []).length > 0;
             if (canRetreat) {
                 const kept = combatResult.goldKept != null ? combatResult.goldKept : state.gold;
-                $("battleLog").innerHTML +=
-                    `<p><strong>戰術撤退成功！</strong>保留 ${kept} 金幣，該房無戰利品，遠征繼續。</p>`;
-                $("battleContinueBtn").textContent = "撤回地圖";
-                $("battleActions").hidden = false;
-                $("battleContinueBtn").disabled = false;
-                $("battleContinueBtn").onclick = () => {
-                    if (!battleEnded) return;
-                    const n = getNode(state.map, state.map.currentNodeId);
-                    if (n) n.cleared = true;
-                    notifyContractTick(true);
-                    state.phase = "map";
-                    showScreen("map");
-                    renderMap();
-                    updateHud();
-                    WarState.saveGame(state);
-                };
-                WarState.saveGame(state);
+                notes.push(
+                    `<p class="war-settlement-note--warn">戰術撤退成功！保留 ${kept} 金幣，該房無戰利品，遠征繼續。</p>`
+                );
+                showSettlement({
+                    outcome: "retreat",
+                    title: "戰術撤退",
+                    subtitle: "部隊已撤離戰場",
+                    notes,
+                    continueLabel: "撤回地圖",
+                    onContinue: () => {
+                        const n = getNode(state.map, state.map.currentNodeId);
+                        if (n) n.cleared = true;
+                        notifyContractTick(true);
+                        state.phase = "map";
+                        showScreen("map");
+                        renderMap();
+                        updateHud();
+                        WarState.saveGame(state);
+                    }
+                });
                 return;
             }
-            // Run over — still consume a contract charge
             notifyContractTick(true);
             if (state.endless) {
                 WarState.recordEndlessBest(state.endlessStages || 0);
-                $("battleLog").innerHTML += `<p><strong>無盡挑戰結束！通過 ${state.endlessStages || 0} 關（最佳 ${WarState.getEndlessBest()}）</strong></p>`;
+                notes.push(
+                    `<p><strong>無盡挑戰結束！通過 ${state.endlessStages || 0} 關（最佳 ${WarState.getEndlessBest()}）</strong></p>`
+                );
             } else {
-                $("battleLog").innerHTML += `<p><strong>戰敗！遠征結束。</strong></p>`;
+                notes.push(`<p class="war-settlement-note--bad"><strong>戰敗！遠征結束。</strong></p>`);
             }
-            gameOver();
+            showSettlement({
+                outcome: "lose",
+                title: "戰敗",
+                subtitle: state.endless
+                    ? `通過 ${state.endlessStages || 0} 關`
+                    : "遠征在此結束",
+                notes,
+                continueLabel: "確認",
+                onContinue: () => gameOver()
+            });
             return;
         }
 
@@ -2095,50 +2255,59 @@
             state.endlessStages = (state.endlessStages || 0) + 1;
             WarState.recordEndlessBest(state.endlessStages);
             updateHud();
-            $("battleLog").innerHTML += `<p><strong>第 ${state.endlessStages} 關通過！</strong>（無獎勵 · 最佳 ${WarState.getEndlessBest()}）</p>`;
-            if (state.endlessAutoRun) {
-                $("battleActions").hidden = true;
-                scheduleEndlessAuto(() => proceedEndlessAfterBattle(isBoss), 500);
-            } else {
-                $("battleContinueBtn").textContent = "下一關";
-                $("battleActions").hidden = false;
-                $("battleContinueBtn").disabled = false;
-                $("battleContinueBtn").onclick = () => proceedEndlessAfterBattle(isBoss);
-            }
-            WarState.saveGame(state);
+            notes.push(
+                `<p class="war-settlement-note--win"><strong>第 ${state.endlessStages} 關通過！</strong>（無獎勵 · 最佳 ${WarState.getEndlessBest()}）</p>`
+            );
+            showSettlement({
+                outcome: "win",
+                title: "勝利",
+                subtitle: `無盡挑戰 · 第 ${state.endlessStages} 關`,
+                notes,
+                continueLabel: "下一關",
+                hideActions: !!state.endlessAutoRun,
+                autoContinueMs: state.endlessAutoRun ? 500 : null,
+                onContinue: () => proceedEndlessAfterBattle(isBoss)
+            });
             return;
         }
 
-        $("battleContinueBtn").textContent = "繼續";
-        $("battleLog").innerHTML += isEpicCombat
-            ? `<p><strong>史詩戰鬥勝利！+25 金</strong></p>`
-            : `<p><strong>勝利！</strong></p>`;
-        $("battleActions").hidden = false;
-        $("battleContinueBtn").disabled = false;
-        $("battleContinueBtn").onclick = () => {
-            if (!battleEnded || !battle || !battle.finished) return;
-            if (isBoss) {
-                if (state.worldIndex >= WORLDS.length - 1) {
-                    state.runWon = true;
-                    state.phase = "victory";
-                    WarState.saveGame(state);
-                    showScreen("victory");
+        notes.push(
+            isEpicCombat
+                ? `<p class="war-settlement-note--win"><strong>史詩戰鬥勝利！+25 金</strong></p>`
+                : `<p class="war-settlement-note--win"><strong>勝利！</strong></p>`
+        );
+        showSettlement({
+            outcome: "win",
+            title: "勝利",
+            subtitle: isBoss
+                ? "Boss 已擊敗"
+                : (isEpicCombat ? "史詩戰鬥結束" : "戰鬥結束"),
+            notes,
+            continueLabel: "繼續",
+            onContinue: () => {
+                if (!battleEnded || !battle || !battle.finished) return;
+                if (isBoss) {
+                    if (state.worldIndex >= WORLDS.length - 1) {
+                        state.runWon = true;
+                        state.phase = "victory";
+                        WarState.saveGame(state);
+                        showScreen("victory");
+                    } else {
+                        pendingRewardType = "artifact";
+                        pendingRewardSource = "boss";
+                        showRewardScreen();
+                    }
+                } else if (isEpicCombat) {
+                    pendingRewardType = "epic";
+                    pendingRewardSource = "epic_combat";
+                    showRewardScreen();
                 } else {
-                    pendingRewardType = "artifact";
-                    pendingRewardSource = "boss";
+                    pendingRewardType = Math.random() < 0.3 ? "ability" : "artifact";
+                    pendingRewardSource = "combat";
                     showRewardScreen();
                 }
-            } else if (isEpicCombat) {
-                pendingRewardType = "epic";
-                pendingRewardSource = "epic_combat";
-                showRewardScreen();
-            } else {
-                pendingRewardType = Math.random() < 0.3 ? "ability" : "artifact";
-                pendingRewardSource = "combat";
-                showRewardScreen();
             }
-        };
-        WarState.saveGame(state);
+        });
     }
 
     function showUnitRecruitScreen() {
@@ -2175,16 +2344,19 @@
 
     function enterEndlessFromVictory() {
         if (!state) return;
-        WarState.enterEndlessMode(state);
+        const result = WarState.enterEndlessMode(state);
         updateHud();
         updateEndlessAutoUi();
         showScreen("map");
         renderMap();
         WarState.saveGame(state);
         const best = WarState.getEndlessBest();
+        const reviveNote = result?.revived?.count
+            ? `已再確認復活 ${result.revived.count} 名單位。`
+            : "部隊已全員就緒。";
         showRoomMessage(
             "無盡模式",
-            `直線關卡：史詩戰 → Boss。無金幣／神器獎勵。看你能過幾關。${best ? ` 目前最佳：${best} 關。` : ""}`,
+            `${reviveNote}直線關卡：史詩戰 → Boss。無金幣／神器獎勵。看你能過幾關。${best ? ` 目前最佳：${best} 關。` : ""}`,
             () => {}
         );
     }
@@ -2217,7 +2389,8 @@
             renderArmyPrep();
             updateEndlessAutoUi();
             if (state.endless && state.endlessAutoRun) scheduleEndlessAuto(() => startBattle(), 200);
-        } else if (state.phase === "battle") {
+        } else if (state.phase === "settlement" || state.phase === "battle") {
+            // In-memory battle is gone after reload; return to map
             state.phase = "map";
             showScreen("map");
             renderMap();
@@ -2227,6 +2400,119 @@
             renderMap();
             if (state.endless && state.endlessAutoRun) scheduleEndlessAuto(() => tryEndlessAutoRun(), 300);
         }
+    }
+
+    function rarityRank(r) {
+        const order = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4, unique: 5 };
+        return order[r] != null ? order[r] : 0;
+    }
+
+    function galleryUnitEntries(kind) {
+        return Object.values(UNITS || {})
+            .filter((u) => {
+                if (!u) return false;
+                if (kind === "bosses") return u.role === "boss";
+                if (kind === "units") {
+                    return u.role !== "enemy" && u.role !== "boss" && u.role !== "summon" && !u.temporary;
+                }
+                return false;
+            })
+            .sort((a, b) => rarityRank(a.rarity) - rarityRank(b.rarity) || (a.name || "").localeCompare(b.name || "", "zh-Hant"));
+    }
+
+    function galleryItemCardHtml(item, kind) {
+        const rarity = item.rarity || "common";
+        const badge = rarityBadgeHtml(rarity);
+        if (kind === "unit" || kind === "boss") {
+            const rangeText = item.range === "ranged" ? "遠程" : "近戰";
+            const skill = item.skill
+                ? `<p class="war-gallery-card-desc"><strong>${item.skill.name}</strong> — ${item.skill.desc || ""}</p>`
+                : `<p class="war-gallery-card-desc war-gallery-card-desc--muted">無主動技能</p>`;
+            const stats = `HP ${item.hp} · 攻 ${item.atk} · 防 ${item.def} · 攻速 ${item.spd}`;
+            return `<article class="war-gallery-card war-gallery-card--${rarity}">
+                <div class="war-gallery-card-head">
+                    <span class="war-gallery-card-icon">${item.icon || "?"}</span>
+                    <div>
+                        <h3 class="war-gallery-card-title">${item.name}</h3>
+                        <p class="war-gallery-card-sub">${roleLabel(item.role)} · ${rangeText}</p>
+                    </div>
+                    ${badge}
+                </div>
+                <div class="war-unit-tags">${unitTagHtml(item)}</div>
+                <p class="war-gallery-card-stats">${stats}</p>
+                ${skill}
+            </article>`;
+        }
+        return `<article class="war-gallery-card war-gallery-card--${rarity}">
+            <div class="war-gallery-card-head">
+                <div>
+                    <h3 class="war-gallery-card-title">${item.name}</h3>
+                    <p class="war-gallery-card-sub">${kind === "artifact" ? "神器" : kind === "ability" ? "能力" : "羈絆"}</p>
+                </div>
+                ${badge}
+            </div>
+            <p class="war-gallery-card-desc">${item.desc || ""}</p>
+        </article>`;
+    }
+
+    let galleryTab = "units";
+
+    function renderGallery(tab) {
+        galleryTab = tab || galleryTab || "units";
+        const list = $("galleryList");
+        const hint = $("galleryHint");
+        if (!list) return;
+
+        document.querySelectorAll(".war-gallery-tab").forEach((btn) => {
+            const on = btn.dataset.tab === galleryTab;
+            btn.classList.toggle("is-active", on);
+            btn.setAttribute("aria-selected", on ? "true" : "false");
+        });
+
+        let html = "";
+        if (galleryTab === "units") {
+            const units = galleryUnitEntries("units");
+            if (hint) hint.textContent = `可招募單位 ${units.length} 種（不含召喚物）`;
+            html = units.map((u) => galleryItemCardHtml(u, "unit")).join("");
+        } else if (galleryTab === "bosses") {
+            const bosses = galleryUnitEntries("bosses");
+            if (hint) hint.textContent = `世界 Boss ${bosses.length} 種`;
+            html = bosses.map((u) => galleryItemCardHtml(u, "boss")).join("");
+        } else if (galleryTab === "artifacts") {
+            const arts = [...(ARTIFACTS || [])].sort((a, b) => rarityRank(a.rarity) - rarityRank(b.rarity));
+            if (hint) hint.textContent = `神器 ${arts.length} 件`;
+            html = arts.map((a) => galleryItemCardHtml(a, "artifact")).join("");
+        } else if (galleryTab === "abilities") {
+            const abs = [...(WarData.ABILITIES || [])].sort((a, b) => rarityRank(a.rarity) - rarityRank(b.rarity));
+            if (hint) hint.textContent = `能力 ${abs.length} 項`;
+            html = abs.map((a) => galleryItemCardHtml(a, "ability")).join("");
+        } else if (galleryTab === "synergies") {
+            const syns = WarData.SYNERGIES || [];
+            if (hint) hint.textContent = `出戰羈絆 ${syns.length} 種（依標籤數量觸發）`;
+            html = syns.map((s) => {
+                const tagLabel = (TAGS[s.tag] && TAGS[s.tag].label) || s.tag;
+                return `<article class="war-gallery-card">
+                    <div class="war-gallery-card-head">
+                        <div>
+                            <h3 class="war-gallery-card-title">${s.name}</h3>
+                            <p class="war-gallery-card-sub">[${tagLabel}] × ${s.count}</p>
+                        </div>
+                    </div>
+                    <p class="war-gallery-card-desc">${s.desc || ""}</p>
+                </article>`;
+            }).join("");
+        }
+
+        list.innerHTML = html || `<p class="war-hint">尚無資料</p>`;
+    }
+
+    function openGallery(tab) {
+        renderGallery(tab || "units");
+        $("galleryModal").hidden = false;
+    }
+
+    function closeGallery() {
+        $("galleryModal").hidden = true;
     }
 
     function toggleFullscreen() {
@@ -2259,9 +2545,65 @@
 
         $("newRunBtn").addEventListener("click", newRun);
         $("continueBtn").addEventListener("click", continueRun);
+        $("galleryBtn").addEventListener("click", () => openGallery("units"));
+        $("galleryModalClose").addEventListener("click", closeGallery);
+        $("galleryModalBackdrop").addEventListener("click", closeGallery);
+        document.querySelectorAll(".war-gallery-tab").forEach((btn) => {
+            btn.addEventListener("click", () => renderGallery(btn.dataset.tab));
+        });
         $("clearFormationBtn").addEventListener("click", () => {
             state.army = [];
             renderArmyPrep();
+        });
+        const formationLayout = { arrange: "frontBack", vAlign: "middle", hAlign: "middle" };
+        const arrangeLabel = { frontBack: "近前遠後", spread: "均勻分佈" };
+        const valignLabel = { top: "靠上", middle: "置中", bottom: "靠下" };
+        const halignLabel = { front: "靠前", middle: "置中", back: "靠後" };
+
+        function syncFormationLayoutUi() {
+            document.querySelectorAll(".war-layout-arrange").forEach((btn) => {
+                btn.classList.toggle("is-active", btn.dataset.arrange === formationLayout.arrange);
+            });
+            document.querySelectorAll(".war-layout-valign").forEach((btn) => {
+                btn.classList.toggle("is-active", btn.dataset.valign === formationLayout.vAlign);
+            });
+            document.querySelectorAll(".war-layout-halign").forEach((btn) => {
+                btn.classList.toggle("is-active", btn.dataset.halign === formationLayout.hAlign);
+            });
+        }
+
+        function applyCombinedFormationLayout() {
+            if (!state || !Array.isArray(state.army) || !state.army.length) {
+                $("formationHint").textContent = "請先派出單位";
+                return;
+            }
+            WarState.layoutArmyFormation(state.army, formationLayout);
+            renderArmyPrep();
+            $("formationHint").textContent =
+                `站位：${arrangeLabel[formationLayout.arrange]} · ${valignLabel[formationLayout.vAlign]} · ${halignLabel[formationLayout.hAlign]}`;
+            WarState.saveGame(state);
+        }
+
+        document.querySelectorAll(".war-layout-arrange").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                formationLayout.arrange = btn.dataset.arrange;
+                syncFormationLayoutUi();
+                applyCombinedFormationLayout();
+            });
+        });
+        document.querySelectorAll(".war-layout-valign").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                formationLayout.vAlign = btn.dataset.valign;
+                syncFormationLayoutUi();
+                applyCombinedFormationLayout();
+            });
+        });
+        document.querySelectorAll(".war-layout-halign").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                formationLayout.hAlign = btn.dataset.halign;
+                syncFormationLayoutUi();
+                applyCombinedFormationLayout();
+            });
         });
         $("deployAllBtn").addEventListener("click", () => {
             deployAllEligible();

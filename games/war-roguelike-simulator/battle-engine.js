@@ -895,18 +895,19 @@
     function pushSparkFx(fx, x, y, lite) {
         if (!fx) return;
         if (lite) {
-            fx.push({ type: "hit", x, y, t: 0.18 });
+            fx.push({ type: "hit", x, y, t: 0.22, r: 8 });
             return;
         }
         fx.push({
             type: "spark",
             x,
             y,
-            t: 0.32,
-            life: 0.32,
-            color: "#fef3c7",
+            t: 0.4,
+            life: 0.4,
+            color: "#fef08a",
             seeds: [Math.random(), Math.random(), Math.random(), Math.random(), Math.random(), Math.random()]
         });
+        fx.push({ type: "hit", x, y, t: 0.18, r: 10 });
     }
 
     function applyDamage(target, dmg, attacker, modifiers, log, fx, meta, battleState) {
@@ -1499,26 +1500,52 @@
                 u.attackTimer += dt * u.spd * spdMult;
                 if (u.attackTimer >= 1) {
                     u.attackTimer = 0;
-                    u.attackFlash = 0.18;
+                    u.attackFlash = 0.28;
                     const shots = Math.max(1, u.multishot || 1);
                     const targets = nearestEnemies(u, units, shots, state);
                     targets.forEach((t, i) => {
                         const scale = i === 0 ? 1 : 0.85;
                         const rolled = calcDamage(u, t, modifiers, null, state);
                         const dmg = Math.max(1, Math.floor(rolled.amount * scale));
-                        if (u.rangeType === "ranged" && fx) {
-                            if (many) {
-                                fx.push({ type: "bolt", x0: u.x, y0: u.y, x1: t.x, y1: t.y, t: 0.12 });
+                        if (fx) {
+                            if (u.rangeType === "ranged") {
+                                const shotColor = u.side === "player" ? "#7dd3fc" : "#fda4af";
+                                if (many) {
+                                    fx.push({
+                                        type: "bolt",
+                                        x0: u.x,
+                                        y0: u.y,
+                                        x1: t.x,
+                                        y1: t.y,
+                                        t: 0.16,
+                                        color: shotColor,
+                                        w: 3.5
+                                    });
+                                } else {
+                                    fx.push({
+                                        type: "proj",
+                                        x0: u.x,
+                                        y0: u.y,
+                                        x1: t.x,
+                                        y1: t.y,
+                                        t: 0.26,
+                                        life: 0.26,
+                                        color: shotColor,
+                                        r: 5
+                                    });
+                                }
                             } else {
+                                // Melee slash toward the target
                                 fx.push({
-                                    type: "proj",
+                                    type: "slash",
                                     x0: u.x,
                                     y0: u.y,
                                     x1: t.x,
                                     y1: t.y,
-                                    t: 0.2,
-                                    life: 0.2,
-                                    color: "#93c5fd"
+                                    t: many ? 0.14 : 0.22,
+                                    life: many ? 0.14 : 0.22,
+                                    color: u.side === "player" ? "#86efac" : "#fca5a5",
+                                    crit: !!(rolled.crit && i === 0)
                                 });
                             }
                         }

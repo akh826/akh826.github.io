@@ -37,9 +37,13 @@
             <div class="war-title-card">
                 <h1 class="war-title">戰爭 Roguelike</h1>
                 <p class="war-subtitle">出戰混戰 · 隨機路線 · 神器成長</p>
+                <p class="war-title-desc">
+                    選擇路線穿越多個世界，佈陣後自動戰鬥。招募單位、收集神器與能力壯大部隊，擊敗各關 Boss。陣亡單位永久失去，通關後可挑戰無盡模式。
+                </p>
                 <div class="war-title-actions">
                     <button type="button" class="war-btn war-btn-primary" id="newRunBtn">新遊戲</button>
                     <button type="button" class="war-btn war-btn-outline" id="continueBtn" hidden>繼續遊戲</button>
+                    <button type="button" class="war-btn war-btn-outline" id="galleryBtn">圖鑑</button>
                 </div>
             </div>
         </section>
@@ -76,6 +80,25 @@
                 <canvas id="prepCanvas" width="800" height="450" aria-label="站位規劃"></canvas>
             </div>
             <p class="war-hint">左側為我方部署區 · 拖曳單位調整位置 · 出戰勝場累積經驗升星（合星僅限事件）</p>
+            <div class="war-formation-layout-bar" aria-label="快速站位">
+                <div class="war-formation-layout-row" role="group" aria-label="排列方式">
+                    <span class="war-formation-layout-label">排列</span>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-arrange is-active" data-arrange="frontBack">近前遠後</button>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-arrange" data-arrange="spread">均勻分佈</button>
+                </div>
+                <div class="war-formation-layout-row" role="group" aria-label="上下位置">
+                    <span class="war-formation-layout-label">上下</span>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-valign" data-valign="top">靠上</button>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-valign is-active" data-valign="middle">置中</button>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-valign" data-valign="bottom">靠下</button>
+                </div>
+                <div class="war-formation-layout-row" role="group" aria-label="前後位置">
+                    <span class="war-formation-layout-label">前後</span>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-halign" data-halign="front">靠前</button>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-halign is-active" data-halign="middle">置中</button>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-halign" data-halign="back">靠後</button>
+                </div>
+            </div>
             <div class="war-action-bar">
                 <button type="button" class="war-btn war-btn-outline" id="prepUnitInfoBtn">查看單位</button>
                 <button type="button" class="war-btn war-btn-outline" id="deployAllBtn">全出戰</button>
@@ -109,6 +132,17 @@
             </div>
             <div class="war-action-bar" id="battleActions" hidden>
                 <button type="button" class="war-btn war-btn-primary" id="battleContinueBtn">繼續</button>
+            </div>
+        </section>
+
+        <!-- Battle settlement -->
+        <section class="war-screen war-screen--settlement" id="screenSettlement" hidden>
+            <h2 class="war-screen-title" id="settlementTitle">戰鬥結算</h2>
+            <p class="war-hint" id="settlementSubtitle"></p>
+            <div class="war-settlement-notes" id="settlementNotes" aria-live="polite"></div>
+            <div class="war-settlement-stats" id="settlementStats" aria-label="戰後統計"></div>
+            <div class="war-action-bar" id="settlementActions">
+                <button type="button" class="war-btn war-btn-primary" id="settlementContinueBtn">繼續</button>
             </div>
         </section>
 
@@ -146,11 +180,29 @@
             </div>
         </div>
 
+        <!-- Title-screen gallery / codex -->
+        <div class="war-modal" id="galleryModal" hidden>
+            <div class="war-modal-backdrop" id="galleryModalBackdrop"></div>
+            <div class="war-modal-dialog war-modal-dialog--gallery" role="dialog" aria-modal="true" aria-labelledby="galleryModalTitle">
+                <h2 class="war-modal-title" id="galleryModalTitle">圖鑑</h2>
+                <div class="war-gallery-tabs" id="galleryTabs" role="tablist" aria-label="圖鑑分類">
+                    <button type="button" class="war-btn war-btn-sm war-gallery-tab is-active" data-tab="units" role="tab" aria-selected="true">單位</button>
+                    <button type="button" class="war-btn war-btn-sm war-gallery-tab" data-tab="bosses" role="tab" aria-selected="false">Boss</button>
+                    <button type="button" class="war-btn war-btn-sm war-gallery-tab" data-tab="artifacts" role="tab" aria-selected="false">神器</button>
+                    <button type="button" class="war-btn war-btn-sm war-gallery-tab" data-tab="abilities" role="tab" aria-selected="false">能力</button>
+                    <button type="button" class="war-btn war-btn-sm war-gallery-tab" data-tab="synergies" role="tab" aria-selected="false">羈絆</button>
+                </div>
+                <p class="war-hint war-gallery-hint" id="galleryHint"></p>
+                <div class="war-gallery-list" id="galleryList"></div>
+                <button type="button" class="war-btn war-btn-primary war-modal-close" id="galleryModalClose">關閉</button>
+            </div>
+        </div>
+
         <!-- End screens -->
         <section class="war-screen war-screen--end" id="screenVictory" hidden>
             <h2 class="war-title">勝利！</h2>
             <p class="war-subtitle">你征服了所有世界！</p>
-            <p class="war-hint" id="victoryEndlessHint">可挑戰無盡模式：僅有史詩戰與 Boss，無獎勵，看你能突破多少關。</p>
+            <p class="war-hint" id="victoryEndlessHint">可挑戰無盡模式：僅有史詩戰與 Boss，無獎勵。最終 Boss 通關後陣亡單位已全體免費復活。</p>
             <div class="war-title-actions">
                 <button type="button" class="war-btn war-btn-primary" id="endlessModeBtn">進入無盡模式</button>
                 <button type="button" class="war-btn war-btn-outline" id="victoryRestartBtn">再玩一次</button>

@@ -116,6 +116,14 @@
     max-width: 28ch;
 }
 
+.war-title-desc {
+    margin: 0;
+    max-width: 36ch;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: color-mix(in srgb, var(--muted) 88%, var(--text));
+}
+
 .war-title-actions {
     display: flex;
     flex-direction: column;
@@ -643,6 +651,38 @@ body.dark .war-army-chip--deployed {
     font-size: 1.25rem;
 }
 
+.war-formation-layout-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin: 0.35rem 0 0.15rem;
+}
+
+.war-formation-layout-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    justify-content: center;
+    align-items: center;
+}
+
+.war-formation-layout-label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-right: 0.15rem;
+}
+
+.war-formation-layout-bar .war-btn {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
+.war-formation-layout-bar .war-btn.is-active {
+    background: #334155;
+    border-color: #94a3b8;
+    color: #f8fafc;
+}
+
 .war-action-bar {
     display: flex;
     flex-wrap: wrap;
@@ -779,6 +819,193 @@ body.dark .war-army-chip--deployed {
     grid-column: 1 / -1;
     font-size: 0.68rem;
     color: #f87171;
+}
+
+/* Settlement screen */
+.war-screen--settlement {
+    align-items: stretch;
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+}
+
+.war-settlement-title--win {
+    color: #86efac;
+}
+
+.war-settlement-title--lose {
+    color: #fca5a5;
+}
+
+.war-settlement-notes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    color: var(--muted);
+}
+
+.war-settlement-notes:empty {
+    display: none;
+}
+
+.war-settlement-notes p {
+    margin: 0;
+}
+
+.war-settlement-notes .war-settlement-note--win {
+    color: #86efac;
+    font-weight: 600;
+}
+
+.war-settlement-notes .war-settlement-note--warn {
+    color: #fbbf24;
+}
+
+.war-settlement-notes .war-settlement-note--bad {
+    color: #fca5a5;
+}
+
+.war-settlement-stats {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: min(58vh, 28rem);
+    overflow-y: auto;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+.war-settlement-stats .war-battle-stats-title {
+    margin: 0 0 0.45rem;
+    font-size: 0.9rem;
+}
+
+.war-settlement-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem 1rem;
+    margin-bottom: 0.65rem;
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+
+.war-settlement-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.war-settlement-swatch {
+    display: inline-block;
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 2px;
+}
+
+.war-settlement-swatch--dealt { background: #f97316; }
+.war-settlement-swatch--taken { background: #64748b; }
+.war-settlement-swatch--healed { background: #22c55e; }
+
+.war-settlement-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+.war-settlement-unit {
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+}
+
+.war-settlement-unit:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.war-settlement-unit--dead {
+    opacity: 0.72;
+}
+
+.war-settlement-unit-head {
+    margin-bottom: 0.3rem;
+}
+
+.war-settlement-unit-name {
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.82rem;
+}
+
+.war-settlement-unit-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 0.22rem;
+}
+
+.war-settlement-metric {
+    display: grid;
+    grid-template-columns: 2.4rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.war-settlement-metric-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.war-settlement-metric-label--dealt { color: #fdba74; }
+.war-settlement-metric-label--taken { color: #94a3b8; }
+.war-settlement-metric-label--healed { color: #86efac; }
+
+.war-stat-bar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 2.6rem;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.war-stat-bar-track {
+    height: 0.55rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--border) 55%, transparent);
+    overflow: hidden;
+}
+
+.war-stat-bar-fill {
+    height: 100%;
+    border-radius: inherit;
+    min-width: 0;
+    transition: width 0.35s ease-out;
+}
+
+.war-stat-bar-fill--dealt {
+    background: linear-gradient(90deg, #ea580c, #fb923c);
+}
+
+.war-stat-bar-fill--taken {
+    background: linear-gradient(90deg, #475569, #94a3b8);
+}
+
+.war-stat-bar-fill--healed {
+    background: linear-gradient(90deg, #16a34a, #4ade80);
+}
+
+.war-stat-bar-val {
+    font-variant-numeric: tabular-nums;
+    font-size: 0.72rem;
+    color: var(--text);
+    text-align: right;
+}
+
+.war-screen--settlement .war-action-bar {
+    margin-top: 0.25rem;
 }
 
 .war-battle-toolbar {
@@ -1162,6 +1389,137 @@ body.dark .war-army-chip--deployed {
 }
 
 .war-modal-dialog--roster .war-modal-close {
+    flex-shrink: 0;
+}
+
+.war-modal-dialog--gallery {
+    width: min(96vw, 1280px);
+    max-width: 1280px;
+    min-width: min(96vw, 720px);
+    max-height: 92dvh;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    box-sizing: border-box;
+}
+
+.war-gallery-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    flex-shrink: 0;
+}
+
+.war-gallery-tab.is-active {
+    background: #334155;
+    border-color: #94a3b8;
+    color: #f8fafc;
+}
+
+.war-gallery-hint {
+    margin: 0;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+}
+
+.war-gallery-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    overflow-y: auto;
+    display: grid;
+    /* auto-fill keeps empty tracks — cards stay same width even with few items */
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.55rem;
+    padding-right: 0.15rem;
+    align-content: start;
+    justify-content: start;
+}
+
+.war-gallery-list > .war-hint {
+    grid-column: 1 / -1;
+}
+
+.war-gallery-card {
+    padding: 0.55rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.war-gallery-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    margin-bottom: 0.3rem;
+}
+
+.war-gallery-card-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+    flex: 0 0 auto;
+}
+
+.war-gallery-card-title {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--text);
+}
+
+.war-gallery-card-sub {
+    margin: 0.08rem 0 0;
+    font-size: 0.68rem;
+    color: var(--muted);
+}
+
+.war-gallery-card-head .war-rarity-badge {
+    margin-left: auto;
+    flex: 0 0 auto;
+    font-size: 0.65rem;
+    padding: 0.12rem 0.35rem;
+}
+
+.war-gallery-card-stats {
+    margin: 0.2rem 0 0;
+    font-size: 0.7rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.war-gallery-card-desc {
+    margin: 0.25rem 0 0;
+    font-size: 0.74rem;
+    line-height: 1.4;
+    color: color-mix(in srgb, var(--muted) 70%, var(--text));
+}
+
+.war-gallery-card .war-unit-tags {
+    flex-wrap: wrap;
+    gap: 0.2rem;
+}
+
+.war-gallery-card .war-unit-tag {
+    font-size: 0.62rem;
+    padding: 0.08rem 0.32rem;
+}
+
+.war-gallery-card-desc--muted {
+    opacity: 0.75;
+}
+
+.war-gallery-card--legendary,
+.war-gallery-card--unique {
+    border-color: color-mix(in srgb, #fbbf24 45%, var(--border));
+}
+
+.war-gallery-card--epic {
+    border-color: color-mix(in srgb, #c084fc 40%, var(--border));
+}
+
+.war-modal-dialog--gallery .war-modal-close {
     flex-shrink: 0;
 }
 

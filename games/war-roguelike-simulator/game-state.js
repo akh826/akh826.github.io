@@ -134,6 +134,98 @@
         }).filter((s) => s.id);
     }
 
+    function isRangedArmyUnit(unitId) {
+        const def = UNITS[unitId];
+        if (!def) return false;
+        if (def.range === "ranged") return true;
+        return Array.isArray(def.tags) && def.tags.includes("ranged");
+    }
+
+    function yBandForAlign(vAlign, arenaH) {
+        const h = arenaH || ARENA.height;
+        const pad = 28;
+        if (vAlign === "top") return { y0: pad, y1: h * 0.46 };
+        if (vAlign === "bottom") return { y0: h * 0.54, y1: h - pad };
+        return { y0: pad, y1: h - pad };
+    }
+
+    /** Shift deploy-zone X fractions: front = toward enemy (right), back = toward left. */
+    function shiftXFrac(frac, hAlign) {
+        const clamp = (v) => Math.max(0.08, Math.min(0.44, v));
+        if (hAlign === "front") return clamp(frac + 0.08);
+        if (hAlign === "back") return clamp(frac - 0.08);
+        return clamp(frac);
+    }
+
+    function mapXs(fracs, hAlign, w) {
+        return fracs.map((f) => shiftXFrac(f, hAlign) * w);
+    }
+
+    function spreadYsInBand(count, y0, y1) {
+        if (count <= 1) return [(y0 + y1) / 2];
+        return Array.from({ length: count }, (_, i) => y0 + (i / (count - 1)) * (y1 - y0));
+    }
+
+    function placeGroupInColumns(group, xCenters, y0, y1, w, h) {
+        if (!group.length) return;
+        const cols = Math.max(1, xCenters.length);
+        const rows = Math.ceil(group.length / cols);
+        const ys = spreadYsInBand(rows, y0, y1);
+        group.forEach((slot, idx) => {
+            const col = idx % cols;
+            const row = Math.floor(idx / cols);
+            const pos = clampArmyPos(xCenters[col], ys[Math.min(row, ys.length - 1)], w, h);
+            slot.x = pos.x;
+            slot.y = pos.y;
+        });
+    }
+
+    /**
+     * Unified formation layout.
+     * @param {object[]} army
+     * @param {{ arrange?: 'frontBack'|'spread', vAlign?: 'top'|'middle'|'bottom', hAlign?: 'front'|'middle'|'back' }} opts
+     */
+    function layoutArmyFormation(army, opts, arenaW, arenaH) {
+        const w = arenaW || ARENA.width;
+        const h = arenaH || ARENA.height;
+        const list = Array.isArray(army) ? army : [];
+        if (!list.length) return list;
+        const arrange = (opts && opts.arrange) || "frontBack";
+        const vAlign = (opts && opts.vAlign) || "middle";
+        const hAlign = (opts && opts.hAlign) || "middle";
+        const { y0, y1 } = yBandForAlign(vAlign, h);
+
+        if (arrange === "spread") {
+            const cols = list.length <= 4 ? 1 : (list.length <= 12 ? 2 : 3);
+            const base = cols === 1 ? [0.24] : [0.14, 0.26, 0.38].slice(0, cols);
+            placeGroupInColumns(list, mapXs(base, hAlign, w), y0, y1, w, h);
+            return separateArmySlots(list, w, h);
+        }
+
+        // frontBack: melee toward center line, ranged toward left edge
+        const front = [];
+        const back = [];
+        list.forEach((slot) => {
+            const id = armyUnitId(slot);
+            if (!id) return;
+            (isRangedArmyUnit(id) ? back : front).push(slot);
+        });
+
+        if (front.length && !back.length) {
+            const base = front.length > 6 ? [0.22, 0.34] : [0.28];
+            placeGroupInColumns(front, mapXs(base, hAlign, w), y0, y1, w, h);
+        } else if (!front.length && back.length) {
+            const base = back.length > 6 ? [0.12, 0.22] : [0.18];
+            placeGroupInColumns(back, mapXs(base, hAlign, w), y0, y1, w, h);
+        } else {
+            const frontBase = front.length > 6 ? [0.32, 0.42] : [0.38];
+            const backBase = back.length > 6 ? [0.10, 0.18] : [0.16];
+            placeGroupInColumns(front, mapXs(frontBase, hAlign, w), y0, y1, w, h);
+            placeGroupInColumns(back, mapXs(backBase, hAlign, w), y0, y1, w, h);
+        }
+        return separateArmySlots(list, w, h);
+    }
+
     function makeArmySlot(unitId, index, total, star, uid) {
         const pos = defaultSlotPos(index, total);
         return {
@@ -1540,8 +1632,8 @@
     function reviveCostForUnit(unitId, costMult) {
         const def = UNITS[unitId];
         const rarity = (def && def.rarity) || "common";
-        const base = { common: 28, uncommon: 42, rare: 65, epic: 95, legendary: 120, unique: 140 };
-        const raw = base[rarity] != null ? base[rarity] : 40;
+        const base = { common: 12, uncommon: 18, rare: 28, epic: 40, legendary: 50, unique: 60 };
+        const raw = base[rarity] != null ? base[rarity] : 16;
         const mult = costMult != null ? costMult : 1;
         return Math.max(1, Math.floor(raw * mult));
     }
@@ -1621,9 +1713,35 @@
         return best;
     }
 
+    /** Restore all fallen units without gold cost (e.g. before endless mode). */
+    function reviveAllFallenFree(state) {
+        if (!state || !Array.isArray(state.fallenUnits) || !state.fallenUnits.length) {
+            return { count: 0, names: [] };
+        }
+        if (!state.ownedUnits) state.ownedUnits = [];
+        state.ownedUnits = normalizeOwnedList(state.ownedUnits, state);
+        if (!state.roster) state.roster = [];
+        const names = [];
+        const restored = state.fallenUnits.splice(0, state.fallenUnits.length);
+        restored.forEach((entry) => {
+            if (!entry || !entry.id) return;
+            state.ownedUnits.push({
+                uid: entry.uid || nextOwnedUid(state),
+                id: entry.id,
+                star: entry.star || 1,
+                exp: entry.exp || 0
+            });
+            if (!state.roster.includes(entry.id)) state.roster.push(entry.id);
+            names.push(entry.name || (UNITS[entry.id] && UNITS[entry.id].name) || entry.id);
+        });
+        state.ownedUnits = normalizeOwnedList(state.ownedUnits, state);
+        return { count: names.length, names };
+    }
+
     /** After campaign clear — gauntlet of epic fights + boss, no loot. */
     function enterEndlessMode(state) {
         if (!state) return { ok: false };
+        const revived = reviveAllFallenFree(state);
         state.endless = true;
         state.endlessLoop = 1;
         state.endlessStages = 0;
@@ -1632,7 +1750,11 @@
         state.worldIndex = 0;
         state.map = global.WarMap.generateEndlessMap(1, state.seed + 70000, 0);
         state.phase = "map";
-        return { ok: true, loop: 1 };
+        // Refresh army from last setup so revived units can be redeployed
+        if (Array.isArray(state.lastBattleSetup) && state.lastBattleSetup.length) {
+            state.army = restoreLastBattleSetup(state);
+        }
+        return { ok: true, loop: 1, revived };
     }
 
     function saveGame(state) {
@@ -2040,6 +2162,7 @@
         applyBattleCasualties,
         reviveCostForUnit,
         recoverFallenUnit,
+        reviveAllFallenFree,
         advanceWorld,
         enterEndlessMode,
         getEndlessBest,
@@ -2065,6 +2188,7 @@
         snapshotArmySetup,
         restoreLastBattleSetup,
         layoutArmySlots,
+        layoutArmyFormation,
         armyUnitId,
         clampArmyToOwned,
         unitMayFight,

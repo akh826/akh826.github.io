@@ -62,7 +62,7 @@
 
     /** Event rooms may secretly be traps — decided at generation, hidden until entered. */
     function resolveEventOutcome(rng, worldIndex) {
-        const trapChance = 0.32 + Math.min(0.2, worldIndex * 0.06);
+        const trapChance = 0.05 + Math.min(0.05, worldIndex * 0.015);
         return rng() < trapChance ? "trap" : "event";
     }
 
