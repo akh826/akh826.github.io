@@ -21,14 +21,23 @@
 
     <main class="war-shell" id="warShell">
         <header class="war-hud" id="warHud" hidden>
-            <div class="war-hud-row">
-                <span class="war-hud-item" id="hudWorld">世界 1</span>
-                <span class="war-hud-item war-hud-gold">金 <span id="hudGold">50</span></span>
+            <div class="war-hud-status" id="hudStatus">
+                <span class="war-hud-pill" id="hudWorld">世界 1</span>
+                <span class="war-hud-pill war-hud-pill--gold">金 <span id="hudGold">50</span></span>
             </div>
-            <div class="war-hud-actions">
-                <button type="button" class="war-btn war-btn-sm" id="unitRosterBtn">部隊</button>
-                <button type="button" class="war-btn war-btn-sm" id="fullscreenBtn" aria-label="全螢幕">⛶</button>
-                <button type="button" class="war-btn war-btn-sm" id="saveBtn">儲存</button>
+            <div class="war-hud-toolbar" id="hudActions">
+                <div class="war-hud-group war-hud-group--prep" id="hudPrepGroup" hidden>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-hud-formation" id="enemyIntelBtn">敵情</button>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-hud-formation" id="deployAllBtn">全出</button>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-hud-formation" id="clearFormationBtn">全撤</button>
+                    <button type="button" class="war-btn war-btn-sm war-btn-primary war-hud-formation" id="startBattleBtn">開戰</button>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-endless-auto war-hud-formation" id="formationAutoBtn" hidden aria-pressed="false">連戰</button>
+                </div>
+                <div class="war-hud-group war-hud-group--util" id="hudUtilGroup">
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline" id="unitRosterBtn">部隊</button>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline" id="fullscreenBtn" aria-label="全螢幕" title="全螢幕">⛶</button>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline" id="saveBtn">儲存</button>
+                </div>
             </div>
         </header>
 
@@ -68,43 +77,9 @@
         </section>
 
         <!-- Army prep -->
-        <section class="war-screen" id="screenFormation" hidden>
-            <h2 class="war-screen-title">出戰準備</h2>
-            <p class="war-hint" id="formationHint">先選出戰單位，再拖曳左側站位</p>
-            <div class="war-formation-meta" id="formationMeta" aria-live="polite"></div>
-            <div class="war-enemy-intel" id="enemyIntel" aria-label="敵軍情報"></div>
-            <p class="war-hint war-army-count" id="armyCountLabel">擁有 0 · 出戰 0</p>
-            <p class="war-hint war-perf-warn" id="armyPerfWarn" hidden>單位較多，可能影響流暢度（仍可開戰）</p>
-            <div class="war-army-list" id="ownedUnitList" aria-label="擁有單位"></div>
-            <div class="war-canvas-wrap">
+        <section class="war-screen war-screen--formation" id="screenFormation" hidden>
+            <div class="war-canvas-wrap war-canvas-wrap--prep">
                 <canvas id="prepCanvas" width="800" height="450" aria-label="站位規劃"></canvas>
-            </div>
-            <p class="war-hint">左側為我方部署區 · 拖曳單位調整位置 · 出戰勝場累積經驗升星（合星僅限事件）</p>
-            <div class="war-formation-layout-bar" aria-label="快速站位">
-                <div class="war-formation-layout-row" role="group" aria-label="排列方式">
-                    <span class="war-formation-layout-label">排列</span>
-                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-arrange is-active" data-arrange="frontBack">近前遠後</button>
-                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-arrange" data-arrange="spread">均勻分佈</button>
-                </div>
-                <div class="war-formation-layout-row" role="group" aria-label="上下位置">
-                    <span class="war-formation-layout-label">上下</span>
-                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-valign" data-valign="top">靠上</button>
-                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-valign is-active" data-valign="middle">置中</button>
-                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-valign" data-valign="bottom">靠下</button>
-                </div>
-                <div class="war-formation-layout-row" role="group" aria-label="前後位置">
-                    <span class="war-formation-layout-label">前後</span>
-                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-halign" data-halign="front">靠前</button>
-                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-halign is-active" data-halign="middle">置中</button>
-                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-halign" data-halign="back">靠後</button>
-                </div>
-            </div>
-            <div class="war-action-bar">
-                <button type="button" class="war-btn war-btn-outline" id="prepUnitInfoBtn">查看單位</button>
-                <button type="button" class="war-btn war-btn-outline" id="deployAllBtn">全出戰</button>
-                <button type="button" class="war-btn war-btn-outline" id="clearFormationBtn">全撤下</button>
-                <button type="button" class="war-btn war-btn-outline war-endless-auto" id="formationAutoBtn" hidden aria-pressed="false">自動連戰：關</button>
-                <button type="button" class="war-btn war-btn-primary" id="startBattleBtn">開始戰鬥</button>
             </div>
         </section>
 
@@ -166,6 +141,43 @@
                 <div class="war-modal-choices" id="roomModalChoices"></div>
                 <div class="war-modal-shop" id="roomModalShop" hidden></div>
                 <button type="button" class="war-btn war-btn-primary war-modal-close" id="roomModalClose" hidden>繼續</button>
+            </div>
+        </div>
+
+        <!-- Deploy units popup (formation) -->
+        <div class="war-modal" id="deployModal" hidden>
+            <div class="war-modal-backdrop" id="deployModalBackdrop"></div>
+            <div class="war-modal-dialog war-modal-dialog--deploy" role="dialog" aria-modal="true" aria-labelledby="deployModalTitle">
+                <h2 class="war-modal-title" id="deployModalTitle">部隊</h2>
+                <p class="war-hint war-army-count" id="armyCountLabel">擁有 0 · 出戰 0</p>
+                <p class="war-hint war-formation-hint" id="formationHint">點單位出戰 · 關閉後可拖曳站位</p>
+                <p class="war-hint war-perf-warn" id="armyPerfWarn" hidden>單位較多，可能影響流暢度</p>
+                <div class="war-formation-meta" id="formationMeta" aria-live="polite"></div>
+                <div class="war-army-list" id="ownedUnitList" aria-label="擁有單位"></div>
+                <div class="war-formation-presets" role="group" aria-label="站位預設">
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-preset is-active" data-preset="balanced">均衡</button>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-preset" data-preset="frontline">前壓</button>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-preset" data-preset="rearguard">後守</button>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-preset" data-preset="wall">橫排</button>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-preset" data-preset="column">縱列</button>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-preset" data-preset="spread">散開</button>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-preset" data-preset="top">上線</button>
+                    <button type="button" class="war-btn war-btn-sm war-btn-outline war-layout-preset" data-preset="bottom">下線</button>
+                </div>
+                <div class="war-modal-actions war-modal-actions--deploy">
+                    <button type="button" class="war-btn war-btn-outline" id="deployRosterDetailBtn">單位詳情</button>
+                    <button type="button" class="war-btn war-btn-primary war-modal-close" id="deployModalClose">完成</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enemy intel popup -->
+        <div class="war-modal" id="enemyIntelModal" hidden>
+            <div class="war-modal-backdrop" id="enemyIntelModalBackdrop"></div>
+            <div class="war-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="enemyIntelModalTitle">
+                <h2 class="war-modal-title" id="enemyIntelModalTitle">敵軍情報</h2>
+                <div class="war-enemy-intel war-enemy-intel--modal" id="enemyIntel" aria-label="敵軍情報"></div>
+                <button type="button" class="war-btn war-btn-primary war-modal-close" id="enemyIntelModalClose">關閉</button>
             </div>
         </div>
 

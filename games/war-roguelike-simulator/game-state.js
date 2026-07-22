@@ -180,20 +180,72 @@
         });
     }
 
+    /** Named presets → layout options (generic one-tap formations). */
+    const FORMATION_PRESETS = {
+        balanced: { arrange: "frontBack", vAlign: "middle", hAlign: "middle", label: "均衡" },
+        frontline: { arrange: "frontBack", vAlign: "middle", hAlign: "front", label: "前壓" },
+        rearguard: { arrange: "frontBack", vAlign: "middle", hAlign: "back", label: "後守" },
+        wall: { arrange: "wall", vAlign: "middle", hAlign: "front", label: "橫排" },
+        column: { arrange: "column", vAlign: "middle", hAlign: "middle", label: "縱列" },
+        spread: { arrange: "spread", vAlign: "middle", hAlign: "middle", label: "散開" },
+        top: { arrange: "frontBack", vAlign: "top", hAlign: "middle", label: "上線" },
+        bottom: { arrange: "frontBack", vAlign: "bottom", hAlign: "middle", label: "下線" }
+    };
+
+    function resolveFormationOpts(opts) {
+        if (opts && opts.preset && FORMATION_PRESETS[opts.preset]) {
+            const p = FORMATION_PRESETS[opts.preset];
+            return {
+                arrange: p.arrange,
+                vAlign: p.vAlign,
+                hAlign: p.hAlign,
+                preset: opts.preset,
+                label: p.label
+            };
+        }
+        return {
+            arrange: (opts && opts.arrange) || "frontBack",
+            vAlign: (opts && opts.vAlign) || "middle",
+            hAlign: (opts && opts.hAlign) || "middle",
+            preset: opts && opts.preset,
+            label: opts && opts.label
+        };
+    }
+
     /**
      * Unified formation layout.
      * @param {object[]} army
-     * @param {{ arrange?: 'frontBack'|'spread', vAlign?: 'top'|'middle'|'bottom', hAlign?: 'front'|'middle'|'back' }} opts
+     * @param {{ preset?: string, arrange?: 'frontBack'|'spread'|'wall'|'column', vAlign?: 'top'|'middle'|'bottom', hAlign?: 'front'|'middle'|'back' }} opts
      */
     function layoutArmyFormation(army, opts, arenaW, arenaH) {
         const w = arenaW || ARENA.width;
         const h = arenaH || ARENA.height;
         const list = Array.isArray(army) ? army : [];
         if (!list.length) return list;
-        const arrange = (opts && opts.arrange) || "frontBack";
-        const vAlign = (opts && opts.vAlign) || "middle";
-        const hAlign = (opts && opts.hAlign) || "middle";
+        const resolved = resolveFormationOpts(opts);
+        const arrange = resolved.arrange;
+        const vAlign = resolved.vAlign;
+        const hAlign = resolved.hAlign;
         const { y0, y1 } = yBandForAlign(vAlign, h);
+
+        if (arrange === "wall") {
+            // Single front line — role-agnostic horizontal row
+            const x = shiftXFrac(0.34, hAlign) * w;
+            const ys = spreadYsInBand(list.length, y0, y1);
+            list.forEach((slot, i) => {
+                const pos = clampArmyPos(x, ys[i], w, h);
+                slot.x = pos.x;
+                slot.y = pos.y;
+            });
+            return separateArmySlots(list, w, h);
+        }
+
+        if (arrange === "column") {
+            // Single depth column — role-agnostic vertical stack toward mid
+            const xs = mapXs([0.18, 0.28, 0.38].slice(0, Math.min(3, Math.max(1, Math.ceil(list.length / 4)))), hAlign, w);
+            placeGroupInColumns(list, xs, y0, y1, w, h);
+            return separateArmySlots(list, w, h);
+        }
 
         if (arrange === "spread") {
             const cols = list.length <= 4 ? 1 : (list.length <= 12 ? 2 : 3);
@@ -1116,55 +1168,71 @@
         return recruitUnit(state, id);
     }
 
-    /** Event-only: fuse two same-id same-star units into one higher star. */
+    /** Gold cost to raise a unit from currentStar → currentStar+1 at the fusion altar. */
+    function fusionGoldCost(unitId, currentStar) {
+        const star = Math.max(1, Math.min(STAR_CAP - 1, currentStar || 1));
+        const def = UNITS[unitId];
+        const rarity = (def && def.rarity) || "common";
+        const rarityMult = {
+            common: 1,
+            uncommon: 1.15,
+            rare: 1.35,
+            epic: 1.55,
+            legendary: 1.8,
+            unique: 2
+        };
+        const base = 18 + star * 14;
+        return Math.max(12, Math.floor(base * (rarityMult[rarity] || 1)));
+    }
+
+    /**
+     * Fusion altar: pay gold to raise one unit's star by 1 (does not consume units).
+     * Prefers the highest-star unit that is still below the cap.
+     */
     function mergeUnits(state) {
         state.ownedUnits = normalizeOwnedList(state.ownedUnits, state);
         const owned = state.ownedUnits;
-        const buckets = {};
-        owned.forEach((u, i) => {
-            if (u.star >= STAR_CAP) return;
-            const key = `${u.id}@@${u.star}`;
-            if (!buckets[key]) buckets[key] = [];
-            buckets[key].push(i);
-        });
-        let pickKey = null;
-        for (const key of Object.keys(buckets)) {
-            if (buckets[key].length >= 2) {
-                pickKey = key;
-                break;
+        const candidates = owned
+            .map((u, i) => ({ u, i, star: u.star || 1 }))
+            .filter((x) => x.star < STAR_CAP);
+        if (!candidates.length) {
+            return { ok: false, message: `所有單位已達 ★${STAR_CAP}，無法再融合` };
+        }
+        candidates.sort((a, b) => b.star - a.star);
+        const pick = candidates[0];
+        const cost = fusionGoldCost(pick.u.id, pick.star);
+        if (!spendGold(state, cost)) {
+            return { ok: false, message: `金幣不足（升星需要 ${cost} 金）` };
+        }
+
+        const oldStar = pick.star;
+        const nextStar = clampStar(oldStar + 1);
+        pick.u.star = nextStar;
+        pick.u.exp = 0;
+
+        // Keep deployed army star in sync
+        const uid = pick.u.uid;
+        (state.army || []).forEach((s) => {
+            if (armyUnitUid(s) === uid || (armyUnitId(s) === pick.u.id && armyUnitStar(s) === oldStar)) {
+                s.star = nextStar;
+                if (uid) s.uid = uid;
             }
-        }
-        if (!pickKey) return { ok: false, message: "需要兩名同種、同星級的單位才能融合" };
-
-        const idxs = buckets[pickKey];
-        const i1 = idxs[0];
-        const i2 = idxs[1];
-        const a = owned[i1];
-        const b = owned[i2];
-        const hi = Math.max(i1, i2);
-        const lo = Math.min(i1, i2);
-        owned.splice(hi, 1);
-        owned.splice(lo, 1);
-
-        const nextStar = clampStar((a.star || 1) + 1);
-        const kept = makeOwnedUnit(state, a.id, nextStar, 0);
-        owned.push(kept);
-
-        const dropUids = new Set([a.uid, b.uid]);
-        state.army = (state.army || []).filter((s) => !dropUids.has(armyUnitUid(s)));
-        appendArmyUnit(state.army, kept.id, kept.star, kept.uid);
-        state.army = clampArmyToOwned(state.ownedUnits, state.army);
+        });
         if (Array.isArray(state.lastBattleSetup)) {
-            state.lastBattleSetup = clampArmyToOwned(state.ownedUnits, state.lastBattleSetup);
+            state.lastBattleSetup.forEach((s) => {
+                if (armyUnitUid(s) === uid) s.star = nextStar;
+            });
         }
+        state.army = clampArmyToOwned(state.ownedUnits, state.army || []);
 
-        const name = UNITS[kept.id]?.name || kept.id;
+        const name = UNITS[pick.u.id]?.name || pick.u.id;
         return {
             ok: true,
-            message: `融合成功：${name} 升至 ★${nextStar}`,
-            id: kept.id,
+            message: `融合成功：${name} ★${oldStar} → ★${nextStar}（花費 ${cost} 金）`,
+            id: pick.u.id,
             star: nextStar,
-            uid: kept.uid
+            uid: pick.u.uid,
+            cost
         };
     }
 
@@ -2146,6 +2214,7 @@
         spendGold,
         recruitUnit,
         mergeUnits,
+        fusionGoldCost,
         autoMergeStars,
         grantBattleExp,
         grantShopExp,
@@ -2199,6 +2268,8 @@
         restoreLastBattleSetup,
         layoutArmySlots,
         layoutArmyFormation,
+        FORMATION_PRESETS,
+        resolveFormationOpts,
         armyUnitId,
         clampArmyToOwned,
         unitMayFight,

@@ -28,9 +28,11 @@
 }
 
 .war-shell:fullscreen,
-.war-shell:-webkit-full-screen {
+.war-shell:-webkit-full-screen,
+body.war-immersive .war-shell {
     max-width: none;
     min-height: 100dvh;
+    min-height: 100svh;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     background: var(--bg);
 }
@@ -42,32 +44,199 @@
     display: none;
 }
 
+/* Mobile pseudo-fullscreen (iOS / browsers without Fullscreen API) */
+body.war-immersive {
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: manipulation;
+}
+
+body.war-immersive .war-top-nav,
+body.war-immersive .war-footer,
+body.war-immersive .site-footer {
+    display: none !important;
+}
+
+body.war-immersive .war-page {
+    min-height: 100dvh;
+    min-height: 100svh;
+}
+
+body.war-immersive .war-shell {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+#fullscreenBtn.is-immersive {
+    background: color-mix(in srgb, var(--war-accent) 28%, var(--surface));
+    border-color: var(--war-accent);
+}
+
 .war-hud {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.65rem;
-    background: var(--surface);
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.45rem 0.55rem;
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--surface) 92%, #1e293b), var(--surface));
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 14px;
     flex-shrink: 0;
+    box-shadow: 0 1px 0 color-mix(in srgb, #fff 4%, transparent) inset;
 }
 
-.war-hud-row {
+.war-hud-status {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem 0.75rem;
-    font-size: 0.85rem;
-    font-weight: 600;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
 }
 
-.war-hud-hp { color: var(--war-danger); }
-.war-hud-gold { color: var(--war-gold); }
+.war-hud-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    max-width: 100%;
+    padding: 0.28rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--border) 80%, #64748b);
+    background: color-mix(in srgb, var(--bg) 55%, var(--surface));
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
-.war-hud-actions {
+.war-hud-pill--gold {
+    color: var(--war-gold);
+    border-color: color-mix(in srgb, var(--war-gold) 35%, var(--border));
+    background: color-mix(in srgb, var(--war-gold) 10%, var(--surface));
+}
+
+.war-hud-toolbar {
     display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
     gap: 0.35rem;
+    width: 100%;
+}
+
+.war-hud-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    align-items: stretch;
+}
+
+.war-hud-group[hidden] {
+    display: none !important;
+}
+
+.war-hud-group--prep {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.war-hud-group--prep .war-btn {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.war-hud-group--util {
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+
+.war-hud-group--prep:not([hidden]) + .war-hud-group--util {
+    padding-left: 0.35rem;
+    border-left: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+.war-hud-toolbar .war-btn {
+    min-height: 34px;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+
+.war-hud-group--util .war-btn {
+    flex: 0 0 auto;
+    min-width: 2.4rem;
+}
+
+.war-hud #startBattleBtn {
+    min-width: 3.6rem;
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--war-accent) 35%, transparent);
+}
+
+.war-hud-formation[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 560px) {
+    .war-hud {
+        gap: 0.35rem;
+        padding: 0.4rem 0.45rem;
+    }
+
+    .war-hud-toolbar {
+        gap: 0.3rem;
+    }
+
+    .war-hud-group--prep:not([hidden]) + .war-hud-group--util {
+        width: 100%;
+        margin-left: 0;
+        padding-left: 0;
+        border-left: none;
+        border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+        padding-top: 0.3rem;
+        justify-content: stretch;
+    }
+
+    .war-hud-group--prep:not([hidden]) + .war-hud-group--util .war-btn {
+        flex: 1 1 0;
+    }
+
+    .war-hud-group--prep .war-btn {
+        flex: 1 1 calc(25% - 0.25rem);
+        padding: 0.3rem 0.2rem;
+        font-size: 0.7rem;
+    }
+
+    .war-hud #formationAutoBtn:not([hidden]) {
+        flex: 1 1 100%;
+    }
+}
+
+@media (min-width: 720px) {
+    .war-hud {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.65rem;
+    }
+
+    .war-hud-status {
+        flex: 0 1 auto;
+    }
+
+    .war-hud-toolbar {
+        flex: 1 1 auto;
+        justify-content: flex-end;
+    }
+
+    .war-hud-group--prep {
+        flex: 0 1 auto;
+        max-width: min(36rem, 58%);
+    }
 }
 
 .war-screen {
@@ -514,28 +683,30 @@ body.dark .war-codex {
 .war-army-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
+    gap: 0.35rem;
     justify-content: center;
-    max-height: 28dvh;
+    max-height: 5.5rem;
     overflow-y: auto;
-    padding: 0.35rem;
+    padding: 0.3rem;
     border: 1px solid var(--border);
     border-radius: 12px;
     background: var(--surface);
+    flex-shrink: 0;
+    -webkit-overflow-scrolling: touch;
 }
 
 .war-army-chip {
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.2rem;
     border: 1px solid var(--border);
     border-radius: 999px;
-    padding: 0.3rem 0.55rem;
+    padding: 0.22rem 0.45rem;
     background: color-mix(in srgb, var(--war-player) 12%, var(--surface));
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 600;
     cursor: pointer;
-    min-height: 36px;
+    min-height: 32px;
 }
 
 .war-army-chip:active {
@@ -544,7 +715,7 @@ body.dark .war-codex {
 
 .war-army-chip-count {
     opacity: 0.75;
-    font-size: 0.7rem;
+    font-size: 0.68rem;
 }
 
 .war-army-chip--role-tank { border-left: 3px solid #60a5fa; }
@@ -568,6 +739,95 @@ body.dark .war-codex {
     border-radius: 14px;
     overflow: hidden;
     background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+}
+
+/* Formation screen: canvas only (actions live in HUD) */
+.war-screen--formation {
+    gap: 0;
+    overflow: hidden;
+}
+
+.war-canvas-wrap--prep {
+    flex: 1 1 auto;
+    min-height: 200px;
+    height: 100%;
+}
+
+.war-formation-dock {
+    display: none;
+}
+
+.war-action-bar--formation {
+    display: none;
+}
+
+.war-modal-dialog--deploy {
+    width: min(96vw, 520px);
+    max-height: min(88dvh, 720px);
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.war-modal-dialog--deploy .war-army-list {
+    max-height: min(36dvh, 280px);
+    flex: 1 1 auto;
+}
+
+.war-modal-dialog--deploy .war-modal-actions--deploy {
+    display: flex;
+    gap: 0.45rem;
+    flex-shrink: 0;
+}
+
+.war-modal-actions--deploy .war-btn {
+    flex: 1 1 0;
+    max-width: none;
+}
+
+.war-modal-dialog--deploy .war-formation-meta {
+    max-height: 3.5rem;
+    overflow: auto;
+    margin: 0;
+}
+
+.war-enemy-intel--modal {
+    margin: 0;
+    max-height: min(55dvh, 420px);
+    overflow: auto;
+    border: none;
+    padding: 0;
+    background: transparent;
+}
+
+.war-formation-presets {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.3rem;
+}
+
+.war-formation-presets .war-btn {
+    width: 100%;
+    min-width: 0;
+    padding: 0.35rem 0.2rem;
+    font-size: 0.72rem;
+    min-height: 34px;
+}
+
+.war-formation-presets .war-btn.is-active {
+    background: #334155;
+    border-color: #94a3b8;
+    color: #f8fafc;
+}
+
+@media (min-width: 720px) {
+    .war-formation-presets {
+        grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+
+    .war-canvas-wrap--prep {
+        min-height: 320px;
+    }
 }
 
 .war-battle-layout {
@@ -662,10 +922,7 @@ body.dark .war-army-chip--deployed {
 }
 
 .war-formation-layout-bar {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    margin: 0.35rem 0 0.15rem;
+    display: none;
 }
 
 .war-formation-layout-row {
@@ -714,9 +971,17 @@ body.dark .war-army-chip--deployed {
 .war-formation-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.45rem;
-    justify-content: center;
-    margin: 0.35rem 0 0.5rem;
+    gap: 0.3rem;
+    justify-content: flex-start;
+    margin: 0;
+    max-height: 4.5rem;
+    overflow: auto;
+}
+
+@media (min-width: 720px) {
+    .war-modal-dialog--deploy .war-army-list {
+        max-height: min(42dvh, 360px);
+    }
 }
 
 .war-meta-chip {

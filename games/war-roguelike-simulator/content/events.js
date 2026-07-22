@@ -174,8 +174,8 @@
             { label: "超載協議（下 2 場僅 [機械] 可戰，機械防禦 +10）", reward: { contract: { id: "mech_pact", name: "超載協議", rooms: 2, desc: "僅 [機械] 可出戰；機械防禦 +10", effect: { onlyFightTag: "mechanical", tag: "mechanical", def: 10 } } } },
             { label: "拆解換金 (+25 金)", reward: { gold: 25 } }
         ]},
-        { id: "fusion_altar", title: "融合祭壇", text: "兩名同種同星級的部隊可在此合而為一，升至更高星級（最高 ★10）。", choices: [
-            { label: "進行融合（消耗兩名同種同星）", reward: { mergeUnits: true } },
+        { id: "fusion_altar", title: "融合祭壇", text: "祭壇可用金幣強化一名部隊星級（不消耗單位，優先最高星，最高 ★10）。", choices: [
+            { label: "獻金升星（不消耗單位）", reward: { mergeUnits: true } },
             { label: "離開", reward: {} }
         ]},
         { id: "unique_legacy", title: "遺世遺產", text: "一座封印祭壇低語著唯一之名——隨機賜予一件尚未擁有的唯一單位或能力。", choices: [

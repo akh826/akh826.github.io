@@ -88,12 +88,19 @@
     function updateEndlessAutoUi() {
         const show = !!(state && state.endless);
         const on = !!(state && state.endless && state.endlessAutoRun);
+        const onFormation = screens.formation && screens.formation.hidden === false;
         ["endlessAutoBtn", "formationAutoBtn", "battleAutoBtn"].forEach((id) => {
             const el = $(id);
             if (!el) return;
-            el.hidden = !show;
+            if (id === "formationAutoBtn") {
+                el.hidden = !(show && onFormation);
+            } else {
+                el.hidden = !show;
+            }
             el.classList.toggle("is-active", on);
-            el.textContent = on ? "自動連戰：開" : "自動連戰：關";
+            el.textContent = id === "formationAutoBtn"
+                ? (on ? "連戰：開" : "連戰：關")
+                : (on ? "自動連戰：開" : "自動連戰：關");
             el.setAttribute("aria-pressed", on ? "true" : "false");
         });
     }
@@ -264,6 +271,26 @@
             if (el) el.hidden = key !== name;
         });
         $("warHud").hidden = name === "title" || name === "victory" || name === "defeat";
+        const hud = $("warHud");
+        if (hud) hud.classList.toggle("war-hud--formation", name === "formation");
+        const prepGroup = $("hudPrepGroup");
+        if (prepGroup) prepGroup.hidden = name !== "formation";
+        document.querySelectorAll(".war-hud-formation").forEach((btn) => {
+            if (btn.id === "formationAutoBtn") return;
+            btn.hidden = name !== "formation";
+        });
+        updateEndlessAutoUi();
+        if (name === "formation") {
+            requestAnimationFrame(() => {
+                resizePrepCanvas();
+                drawPrepBoard();
+            });
+        } else if (name === "battle") {
+            requestAnimationFrame(() => {
+                resizeCanvas();
+                drawBattle();
+            });
+        }
     }
 
     function updateHud() {
@@ -1230,11 +1257,9 @@
         if (!panel) return;
         const army = pendingEncounter?.enemyArmy || [];
         if (!army.length) {
-            panel.hidden = true;
-            panel.innerHTML = "";
+            panel.innerHTML = `<p class="war-hint">目前沒有敵軍情報</p>`;
             return;
         }
-        panel.hidden = false;
         const counts = {};
         const affixCounts = {};
         army.forEach((e) => {
@@ -1255,8 +1280,13 @@
                 + (a.tip ? `<div class="war-enemy-intel-tip">剋制：${a.tip}</div>` : "")
                 + `</div>`;
         }).join("");
+        const terrain = pendingEncounter?.terrain;
+        const terrainHtml = terrain
+            ? `<div class="war-enemy-intel-row"><strong>${terrain.icon || ""} ${terrain.name}</strong>：${terrain.desc || ""}</div>`
+            : "";
         panel.innerHTML = `
-            <p class="war-enemy-intel-title">敵軍情報（${army.length}）</p>
+            ${terrainHtml}
+            <p class="war-enemy-intel-title">敵軍組成（${army.length}）</p>
             ${unitLines}
             ${affixLines
                 ? `<p class="war-enemy-intel-title" style="margin-top:0.45rem">精英詞綴</p>${affixLines}`
@@ -1264,21 +1294,71 @@
         `;
     }
 
+    function openEnemyIntelModal() {
+        renderEnemyIntel();
+        const modal = $("enemyIntelModal");
+        if (modal) modal.hidden = false;
+    }
+
+    function closeEnemyIntelModal() {
+        const modal = $("enemyIntelModal");
+        if (modal) modal.hidden = true;
+    }
+
+    function openTroopsPanel() {
+        // Formation: deploy + presets; elsewhere: roster details / revive
+        if (screens.formation && screens.formation.hidden === false) {
+            openDeployModal();
+            return;
+        }
+        openUnitModal();
+    }
+
+    function openDeployModal() {
+        renderArmyPrep();
+        const modal = $("deployModal");
+        if (modal) modal.hidden = false;
+    }
+
+    function closeDeployModal() {
+        const modal = $("deployModal");
+        if (modal) modal.hidden = true;
+        requestAnimationFrame(() => {
+            resizePrepCanvas();
+            drawPrepBoard();
+        });
+    }
+
     function fitArenaCanvas(canvas) {
         if (!canvas) return;
         const wrap = canvas.parentElement;
-        const maxW = wrap?.clientWidth || ARENA.width;
+        const maxW = Math.max(1, wrap?.clientWidth || ARENA.width);
         const isBattle = canvas.id === "battleCanvas";
+        const isPrep = canvas.id === "prepCanvas";
         const wrapH = wrap?.clientHeight || 0;
-        const maxH = isBattle
-            ? Math.max(wrapH || 0, Math.min(window.innerHeight * 0.68, 720))
-            : Math.min(window.innerHeight * 0.5, 520);
+        let maxH;
+        if (isBattle) {
+            maxH = Math.max(wrapH || 0, Math.min(window.innerHeight * 0.68, 720));
+        } else if (isPrep) {
+            // Prefer the flex-allocated wrap height so prep board fills remaining screen
+            maxH = wrapH > 40
+                ? wrapH
+                : Math.min(window.innerHeight * 0.42, 420);
+        } else {
+            maxH = Math.min(window.innerHeight * 0.5, 520);
+        }
         const aspect = ARENA.width / ARENA.height;
         let cssW = maxW;
         let cssH = cssW / aspect;
         if (cssH > maxH) {
             cssH = maxH;
             cssW = cssH * aspect;
+        }
+        // If width leftover after height-fit, allow growing width within wrap
+        if (cssW < maxW && cssH < maxH) {
+            const grow = Math.min(maxW / cssW, maxH / cssH);
+            cssW *= grow;
+            cssH *= grow;
         }
         canvas.width = ARENA.width;
         canvas.height = ARENA.height;
@@ -1458,8 +1538,8 @@
         const mods = WarState.aggregateModifiers(state);
         const restrictLabel = WarState.fightRestrictionLabel(mods);
         $("formationHint").textContent = restrictLabel
-            ? `詛咒：僅 [${restrictLabel}] 可出戰並放置於戰場；點單位切換出戰，拖曳調整站位。`
-            : "點單位切換出戰；拖曳左側棋子調整站位。存活單位戰後獲得經驗，滿則升星（合星僅限事件）。";
+            ? `僅 [${restrictLabel}] 可出戰 · 點單位切換 · 拖曳站位`
+            : "點單位出戰 · 拖曳站位 · 一鍵預設可快速佈陣";
         const ownedList = WarState.normalizeOwnedList(state.ownedUnits || [], state);
         const ownedN = ownedList.length;
         const deployN = state.army.length;
@@ -1503,6 +1583,10 @@
         bindPrepCanvas();
         drawPrepBoard();
         updateHud();
+        requestAnimationFrame(() => {
+            resizePrepCanvas();
+            drawPrepBoard();
+        });
     }
 
     function drawBattle() {
@@ -2509,15 +2593,105 @@
         $("galleryModal").hidden = true;
     }
 
+    function supportsNativeFullscreen() {
+        const el = $("warShell") || document.documentElement;
+        return !!(
+            document.fullscreenEnabled
+            || document.webkitFullscreenEnabled
+            || el.requestFullscreen
+            || el.webkitRequestFullscreen
+            || el.webkitRequestFullScreen
+        );
+    }
+
+    function isNativeFullscreen() {
+        return !!(
+            document.fullscreenElement
+            || document.webkitFullscreenElement
+            || document.webkitCurrentFullScreenElement
+        );
+    }
+
+    function isImmersiveMode() {
+        return isNativeFullscreen() || document.body.classList.contains("war-immersive");
+    }
+
+    function refreshFullscreenUi() {
+        const btn = $("fullscreenBtn");
+        if (!btn) return;
+        const on = isImmersiveMode();
+        btn.classList.toggle("is-immersive", on);
+        btn.setAttribute("aria-pressed", on ? "true" : "false");
+        btn.setAttribute("aria-label", on ? "退出全螢幕" : "全螢幕");
+        btn.title = on ? "退出全螢幕" : "全螢幕";
+        // Resize canvases after chrome hide/show
+        requestAnimationFrame(() => {
+            if (screens.formation && !screens.formation.hidden) {
+                resizePrepCanvas();
+                drawPrepBoard();
+            }
+            if (screens.battle && !screens.battle.hidden) {
+                resizeCanvas();
+                drawBattle();
+            }
+            if (screens.map && !screens.map.hidden && state) renderMap();
+        });
+    }
+
+    function enterCssImmersive() {
+        document.body.classList.add("war-immersive");
+        // Nudge mobile browser chrome to collapse when possible
+        const y = Math.max(1, window.scrollY || 0);
+        window.scrollTo(0, y + 1);
+        setTimeout(() => window.scrollTo(0, 0), 50);
+        refreshFullscreenUi();
+    }
+
+    function exitCssImmersive() {
+        document.body.classList.remove("war-immersive");
+        refreshFullscreenUi();
+    }
+
     function toggleFullscreen() {
         const el = $("warShell");
-        if (document.fullscreenElement) {
-            document.exitFullscreen().catch(() => {});
-        } else if (el.requestFullscreen) {
-            el.requestFullscreen().catch(() => {});
-        } else if (el.webkitRequestFullscreen) {
-            el.webkitRequestFullscreen();
+        if (!el) return;
+
+        // Exit either mode first
+        if (isNativeFullscreen()) {
+            const exit = document.exitFullscreen
+                || document.webkitExitFullscreen
+                || document.webkitCancelFullScreen;
+            if (exit) {
+                Promise.resolve(exit.call(document)).catch(() => exitCssImmersive());
+            }
+            return;
         }
+        if (document.body.classList.contains("war-immersive")) {
+            exitCssImmersive();
+            return;
+        }
+
+        // Prefer native Fullscreen API when it actually works (mostly desktop / Android)
+        const canNative = supportsNativeFullscreen()
+            && !(/iP(ad|hone|od)/.test(navigator.userAgent)
+                || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
+
+        if (canNative) {
+            const req = el.requestFullscreen
+                || el.webkitRequestFullscreen
+                || el.webkitRequestFullScreen;
+            if (req) {
+                Promise.resolve(req.call(el)).then(() => {
+                    refreshFullscreenUi();
+                }).catch(() => {
+                    // Mobile browsers often reject — fall back to CSS immersive
+                    enterCssImmersive();
+                });
+                return;
+            }
+        }
+
+        enterCssImmersive();
     }
 
     function init() {
@@ -2549,20 +2723,12 @@
             state.army = [];
             renderArmyPrep();
         });
-        const formationLayout = { arrange: "frontBack", vAlign: "middle", hAlign: "middle" };
-        const arrangeLabel = { frontBack: "近前遠後", spread: "均勻分佈" };
-        const valignLabel = { top: "靠上", middle: "置中", bottom: "靠下" };
-        const halignLabel = { front: "靠前", middle: "置中", back: "靠後" };
+        const formationLayout = { preset: "balanced" };
+        const presets = WarState.FORMATION_PRESETS || {};
 
         function syncFormationLayoutUi() {
-            document.querySelectorAll(".war-layout-arrange").forEach((btn) => {
-                btn.classList.toggle("is-active", btn.dataset.arrange === formationLayout.arrange);
-            });
-            document.querySelectorAll(".war-layout-valign").forEach((btn) => {
-                btn.classList.toggle("is-active", btn.dataset.valign === formationLayout.vAlign);
-            });
-            document.querySelectorAll(".war-layout-halign").forEach((btn) => {
-                btn.classList.toggle("is-active", btn.dataset.halign === formationLayout.hAlign);
+            document.querySelectorAll(".war-layout-preset").forEach((btn) => {
+                btn.classList.toggle("is-active", btn.dataset.preset === formationLayout.preset);
             });
         }
 
@@ -2571,34 +2737,27 @@
                 $("formationHint").textContent = "請先派出單位";
                 return;
             }
+            const resolved = WarState.resolveFormationOpts
+                ? WarState.resolveFormationOpts(formationLayout)
+                : formationLayout;
             WarState.layoutArmyFormation(state.army, formationLayout);
             renderArmyPrep();
-            $("formationHint").textContent =
-                `站位：${arrangeLabel[formationLayout.arrange]} · ${valignLabel[formationLayout.vAlign]} · ${halignLabel[formationLayout.hAlign]}`;
+            const label = (resolved && resolved.label)
+                || (presets[formationLayout.preset] && presets[formationLayout.preset].label)
+                || formationLayout.preset
+                || "站位";
+            $("formationHint").textContent = `站位：${label} · 可再拖曳微調`;
             WarState.saveGame(state);
         }
 
-        document.querySelectorAll(".war-layout-arrange").forEach((btn) => {
+        document.querySelectorAll(".war-layout-preset").forEach((btn) => {
             btn.addEventListener("click", () => {
-                formationLayout.arrange = btn.dataset.arrange;
+                formationLayout.preset = btn.dataset.preset;
                 syncFormationLayoutUi();
                 applyCombinedFormationLayout();
             });
         });
-        document.querySelectorAll(".war-layout-valign").forEach((btn) => {
-            btn.addEventListener("click", () => {
-                formationLayout.vAlign = btn.dataset.valign;
-                syncFormationLayoutUi();
-                applyCombinedFormationLayout();
-            });
-        });
-        document.querySelectorAll(".war-layout-halign").forEach((btn) => {
-            btn.addEventListener("click", () => {
-                formationLayout.hAlign = btn.dataset.halign;
-                syncFormationLayoutUi();
-                applyCombinedFormationLayout();
-            });
-        });
+        syncFormationLayoutUi();
         $("deployAllBtn").addEventListener("click", () => {
             deployAllEligible();
             renderArmyPrep();
@@ -2612,6 +2771,11 @@
             btn.addEventListener("click", () => setBattleSpeed(btn.dataset.speed));
         });
         $("fullscreenBtn").addEventListener("click", toggleFullscreen);
+        document.addEventListener("fullscreenchange", refreshFullscreenUi);
+        document.addEventListener("webkitfullscreenchange", refreshFullscreenUi);
+        window.addEventListener("orientationchange", () => {
+            if (isImmersiveMode()) setTimeout(refreshFullscreenUi, 120);
+        });
         $("saveBtn").addEventListener("click", () => {
             if (state) {
                 WarState.saveGame(state);
@@ -2632,8 +2796,24 @@
             codex.hidden = !show;
             $("itemCodexToggle").textContent = show ? "隱藏神器/能力效果" : "查看神器/能力效果";
         });
-        $("unitRosterBtn").addEventListener("click", openUnitModal);
-        $("prepUnitInfoBtn").addEventListener("click", openUnitModal);
+        $("unitRosterBtn").addEventListener("click", openTroopsPanel);
+        const deployClose = $("deployModalClose");
+        if (deployClose) deployClose.addEventListener("click", closeDeployModal);
+        const deployBackdrop = $("deployModalBackdrop");
+        if (deployBackdrop) deployBackdrop.addEventListener("click", closeDeployModal);
+        const deployDetail = $("deployRosterDetailBtn");
+        if (deployDetail) {
+            deployDetail.addEventListener("click", () => {
+                closeDeployModal();
+                openUnitModal();
+            });
+        }
+        const intelBtn = $("enemyIntelBtn");
+        if (intelBtn) intelBtn.addEventListener("click", openEnemyIntelModal);
+        const intelClose = $("enemyIntelModalClose");
+        if (intelClose) intelClose.addEventListener("click", closeEnemyIntelModal);
+        const intelBackdrop = $("enemyIntelModalBackdrop");
+        if (intelBackdrop) intelBackdrop.addEventListener("click", closeEnemyIntelModal);
         $("unitModalClose").addEventListener("click", closeUnitModal);
         $("unitModalBackdrop").addEventListener("click", closeUnitModal);
 
