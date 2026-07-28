@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="繁體中文打字練習 — 固定關卡、無限隨機，以及顯示倉頡／速成碼的練習模式。">
+    <title>繁體打字練習 | Games</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../games.css">
+    <link rel="stylesheet" href="typing.css">
+</head>
+
+<body>
+    <top-nav page="games" root="../.."></top-nav>
+
+    <main class="game-tool-page game-tool-page--typing section">
+        <div class="container game-page-nav">
+            <a class="game-back" href="../index.html">&larr; Games catalog</a>
+            <h1 class="game-page-title">繁體打字練習</h1>
+        </div>
+
+        <div class="container typing-app">
+            <!-- Mode select -->
+            <section class="typing-panel" id="modeScreen" aria-labelledby="modeHeading">
+                <h2 id="modeHeading" class="typing-panel-title">選擇模式</h2>
+                <p class="typing-panel-desc">
+                    請開啟系統中文輸入法（注音、倉頡、拼音等皆可），練習繁體中文打字。
+                    進行中會即時顯示 WPM 與正確率。
+                </p>
+                <div class="typing-mode-grid">
+                    <button type="button" class="typing-mode-card" id="btnStages">
+                        <span class="typing-mode-card-title">固定關卡</span>
+                        <span class="typing-mode-card-desc">12 關由易到難，通過後解鎖下一關</span>
+                    </button>
+                    <button type="button" class="typing-mode-card" id="btnInfinite">
+                        <span class="typing-mode-card-title">無限隨機</span>
+                        <span class="typing-mode-card-desc">隨機詞句連續練習，整場累計統計</span>
+                    </button>
+                    <button type="button" class="typing-mode-card" id="btnCodePractice">
+                        <span class="typing-mode-card-title">倉頡／速成練習</span>
+                        <span class="typing-mode-card-desc">無限隨機並顯示輸入碼，方便對照練習</span>
+                    </button>
+                    <button type="button" class="typing-mode-card" id="btnCodeDrill">
+                        <span class="typing-mode-card-title">英文字母速練</span>
+                        <span class="typing-mode-card-desc">看漢字打英文字母碼；先不顯示答案，打錯才揭示</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Stage list -->
+            <section class="typing-panel" id="stagesScreen" hidden aria-labelledby="stagesHeading">
+                <div class="typing-panel-head">
+                    <h2 id="stagesHeading" class="typing-panel-title">固定關卡</h2>
+                    <button type="button" class="btn btn-outline typing-back-btn" id="stagesBackBtn">返回</button>
+                </div>
+                <p class="typing-panel-desc">完成全文且正確率達 90% 即可通關並解鎖下一關。</p>
+                <ul class="typing-stage-list" id="stageList"></ul>
+            </section>
+
+            <!-- Play screen -->
+            <section class="typing-panel typing-panel--play" id="playScreen" hidden aria-labelledby="playHeading">
+                <div class="typing-panel-head">
+                    <h2 id="playHeading" class="typing-panel-title">練習中</h2>
+                    <div class="typing-play-actions">
+                        <button type="button" class="btn btn-outline" id="endSessionBtn" hidden>結束本場</button>
+                        <button type="button" class="btn btn-outline typing-back-btn" id="playBackBtn">返回</button>
+                    </div>
+                </div>
+
+                <div class="typing-stats" aria-live="polite">
+                    <div class="typing-stat">
+                        <span class="typing-stat-label">WPM</span>
+                        <span class="typing-stat-value" id="statWpm">0</span>
+                    </div>
+                    <div class="typing-stat">
+                        <span class="typing-stat-label">正確率</span>
+                        <span class="typing-stat-value" id="statAccuracy">100%</span>
+                    </div>
+                    <div class="typing-stat">
+                        <span class="typing-stat-label">時間</span>
+                        <span class="typing-stat-value" id="statTime">0:00</span>
+                    </div>
+                    <div class="typing-stat">
+                        <span class="typing-stat-label">本題</span>
+                        <span class="typing-stat-value" id="statProgress">0/0</span>
+                    </div>
+                    <div class="typing-stat">
+                        <span class="typing-stat-label">題數</span>
+                        <span class="typing-stat-value" id="statPromptNo">—</span>
+                    </div>
+                </div>
+
+                <p class="typing-prompt-meta" id="promptMeta"></p>
+
+                <div class="typing-code-toolbar" id="codeToolbar" hidden>
+                    <span class="typing-code-toolbar-label">顯示碼</span>
+                    <div class="typing-code-toggle" role="group" aria-label="輸入碼種類">
+                        <button type="button" class="typing-code-btn active" id="codeBtnSucheng" data-code-method="sucheng">速成</button>
+                        <button type="button" class="typing-code-btn" id="codeBtnCangjie" data-code-method="cangjie">倉頡</button>
+                    </div>
+                </div>
+
+                <div class="typing-prompt" id="promptDisplay" aria-label="待打文字"></div>
+
+                <div class="typing-vkb" id="virtualKeyboard" hidden aria-label="倉頡虛擬鍵盤">
+                    <div class="typing-vkb-head">
+                        <span class="typing-vkb-title">倉頡鍵位</span>
+                        <span class="typing-vkb-current" id="vkbCurrent"></span>
+                    </div>
+                    <div class="typing-vkb-rows" id="vkbRows"></div>
+                    <p class="typing-vkb-legend">高亮為目前字的輸入碼順序（數字＝按鍵次序）</p>
+                </div>
+
+                <label class="typing-input-label" id="typingInputLabel" for="typingInput">在此輸入（使用系統輸入法）</label>
+                <div class="typing-input-row">
+                    <input
+                        type="text"
+                        id="typingInput"
+                        class="typing-input"
+                        autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        spellcheck="false"
+                        lang="zh-Hant"
+                        enterkeyhint="done"
+                    >
+                    <button type="button" class="btn btn-primary" id="submitBtn">提交</button>
+                </div>
+
+                <p class="typing-hint" id="playHint">開始輸入後計時。組字完成後按 Tab 或「提交」才會下一題／結算。</p>
+            </section>
+
+            <!-- Result overlay -->
+            <section class="typing-panel" id="resultScreen" hidden aria-labelledby="resultHeading">
+                <h2 id="resultHeading" class="typing-panel-title">本場結算</h2>
+                <div class="typing-result-stats">
+                    <div class="typing-stat">
+                        <span class="typing-stat-label">WPM</span>
+                        <span class="typing-stat-value" id="resultWpm">0</span>
+                    </div>
+                    <div class="typing-stat">
+                        <span class="typing-stat-label">正確率</span>
+                        <span class="typing-stat-value" id="resultAccuracy">100%</span>
+                    </div>
+                    <div class="typing-stat">
+                        <span class="typing-stat-label">時間</span>
+                        <span class="typing-stat-value" id="resultTime">0:00</span>
+                    </div>
+                    <div class="typing-stat">
+                        <span class="typing-stat-label">字數</span>
+                        <span class="typing-stat-value" id="resultChars">0</span>
+                    </div>
+                </div>
+                <p class="typing-result-message" id="resultMessage"></p>
+                <div class="typing-result-actions">
+                    <button type="button" class="btn btn-primary" id="resultRetryBtn">再試一次</button>
+                    <button type="button" class="btn btn-outline" id="resultHomeBtn">回到選單</button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; <span id="year"></span> Kam Hei Au. Games.</p>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="../../shared/top-nav.js"></script>
+    <script src="../../script.js"></script>
+    <script src="data.js"></script>
+    <script src="cangjie-map.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

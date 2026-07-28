@@ -29,5 +29,12 @@ window.GAME_CATALOG = [
         description:
             "戰場混戰 Roguelike — 固定初始單位、透過招募壯大部隊，在 2D 戰場追擊群毆並擊敗 Boss。",
         tags: ["Roguelike", "Strategy", "Mobile", "Auto-battle"]
+    },
+    {
+        slug: "chinese-typing",
+        title: "繁體打字練習",
+        description:
+            "用系統輸入法練習繁體中文 — 固定關卡、無限隨機、倉頡／速成對照，以及英文字母碼速練。",
+        tags: ["Typing", "Chinese", "Practice", "Cangjie"]
     }
 ];
