@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="View and search a restaurant comment list backed by a public Google Sheet.">
+    <title>Restaurant Comment List | Tools</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../tools.css">
+</head>
+
+<body>
+    <header class="site-header">
+        <nav class="nav container">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">Menu</button>
+            <ul class="nav-links" id="navLinks">
+                <li class="nav-sections-group">
+                    <span class="nav-area-label">Portfolio</span>
+                    <ul class="nav-sections-list">
+                        <li><a href="../../index.html" class="nav-link nav-link-section">Home</a></li>
+                        <li><a href="index.html" class="nav-link nav-link-section active">Restaurant Comment List</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-divider" aria-hidden="true"></li>
+                <li>
+                    <a href="../index.html" class="nav-link nav-link-tools">
+                        <span class="nav-tools-icon" aria-hidden="true">⬡</span>
+                        Tools
+                    </a>
+                </li>
+            </ul>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">Dark</button>
+        </nav>
+    </header>
+
+    <main class="tool-page section">
+        <div class="container sheet-page-shell">
+            <a class="tool-back" href="../index.html">&larr; Tool catalog</a>
+
+            <header class="tool-header">
+                <h1>Restaurant Comment List</h1>
+                <p class="tool-intro">
+                    Loads the restaurant comment list into a searchable table. Use the search box to filter rows
+                    across all visible cells.
+                </p>
+            </header>
+
+            <section class="info-card sheet-viewer-card">
+                <div class="sheet-toolbar">
+                    <label class="sheet-search" for="sheetSearch">
+                        <span class="sheet-search-label">Search comments</span>
+                        <input id="sheetSearch" class="sheet-search-input" type="search"
+                            placeholder="Search all comments..." autocomplete="off" disabled>
+                    </label>
+
+                    <div class="sheet-actions">
+                        <button type="button" class="btn btn-primary" id="reloadSheetBtn">Reload list</button>
+                        <a class="btn btn-outline" id="openSheetBtn" href="#" target="_blank"
+                            rel="noopener noreferrer">Open spreadsheet</a>
+                    </div>
+                </div>
+
+                <div class="sheet-filters" aria-label="Structured filters">
+                    <label class="sheet-filter" for="nameFilter">
+                        <span class="sheet-search-label">Name</span>
+                        <input id="nameFilter" class="sheet-search-input" type="search"
+                            placeholder="Filter by restaurant name" autocomplete="off" disabled>
+                    </label>
+
+                    <label class="sheet-filter" for="locationFilter">
+                        <span class="sheet-search-label">Location</span>
+                        <select id="locationFilter" class="sheet-search-input" disabled>
+                            <option value="">All locations</option>
+                        </select>
+                    </label>
+
+                    <label class="sheet-filter" for="tagFilter">
+                        <span class="sheet-search-label">Tag</span>
+                        <select id="tagFilter" class="sheet-search-input" disabled>
+                            <option value="">All tags</option>
+                        </select>
+                    </label>
+
+                    <label class="sheet-filter" for="ratingFilter">
+                        <span class="sheet-search-label">Rating</span>
+                        <select id="ratingFilter" class="sheet-search-input" disabled>
+                            <option value="">All ratings</option>
+                        </select>
+                    </label>
+
+                    <label class="sheet-filter" for="typeFilter">
+                        <span class="sheet-search-label">Type</span>
+                        <select id="typeFilter" class="sheet-search-input" disabled>
+                            <option value="">All types</option>
+                        </select>
+                    </label>
+
+                    <label class="sheet-filter" for="dateFromFilter">
+                        <span class="sheet-search-label">Date from</span>
+                        <input id="dateFromFilter" class="sheet-search-input" type="date" disabled>
+                    </label>
+
+                    <label class="sheet-filter" for="dateToFilter">
+                        <span class="sheet-search-label">Date to</span>
+                        <input id="dateToFilter" class="sheet-search-input" type="date" disabled>
+                    </label>
+                </div>
+
+                <div class="sheet-meta" aria-live="polite">
+                    <p class="sheet-meta-item" id="sheetSummary">Loading restaurant comment list...</p>
+                    <p class="sheet-meta-item sheet-meta-link">
+                        Source: <a id="sheetSourceLink" href="#" target="_blank" rel="noopener noreferrer">Google
+                            Sheet</a>
+                    </p>
+                </div>
+
+                <p class="tool-status" id="sheetStatus" aria-live="polite"></p>
+
+                <div class="sheet-table-wrap">
+                    <table class="sheet-table" aria-label="Restaurant comment list table">
+                        <thead id="sheetHead"></thead>
+                        <tbody id="sheetBody"></tbody>
+                    </table>
+                </div>
+
+                <p class="sheet-empty" id="sheetEmpty" hidden>No comments match your search.</p>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <p>&copy; <span id="year"></span> Kam Hei Au. Tools.</p>
+            <a href="../../index.html">Portfolio</a>
+        </div>
+    </footer>
+
+    <script src="../../script.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

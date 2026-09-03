@@ -130,5 +130,12 @@ window.TOOL_CATALOG = [
     description:
       "Estimate retirement corpus and savings needs from monthly income, target lifetime, and inflation-aware projections.",
     tags: ["Finance", "Utility", "Calculator", "Retirement"]
+  },
+  {
+    slug: "google-sheet-viewer",
+    title: "Restaurant Comment List",
+    description:
+      "View the restaurant comment list from a public Google Sheet in a searchable table and filter rows across all cells.",
+    tags: ["Google Sheets", "Data", "Search", "Utility"]
   }
 ];
